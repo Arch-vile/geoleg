@@ -1,6 +1,7 @@
 package com.nakoradio.geoleg.model
 
 import com.nakoradio.geoleg.controllers.COOKIE_NAME
+import com.nakoradio.geoleg.services.Cryptor
 import java.time.OffsetDateTime
 import javax.servlet.http.Cookie
 
@@ -10,11 +11,3 @@ data class StateCookie(val scenario: String, val currentLeg: Int, val expiresAt:
     }
 }
 
-fun cookieFrom(data: String): StateCookie {
-    return StateCookie(
-            "some scenario",
-            222,
-            OffsetDateTime.now(),
-            "foooobar"
-    )
-}

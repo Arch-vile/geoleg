@@ -1,7 +1,7 @@
 package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.StateCookie
-import com.nakoradio.geoleg.model.cookieFrom
+import com.nakoradio.geoleg.services.CookieManager
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,9 +16,9 @@ const val COOKIE_NAME = "yummy"
 Handles the scanned QR codes
  */
 @Controller
-class QRController {
+class QRController(val cookieManager: CookieManager) {
 
-    private val CODE_MAPPING = mapOf(
+    private val QR_CODE_MAPPING = mapOf(
             "2e910ca65a107421" to "/engine/ancient-blood/1?secret=fd32c86119df9ea7",
             "a77e677275f1d5bf" to "/engine/ancient-blood/",
             "5f47fb7bd175f3fa" to "/engine/ancient-blood/",
@@ -37,7 +37,7 @@ class QRController {
             @CookieValue(COOKIE_NAME) cookieData: String?,
             @PathVariable("qrCode") qrCode: String,
             response: HttpServletResponse): String {
-        val userId = cookieData?.let {  cookieFrom(cookieData).userId}
+        val userId = null//cookieData?.let {  cookieFrom(cookieData).userId}
 
         val cookie = StateCookie(
                 "Ancient Blood",
@@ -46,7 +46,7 @@ class QRController {
                 userId ?: "Bulut"
         )
 
-        response.addCookie(cookie.asCookie())
+        response.addCookie(cookieManager.toWebCookie(cookie))
 
         return "hello there $qrCode"
     }
