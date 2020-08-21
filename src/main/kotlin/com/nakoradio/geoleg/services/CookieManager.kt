@@ -5,6 +5,7 @@ import com.nakoradio.geoleg.controllers.COOKIE_NAME
 import com.nakoradio.geoleg.model.StateCookie
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
+import java.util.UUID
 import javax.servlet.http.Cookie
 
 @Service
@@ -15,7 +16,8 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
                 "some scenario",
                 222,
                 OffsetDateTime.now(),
-                "foooobar"
+                OffsetDateTime.now(),
+                UUID.randomUUID()
         )
     }
 
