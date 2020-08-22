@@ -3,6 +3,7 @@ package com.nakoradio.geoleg.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nakoradio.geoleg.controllers.COOKIE_NAME
 import com.nakoradio.geoleg.model.StateCookie
+import com.nakoradio.geoleg.utils.now
 import java.time.OffsetDateTime
 import java.util.UUID
 import javax.servlet.http.Cookie
@@ -10,16 +11,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
-
-    fun cookieFrom(data: String): StateCookie {
-        return StateCookie(
-                "some scenario",
-                222,
-                OffsetDateTime.now(),
-                OffsetDateTime.now(),
-                UUID.randomUUID()
-        )
-    }
 
     fun toWebCookie(cookie: StateCookie): Cookie {
         val json = jsonMapper.writeValueAsString(cookie)
@@ -29,7 +20,21 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
         return webCookie
     }
 
-    fun fromWebCookie(cookieData: String) =
+    fun fromWebCookie(cookieData: String): StateCookie =
         jsonMapper.readValue(cryptor.aesDecrypt(cookieData), StateCookie::class.java);
+
+    fun create(scenario:
+               String,
+               leg: Int,
+               expiresAt: OffsetDateTime,
+               userId: UUID): StateCookie {
+        return StateCookie(
+                scenario,
+                leg,
+                expiresAt,
+                now(),
+                userId
+        )
+    }
 
 }

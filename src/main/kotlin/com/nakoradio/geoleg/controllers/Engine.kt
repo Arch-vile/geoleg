@@ -3,6 +3,7 @@ package com.nakoradio.geoleg.controllers
 import com.nakoradio.geoleg.model.StateCookie
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.services.CookieManager
+import com.nakoradio.geoleg.utils.now
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.util.UUID
 import javax.servlet.http.HttpServletResponse
 
@@ -39,11 +41,11 @@ class Engine(val cookieManager: CookieManager) {
     // actually where the user already is)
     // Preserving the userId if present
     private fun startAncientBlood(cookieData: String?, response: HttpServletResponse): String {
-        val cookie = StateCookie(
+        val cookie =
+                cookieManager.create(
                 SCENARIO_ANCIENT_BLOOD,
                 1,
-                OffsetDateTime.now().plusYears(10),
-                OffsetDateTime.now(),
+                now().plusYears(10),
                 cookieData?.let {
                     cookieManager.fromWebCookie(it).userId
                 } ?: UUID.randomUUID()
