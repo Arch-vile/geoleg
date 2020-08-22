@@ -1,5 +1,6 @@
 package com.nakoradio.geoleg.controllers
 
+import com.nakoradio.geoleg.model.Location
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.StoryError
 import com.nakoradio.geoleg.model.TechnicalError
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import java.time.Duration
+import kotlin.math.absoluteValue
 
 @Controller
 class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
@@ -51,7 +54,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
             @PathVariable("scenario") scenario: String,
             @PathVariable("quest") questOrder: Int,
             @PathVariable("secret") secret: String,
-            @PathVariable("location") location: String,
+            @PathVariable("location") locationString: String,
             response: HttpServletResponse
     ) {
         val quest = loader
@@ -68,7 +71,17 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
             throw StoryError("You need to start from the first quest! Go at coordinates: ${quest.location.lat}, ${quest.location.lon}");
         }
 
+        val location = Location.fromString(locationString)
+        checkIsFresh(location)
+
         throw TechnicalError("Check not yet implemented")
+    }
+
+    private fun checkIsFresh(location: Location) {
+        // We should receive the location right after granted, if it takes longer, suspect something funny
+       if(Duration.between(now(), location.createdAt).seconds.absoluteValue > 10) {
+          throw TechnicalError("Something funny with the location")
+       }
     }
 
     // Create new start scenario token, with unlimited time to complete the first quest (which is
