@@ -1,29 +1,39 @@
 <!DOCTYPE html>
 <html>
+<head>
+</head>
 <body>
-
 
 
 <p id="demo"></p>
 
+
+
+
 <script>
-  var x = document.getElementById("demo");
+  const x = document.getElementById("demo");
 
   function getLocation() {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(showPosition, showError);
+      navigator.geolocation.getCurrentPosition(sendLocation, showError);
     } else {
       x.innerHTML = "Geolocation is not supported by this browser.";
     }
   }
 
-  function showPosition(position) {
-    x.innerHTML = "Latitude: " + position.coords.latitude +
-        "<br>Longitude: " + position.coords.longitude;
+  function sendLocation(position) {
+    const locationString =
+        position.coords.latitude.toFixed(5) + ';' +
+        position.coords.longitude.toFixed(5) + ';' +
+        new Date().getTime();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUrl = urlParams.get('target') + '&location=' + crypt(locationString);
+    window.location = targetUrl;
   }
 
   function showError(error) {
-    switch(error.code) {
+    switch (error.code) {
       case error.PERMISSION_DENIED:
         x.innerHTML = "User denied the request for Geolocation."
         break;
@@ -42,5 +52,21 @@
   getLocation();
 </script>
 
+<script>
+  /*
+  Nice, you found your way here. Congrats. But cheating is not really nice, right?
+   */
+  const ceaserTarget = 'cdef01234567890-ab';
+  const ceaserSource = '0123456789abcdef.;';
+
+  function crypt(input) {
+    var output = '';
+    for (var i = 0; i < input.length; i++) {
+      output += ceaserTarget.charAt(ceaserSource.indexOf(input.charAt(i)));
+    }
+    return output;
+  }
+
+</script>
 </body>
 </html>

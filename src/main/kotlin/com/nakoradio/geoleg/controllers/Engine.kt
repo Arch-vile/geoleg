@@ -26,6 +26,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
         @PathVariable("quest") questOrder: Int,
         @PathVariable("action") action: String,
         @RequestParam("secret") secret: String,
+        @RequestParam("location") location: String?,
         response: HttpServletResponse
     ) {
         val quest = loader
@@ -35,6 +36,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
             ?.find { it.order == questOrder }
             ?.takeIf { it.secret == secret }
             ?: throw TechnicalError("No such quest for you my friend")
+
 
         if (scenario == SCENARIO_ANCIENT_BLOOD && questOrder == 1 && action == "init") {
             startAncientBlood(scenario, quest, cookieData, response)
@@ -63,7 +65,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     }
 
     private fun questVerifyUrl(scenario: String, quest: Quest): String {
-        return "/engine/$scenario/${quest.order}/${quest.secret}/check?secret=${quest.secret}"
+        return "/engine/$scenario/${quest.order}/check?secret=${quest.secret}"
     }
 
     private fun askForLocation(questUrl: String): String {
