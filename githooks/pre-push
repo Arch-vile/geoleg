@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Just some color helpers
+DEF='\e[0m'   #Default color and effects
+BLD='\e[1m'   #Bold\brighter
+RED='\e[31m'  #Red
+
+# Run code formatters
+printf $BLD'Running code formatters...\n'$DEF
+githooks/format-code.sh
+
+# Check if any changes (likely formatting changes from previous step) and abort
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    printf $BLD$RED'******************************\n'$DEF
+    printf $BLD$RED'Please check unstaged files and retry pushing\n'$DEF
+    printf $BLD$RED'******************************\n'$DEF
+    exit 1
+fi
+
+

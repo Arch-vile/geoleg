@@ -4,7 +4,6 @@ import com.nakoradio.geoleg.model.TechnicalError
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import java.lang.IllegalStateException
 import javax.servlet.http.HttpServletResponse
 
 const val COOKIE_NAME = "yummy"
@@ -34,10 +33,10 @@ class QRController() {
             @PathVariable("qrCode") qrCode: String,
             response: HttpServletResponse) {
 
-        if(!QR_CODE_MAPPING.containsKey(qrCode))
+        if (!QR_CODE_MAPPING.containsKey(qrCode))
             throw TechnicalError("Unknown QR code $qrCode")
 
         response.sendRedirect(QR_CODE_MAPPING[qrCode])
-            }
+    }
 
 }
