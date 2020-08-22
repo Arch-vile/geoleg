@@ -28,7 +28,8 @@
         new Date().getTime();
 
     const urlParams = new URLSearchParams(window.location.search);
-    const targetUrl = urlParams.get('target') + '&location=' + crypt(locationString);
+    const targetUrl = urlParams.get('target') + '/' + crypt(locationString);
+
     window.location = targetUrl;
   }
 

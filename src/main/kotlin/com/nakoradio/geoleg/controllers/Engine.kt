@@ -1,6 +1,7 @@
 package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.Quest
+import com.nakoradio.geoleg.model.StoryError
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.ScenarioLoader
@@ -18,16 +19,40 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
 
     val SCENARIO_ANCIENT_BLOOD = "ancient-blood"
 
-    @GetMapping("/engine/{scenario}/{quest}/{action}")
+    @GetMapping("/engine/init/{scenario}/{secret}")
+    @ResponseBody
+    fun initScenario(
+            @CookieValue(COOKIE_NAME) cookieData: String?,
+            @PathVariable("scenario") scenario: String,
+            @PathVariable("secret") secret: String,
+            response: HttpServletResponse
+    ) {
+        val quest = loader
+                .load()
+                .scenarios.find { it.name == scenario }
+                ?.quests
+                ?.find { it.order == 1 }
+                ?.takeIf { it.secret == secret }
+                ?: throw TechnicalError("No such quest for you my friend")
+
+
+        if (scenario == SCENARIO_ANCIENT_BLOOD) {
+            startAncientBlood(scenario, quest, cookieData, response)
+            return
+        }
+
+        throw TechnicalError("Unknown scenario")
+    }
+
+    @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
     fun process(
-        @CookieValue(COOKIE_NAME) cookieData: String?,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questOrder: Int,
-        @PathVariable("action") action: String,
-        @RequestParam("secret") secret: String,
-        @RequestParam("location") location: String?,
-        response: HttpServletResponse
+            @CookieValue(COOKIE_NAME) cookieData: String?,
+            @PathVariable("scenario") scenario: String,
+            @PathVariable("quest") questOrder: Int,
+            @PathVariable("secret") secret: String,
+            @PathVariable("location") location: String,
+            response: HttpServletResponse
     ) {
         val quest = loader
             .load()
@@ -37,13 +62,13 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
             ?.takeIf { it.secret == secret }
             ?: throw TechnicalError("No such quest for you my friend")
 
-
-        if (scenario == SCENARIO_ANCIENT_BLOOD && questOrder == 1 && action == "init") {
-            startAncientBlood(scenario, quest, cookieData, response)
-            return
+        if(cookieData == null) {
+            // TODO: We need to have special page for this to explain. Imagine if someone,
+            // scans the qr code found by accident.
+            throw StoryError("You need to start from the first quest! Go at coordinates: ${quest.location.lat}, ${quest.location.lon}");
         }
 
-        throw TechnicalError("Unknown scenario")
+        throw TechnicalError("Check not yet implemented")
     }
 
     // Create new start scenario token, with unlimited time to complete the first quest (which is
@@ -65,7 +90,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     }
 
     private fun questVerifyUrl(scenario: String, quest: Quest): String {
-        return "/engine/$scenario/${quest.order}/check?secret=${quest.secret}"
+        return "/engine/complete/$scenario/${quest.order}/${quest.secret}"
     }
 
     private fun askForLocation(questUrl: String): String {
