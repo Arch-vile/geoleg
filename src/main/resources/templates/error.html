@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Error happened</title>
+</head>
+<body>
+
+<h1>
+  <span
+      th:text='${#vars.getVariable("org.springframework.boot.web.servlet.error.DefaultErrorAttributes.ERROR").getMessage()}'>the timestamp</span>
+</h1>
+</body>
+</html>
