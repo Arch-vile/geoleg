@@ -10,12 +10,11 @@ class ScenarioLoader(val mapper: ObjectMapper) {
 
     var table: ScenarioTable? = null
 
-init {
-    load()
-}
+    init {
+        load()
+    }
 
     fun load(): ScenarioTable {
-
         if (table == null) {
             var data = ClassPathResource("/data/scenario_table.json")
             table = mapper.readValue(data.inputStream, ScenarioTable::class.java)

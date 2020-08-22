@@ -10,7 +10,7 @@ class GeolegApplicationTests {
     fun contextLoads() {
         println("sdfsdf")
 
-         val now = OffsetDateTime.now(ZoneId.of("UTC"))
+        val now = OffsetDateTime.now(ZoneId.of("UTC"))
 //        val zone = ZoneId.of("Europe/Helsinki")
 //        var fff = ZoneOffset.of(zone.id)
 //        var withOffsetSameInstant = now.withOffsetSameInstant(ZoneOffset.of("Europe/Helsinki"))

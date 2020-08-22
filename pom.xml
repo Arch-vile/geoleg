@@ -119,6 +119,7 @@
 									classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
 									<arg value="-F"/>
 									<arg value="src/**/*.kt"/>
+									<arg value="--experimental"/>
 								</java>
 							</target>
 						</configuration>

@@ -25,12 +25,12 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
 
     fun updateOrCreate(existingCookie: StateCookie?, scenario: String, leg: Int, expiresAt: OffsetDateTime): StateCookie {
         return StateCookie(
-                scenario,
-                leg,
-                expiresAt,
-                now(),
-                existingCookie?.userId ?: UUID.randomUUID(),
-                (existingCookie?.restartCount ?: 0) + 1
+            scenario,
+            leg,
+            expiresAt,
+            now(),
+            existingCookie?.userId ?: UUID.randomUUID(),
+            (existingCookie?.restartCount ?: 0) + 1
         )
     }
 }
