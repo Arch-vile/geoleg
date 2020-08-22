@@ -1,5 +1,6 @@
 package com.nakoradio.geoleg.controllers
 
+import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.ScenarioLoader
@@ -26,7 +27,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
         @PathVariable("action") action: String,
         @RequestParam("secret") secret: String,
         response: HttpServletResponse
-    ): String {
+    ) {
         val quest = loader
             .load()
             .scenarios.find { it.name == scenario }
@@ -36,7 +37,8 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
             ?: throw TechnicalError("No such quest for you my friend")
 
         if (scenario == SCENARIO_ANCIENT_BLOOD && questOrder == 1 && action == "init") {
-            return startAncientBlood(cookieData, response)
+            startAncientBlood(scenario, quest, cookieData, response)
+            return
         }
 
         throw TechnicalError("Unknown scenario")
@@ -45,18 +47,26 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     // Create new start scenario token, with unlimited time to complete the first quest (which is
     // actually where the user already is)
     // Preserving the userId if present
-    private fun startAncientBlood(cookieData: String?, response: HttpServletResponse): String {
+    private fun startAncientBlood(scenario: String, quest: Quest, cookieData: String?, response: HttpServletResponse){
         val existingCookie = cookieData?.let { cookieManager.fromWebCookie(cookieData) }
 
         val cookie =
             cookieManager.updateOrCreate(
                 existingCookie,
-                SCENARIO_ANCIENT_BLOOD,
+                scenario,
                 1,
                 now().plusYears(10)
             )
 
         response.addCookie(cookieManager.toWebCookie(cookie))
-        return "Scnario $SCENARIO_ANCIENT_BLOOD started"
+        response.sendRedirect(askForLocation(questVerifyUrl(scenario, quest)))
+    }
+
+    private fun questVerifyUrl(scenario: String, quest: Quest): String {
+        return "/engine/$scenario/${quest.order}/${quest.secret}/check?secret=${quest.secret}"
+    }
+
+    private fun askForLocation(questUrl: String): String {
+        return "/checkLocation.html?target=${questUrl}"
     }
 }
