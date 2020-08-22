@@ -3,10 +3,10 @@ package com.nakoradio.geoleg.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nakoradio.geoleg.controllers.COOKIE_NAME
 import com.nakoradio.geoleg.model.StateCookie
-import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.util.UUID
 import javax.servlet.http.Cookie
+import org.springframework.stereotype.Service
 
 @Service
 class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
@@ -26,5 +26,4 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
         val encrypted = cryptor.aesEncrypt(json)
         return Cookie(COOKIE_NAME, encrypted)
     }
-
 }

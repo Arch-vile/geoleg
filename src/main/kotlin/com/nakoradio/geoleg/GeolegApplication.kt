@@ -9,4 +9,3 @@ class GeolegApplication
 fun main(args: Array<String>) {
     runApplication<GeolegApplication>(*args)
 }
-
