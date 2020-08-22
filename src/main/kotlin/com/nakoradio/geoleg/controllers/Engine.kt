@@ -41,14 +41,14 @@ class Engine(val cookieManager: CookieManager) {
     // actually where the user already is)
     // Preserving the userId if present
     private fun startAncientBlood(cookieData: String?, response: HttpServletResponse): String {
+        val existingCookie = cookieData?.let {   cookieManager.fromWebCookie(cookieData) }
+
         val cookie =
-                cookieManager.create(
+                cookieManager.updateOrCreate(
+                        existingCookie,
                 SCENARIO_ANCIENT_BLOOD,
                 1,
-                now().plusYears(10),
-                cookieData?.let {
-                    cookieManager.fromWebCookie(it).userId
-                } ?: UUID.randomUUID()
+                now().plusYears(10)
         )
 
         response.addCookie(cookieManager.toWebCookie(cookie))
