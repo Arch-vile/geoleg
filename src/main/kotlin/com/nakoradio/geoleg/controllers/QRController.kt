@@ -38,5 +38,5 @@ class QRController() {
             throw TechnicalError("Unknown QR code $qrCode")
 
         response.sendRedirect(QR_CODE_MAPPING[qrCode])
-    }
+}
 }
