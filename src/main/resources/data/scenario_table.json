@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "name": "ancient-blood",
+      "quests": [
+        {
+          "order": 1,
+          "secret": "656a0b0924da",
+          "location": {
+            "lat": 60.291693,
+            "lon": 24.924559
+          },
+          "countdown": 60,
+          "failurePage": "/shouldNotBeUsed.html",
+          "successPage": "/s1p1_success_dd19b04ceeaf.html"
+        }
+      ]
+    }
+  ]
+}

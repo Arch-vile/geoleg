@@ -1,17 +1,14 @@
 package com.nakoradio.geoleg
 
-import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
+import org.junit.jupiter.api.Test
 
 class GeolegApplicationTests {
 
     @Test
     fun contextLoads() {
         println("sdfsdf")
-
 
          val now = OffsetDateTime.now(ZoneId.of("UTC"))
 //        val zone = ZoneId.of("Europe/Helsinki")
