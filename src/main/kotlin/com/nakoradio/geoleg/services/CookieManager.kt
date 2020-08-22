@@ -24,6 +24,12 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
     fun toWebCookie(cookie: StateCookie): Cookie {
         val json = jsonMapper.writeValueAsString(cookie)
         val encrypted = cryptor.aesEncrypt(json)
-        return Cookie(COOKIE_NAME, encrypted)
+        var webCookie = Cookie(COOKIE_NAME, encrypted)
+        webCookie.path = "/"
+        return webCookie
     }
+
+    fun fromWebCookie(cookieData: String) =
+        jsonMapper.readValue(cryptor.aesDecrypt(cookieData), StateCookie::class.java);
+
 }
