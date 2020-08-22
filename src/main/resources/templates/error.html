@@ -8,14 +8,22 @@
 <body class="black">
 
 
+<!--/*-->
+We only want to include the Exception type and message if it is our custom exception. Otherwise
+we will see nasty java/spring exceptions for example for type conversion errors
+<!--*/-->
 <div
     th:with='err=${#vars.getVariable("org.springframework.boot.web.servlet.error.DefaultErrorAttributes.ERROR")}'>
-  <h1 th:if="${err != null}" th:text='${err.getClass().getSimpleName() + ": " + err.getMessage() }'>
+  <h1 th:if="${err != null and err instanceof T(com.nakoradio.geoleg.model.CustomError)}" th:text='${err.getClass().getSimpleName() + ": " + err.getMessage() }'>
     Oops something went wrong!
   </h1>
 </div>
 
 
+<!--/*-->
+The error message we can include. It will be for example `bad request` for 404 and such and `internal
+server error` for custom errors.
+<!--*/-->
 <h2 th:text="${error}">
   More details here
 </h2>

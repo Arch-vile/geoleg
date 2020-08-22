@@ -2,4 +2,6 @@ package com.nakoradio.geoleg.model
 
 import java.lang.RuntimeException
 
-class TechnicalError(message: String) : RuntimeException(message)
+open class CustomError(message: String) : RuntimeException(message)
+
+class TechnicalError(message: String) : CustomError(message)
