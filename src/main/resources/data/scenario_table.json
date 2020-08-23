@@ -12,7 +12,7 @@
           },
           "countdown": 60,
           "failurePage": "/shouldNotBeUsed.html",
-          "successPage": "/s1p1_success_dd19b04ceeaf.html"
+          "successPage": "/s1q1_success_dd19b04ceeaf.html"
         }
       ]
     }

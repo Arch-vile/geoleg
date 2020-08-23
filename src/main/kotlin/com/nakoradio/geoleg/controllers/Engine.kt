@@ -8,14 +8,14 @@ import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.ScenarioLoader
 import com.nakoradio.geoleg.utils.now
+import java.time.Duration
 import javax.servlet.http.HttpServletResponse
+import kotlin.math.absoluteValue
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseBody
-import java.time.Duration
-import kotlin.math.absoluteValue
 
 @Controller
 class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
@@ -25,19 +25,18 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     @GetMapping("/engine/init/{scenario}/{secret}")
     @ResponseBody
     fun initScenario(
-            @CookieValue(COOKIE_NAME) cookieData: String?,
-            @PathVariable("scenario") scenario: String,
-            @PathVariable("secret") secret: String,
-            response: HttpServletResponse
+        @CookieValue(COOKIE_NAME) cookieData: String?,
+        @PathVariable("scenario") scenario: String,
+        @PathVariable("secret") secret: String,
+        response: HttpServletResponse
     ) {
         val quest = loader
-                .load()
-                .scenarios.find { it.name == scenario }
-                ?.quests
-                ?.find { it.order == 1 }
-                ?.takeIf { it.secret == secret }
-                ?: throw TechnicalError("No such quest for you my friend")
-
+            .load()
+            .scenarios.find { it.name == scenario }
+            ?.quests
+            ?.find { it.order == 1 }
+            ?.takeIf { it.secret == secret }
+            ?: throw TechnicalError("No such quest for you my friend")
 
         if (scenario == SCENARIO_ANCIENT_BLOOD) {
             startAncientBlood(scenario, quest, cookieData, response)
@@ -50,12 +49,12 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
     fun process(
-            @CookieValue(COOKIE_NAME) cookieData: String?,
-            @PathVariable("scenario") scenario: String,
-            @PathVariable("quest") questOrder: Int,
-            @PathVariable("secret") secret: String,
-            @PathVariable("location") locationString: String,
-            response: HttpServletResponse
+        @CookieValue(COOKIE_NAME) cookieData: String?,
+        @PathVariable("scenario") scenario: String,
+        @PathVariable("quest") questOrder: Int,
+        @PathVariable("secret") secret: String,
+        @PathVariable("location") locationString: String,
+        response: HttpServletResponse
     ) {
         val quest = loader
             .load()
@@ -65,10 +64,10 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
             ?.takeIf { it.secret == secret }
             ?: throw TechnicalError("No such quest for you my friend")
 
-        if(cookieData == null) {
+        if (cookieData == null) {
             // TODO: We need to have special page for this to explain. Imagine if someone,
             // scans the qr code found by accident.
-            throw StoryError("You need to start from the first quest! Go at coordinates: ${quest.location.lat}, ${quest.location.lon}");
+            throw StoryError("You need to start from the first quest! Go at coordinates: ${quest.location.lat}, ${quest.location.lon}")
         }
 
         val location = Location.fromString(locationString)
@@ -76,36 +75,37 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
 
         val nextPage = checkQuestCompletion(scenario, quest, location, cookieManager.fromWebCookie(cookieData))
 
-        response.sendRedirect(nextPage);
+        response.sendRedirect(nextPage)
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Location, state: StateCookie): String {
-        assertEqual(scenario, state.scenario, "scenario completion" );
+        assertEqual(scenario, state.scenario, "scenario completion")
         assertEqual(quest.order, state.quest, "quest matching")
 
-        return if(now().isAfter(state.expiresAt))
+        return if (now().isAfter(state.expiresAt)) {
             quest.failurePage
-        else
+        } else {
             quest.successPage
+        }
     }
 
     private fun assertEqual(val1: Any, val2: Any, context: String) {
-        if(val1 != val2) {
+        if (val1 != val2) {
             throw TechnicalError("Not good $context")
         }
     }
 
     private fun checkIsFresh(location: Location) {
         // We should receive the location right after granted, if it takes longer, suspect something funny
-       if(Duration.between(now(), location.createdAt).seconds.absoluteValue > 10) {
-          throw TechnicalError("Something funny with the location")
-       }
+        if (Duration.between(now(), location.createdAt).seconds.absoluteValue > 10) {
+            throw TechnicalError("Something funny with the location")
+        }
     }
 
     // Create new start scenario token, with unlimited time to complete the first quest (which is
     // actually where the user already is)
     // Preserving the userId if present
-    private fun startAncientBlood(scenario: String, quest: Quest, cookieData: String?, response: HttpServletResponse){
+    private fun startAncientBlood(scenario: String, quest: Quest, cookieData: String?, response: HttpServletResponse) {
         val existingCookie = cookieData?.let { cookieManager.fromWebCookie(cookieData) }
 
         val cookie =
@@ -125,6 +125,6 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     }
 
     private fun askForLocation(questUrl: String): String {
-        return "/checkLocation.html?target=${questUrl}"
+        return "/checkLocation.html?target=$questUrl"
     }
 }
