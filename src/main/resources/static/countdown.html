@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Countdown</title>
+  <link rel="stylesheet" type="text/css" href="/css/main.css">
+</head>
+<body class="black">
+
+<h2>You have</h2>
+<h2 id="timer"></h2>
+<h2>To reach your destination</h2>
+<h2 id="destination"></h2>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  // Epoch seconds
+  const expiresAt = urlParams.get('expiresAt');
+  const lat = urlParams.get('lat');
+  const lon = urlParams.get('lon');
+
+  document.getElementById("destination").innerText =
+      lat + ', ' + lon;
+
+  updateTimer();
+
+  function updateTimer() {
+    var seconds = expiresAt - Math.round(new Date().getTime() / 1000);
+    if(seconds < 0) { seconds = 0;}
+    document.getElementById("timer").innerText = seconds + ' seconds';
+
+    if(seconds > 0)
+      setTimeout(updateTimer, 1000);
+  }
+
+
+</script>
+
+</body>
+</html>

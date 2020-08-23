@@ -2,3 +2,8 @@ BODY.black {
   background-color: black;
   color: antiquewhite;
 }
+
+
+.w100 {
+  width: 100%;
+}

@@ -7,13 +7,25 @@
           "order": 1,
           "secret": "656a0b0924da",
           "location": {
-            "lat": 60.291693,
-            "lon": 24.924559
+            "lat": 60.178432,
+            "lon": 24.97904
           },
           "countdown": 60,
           "failurePage": "/shouldNotBeUsed.html",
           "successPage": "/s1q1_success_dd19b04ceeaf.html"
+        },
+        {
+          "order": 2,
+          "secret": "138d0d22b893",
+          "location": {
+            "lat": 60.178432,
+            "lon": 24.97904
+          },
+          "countdown": 60,
+          "failurePage": "/s1q2_failure_17d522b044bc.html",
+          "successPage": "/s1q1_success_dd19b04ceeaf.html"
         }
+
       ]
     }
   ]
