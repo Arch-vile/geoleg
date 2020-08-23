@@ -7,8 +7,8 @@
           "order": 1,
           "secret": "656a0b0924da",
           "location": {
-            "lat": 60.178432,
-            "lon": 24.97904
+            "lat": 60.283411,
+            "lon": 24.904306
           },
           "countdown": 60,
           "failurePage": "/shouldNotBeUsed.html",
@@ -18,8 +18,8 @@
           "order": 2,
           "secret": "138d0d22b893",
           "location": {
-            "lat": 60.178432,
-            "lon": 24.97904
+            "lat": 60.283411,
+            "lon": 24.904306
           },
           "countdown": 60,
           "failurePage": "/s1q2_failure_17d522b044bc.html",
