@@ -134,7 +134,7 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     }
 
     private fun assertProximity(quest: Quest, location: Coordinates) {
-        if (distance(quest.location, location) > 20) {
+        if (distance(quest.location, location) > 500) {
             throw TechnicalError("Bad gps accuracy")
         }
     }
