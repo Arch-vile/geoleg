@@ -2,6 +2,7 @@ package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.Location
 import com.nakoradio.geoleg.model.Quest
+import com.nakoradio.geoleg.model.StateCookie
 import com.nakoradio.geoleg.model.StoryError
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.services.CookieManager
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import java.time.Duration
 import kotlin.math.absoluteValue
@@ -74,7 +74,25 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
         val location = Location.fromString(locationString)
         checkIsFresh(location)
 
-        throw TechnicalError("Check not yet implemented")
+        val nextPage = checkQuestCompletion(scenario, quest, location, cookieManager.fromWebCookie(cookieData))
+
+        response.sendRedirect(nextPage);
+    }
+
+    private fun checkQuestCompletion(scenario: String, quest: Quest, location: Location, state: StateCookie): String {
+        assertEqual(scenario, state.scenario, "scenario completion" );
+        assertEqual(quest.order, state.quest, "quest matching")
+
+        return if(now().isAfter(state.expiresAt))
+            quest.failurePage
+        else
+            quest.successPage
+    }
+
+    private fun assertEqual(val1: Any, val2: Any, context: String) {
+        if(val1 != val2) {
+            throw TechnicalError("Not good $context")
+        }
     }
 
     private fun checkIsFresh(location: Location) {
