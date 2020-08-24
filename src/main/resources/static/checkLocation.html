@@ -22,7 +22,7 @@
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(processNewLocation, processError);
     } else {
-      errorContainer.innerHTML = "Geolocation is not supported by this browser.";
+      showError("Geolocation is not supported by this browser.");
     }
   }
 
@@ -88,10 +88,11 @@
   }
 
   function showError(text) {
-    errorContainer.innerHTML = '<span class="red">' + text + '</span>';
+    errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text + '</span>';
   }
 
   function processError(error) {
+   startTime = 0;
     switch (error.code) {
       case error.PERMISSION_DENIED:
         showError("User denied the request for Geolocation.");
