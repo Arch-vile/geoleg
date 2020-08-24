@@ -13,6 +13,7 @@
   const x = document.getElementById("demo");
 
   function getLocation() {
+    console.log("running");
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(sendLocation, showError);
     } else {
@@ -23,13 +24,17 @@
   function sendLocation(position) {
     const locationString =
         position.coords.latitude.toFixed(5) + ';' +
-        position.coords.longitude.toFixed(5) + ';' +
-        new Date().getTime();
+        position.coords.longitude.toFixed(5);
+   //  + new Date().getTime();
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetUrl = urlParams.get('target') + '/' + crypt(locationString);
 
-    window.location = targetUrl;
+    console.log(locationString);
+
+    document.getElementById('demo').innerHTML += '<br>' + locationString;
+    setTimeout(getLocation, 1000);
+    // window.location = targetUrl;
   }
 
   function showError(error) {
@@ -49,7 +54,9 @@
     }
   }
 
-  getLocation();
+  setTimeout(getLocation, 1000);
+
+
 </script>
 
 <script>
