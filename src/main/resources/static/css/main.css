@@ -7,6 +7,10 @@ BODY.black {
   color: red;
 }
 
+.green {
+  color: green;
+}
+
 .w100 {
   width: 100%;
 }

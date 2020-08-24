@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 @Controller
 class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
 
+
     val SCENARIO_ANCIENT_BLOOD = "ancient-blood"
 
     @GetMapping("/engine/init/{scenario}/{secret}")
