@@ -15,7 +15,7 @@
   function getLocation() {
     console.log("running");
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(sendLocation, showError);
+      navigator.geolocation.watchPosition(sendLocation, showError);
     } else {
       x.innerHTML = "Geolocation is not supported by this browser.";
     }
@@ -33,7 +33,6 @@
     console.log(locationString);
 
     document.getElementById('demo').innerHTML += '<br>' + locationString;
-    setTimeout(getLocation, 1000);
     // window.location = targetUrl;
   }
 
@@ -54,7 +53,7 @@
     }
   }
 
-  setTimeout(getLocation, 1000);
+  getLocation();
 
 
 </script>
