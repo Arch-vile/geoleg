@@ -13,6 +13,8 @@ import com.nakoradio.geoleg.utils.now
 import java.time.Duration
 import javax.servlet.http.HttpServletResponse
 import kotlin.math.absoluteValue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 @Controller
 class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
 
+    var logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     val SCENARIO_ANCIENT_BLOOD = "ancient-blood"
 
@@ -135,7 +138,9 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     }
 
     private fun assertProximity(quest: Quest, location: Coordinates) {
-        if (distance(quest.location, location) > 500) {
+        var distance = distance(quest.location, location)
+        if (distance > 500) {
+            logger.error("quest location [${quest.location}] location [$location] distance [$distance]")
             throw TechnicalError("Bad gps accuracy")
         }
     }
