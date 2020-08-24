@@ -5,62 +5,119 @@
 </head>
 <body class="black">
 
-<h2>Adjusting GPS satellites... please standby</h2>
-<p id="demo"></p>
-
+<h2>Preparing, please standby</h2>
+<div id="status"></div>
+<p id="errorContainer"></p>
 
 <script>
-  const x = document.getElementById("demo");
+  var startTime = new Date().getTime();
+  var statusCounter = 0;
+  var latitudeHistory = [];
+  var longitudeHistory = [];
+
+  const status = document.getElementById('status');
+  const errorContainer = document.getElementById("errorContainer");
 
   function getLocation() {
-    console.log("running");
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(sendLocation, showError);
+      navigator.geolocation.watchPosition(processNewLocation, processError);
     } else {
-      x.innerHTML = "Geolocation is not supported by this browser.";
+      errorContainer.innerHTML = "Geolocation is not supported by this browser.";
     }
   }
 
-  function sendLocation(position) {
-    const locationString =
-        position.coords.latitude.toFixed(5) + ';' +
-        position.coords.longitude.toFixed(5);
-   //  + new Date().getTime();
+  function processNewLocation(position) {
+    var lat = position.coords.latitude.toFixed(5);
+    var lon = position.coords.longitude.toFixed(5);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetUrl = urlParams.get('target') + '/' + crypt(locationString);
+    latitudeHistory.unshift(lat);
+    longitudeHistory.unshift(lon);
 
-    console.log(locationString);
+    if (latitudeHistory.size > 3) {
+      latitudeHistory.pop();
+      longitudeHistory.pop();
+    }
 
-    document.getElementById('demo').innerHTML += '<br>' + locationString;
-    // window.location = targetUrl;
+    if (latitudeHistory[0] === latitudeHistory[1] && latitudeHistory[1] === latitudeHistory[2] &&
+        longitudeHistory[0] === longitudeHistory[1] && longitudeHistory[1]
+        === longitudeHistory[2]) {
+      sendLocation(lat, lon);
+    }
   }
 
-  function showError(error) {
+  function checkElapsed() {
+    const elapsed = new Date().getTime() - startTime;
+    if(elapsed > 20000) {
+      if(!latitudeHistory[0]) {
+        showError('Cannot get location! Please reload the page.');
+      } else {
+        sendLocation(latitudeHistory[0], longitudeHistory[0]);
+      }
+    }
+    else {
+
+      if(statusCounter % 4 == 0)
+        addStatus('Running diagnostics...', false);
+      if(statusCounter % 4 == 1)
+        addStatus('Warming up flux capacitators...', true);
+      if(statusCounter % 4 == 2)
+        addStatus('Remolding space and time...', true);
+      if(statusCounter % 4 == 3)
+        addStatus('Dividing by zero...', true);
+
+      statusCounter++;
+      setTimeout(checkElapsed, 5000);
+    }
+  }
+
+  function addStatus(message, append) {
+    var content = '';
+    if(append)
+      content += '<span class="green"> DONE</span><br>';
+
+    content += '<span>' + message + '</span>';
+    status.innerHTML = status.innerHTML + content;
+  }
+
+  function sendLocation(lat, lon) {
+    const locationString = lat + ';' + lon + ';' + new Date().getTime();
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUrl = urlParams.get('target') + '/' + crypt(locationString);
+    window.location = targetUrl;
+    console.log("Sending location");
+  }
+
+  function showError(text) {
+    errorContainer.innerHTML = '<span class="red">' + text + '</span>';
+  }
+
+  function processError(error) {
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        x.innerHTML = "User denied the request for Geolocation."
+        showError("User denied the request for Geolocation.");
         break;
       case error.POSITION_UNAVAILABLE:
-        x.innerHTML = "Location information is unavailable."
+        showError("Location information is unavailable.");
         break;
       case error.TIMEOUT:
-        x.innerHTML = "The request to get user location timed out."
+        showError("The request to get user location timed out.");
         break;
       case error.UNKNOWN_ERROR:
-        x.innerHTML = "An unknown error occurred."
+        showError("An unknown error occurred.");
         break;
     }
   }
 
   getLocation();
+  checkElapsed();
 
 
 </script>
 
 <script>
   /*
-  Nice, you found your way here. Congrats. But cheating is not really nice, right?
+  Nice, you found your way here hacker boy. Good thing we have onion like security in place.
+  Happy hunting.
    */
   const ceaserTarget = 'cdef01234567890-ab';
   const ceaserSource = '0123456789abcdef.;';
