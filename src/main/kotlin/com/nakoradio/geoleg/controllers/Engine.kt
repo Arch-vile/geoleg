@@ -193,4 +193,9 @@ class Engine(
 
     private fun countdownPage(expiresAt: Long, location: Coordinates) =
         "/countdown.html?expiresAt=$expiresAt&lat=${location.lat}&lon=${location.lon}"
+
+    fun toggleLocationVerification(): Boolean {
+        verifyLocation = !verifyLocation
+        return verifyLocation
+    }
 }
