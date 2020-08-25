@@ -142,8 +142,9 @@ class Engine(
     }
 
     private fun assertProximity(quest: Quest, location: Coordinates) {
-        if (!verifyLocation)
+        if (!verifyLocation) {
             return
+        }
 
         var distance = distance(quest.location, location)
         if (distance > 500) {
