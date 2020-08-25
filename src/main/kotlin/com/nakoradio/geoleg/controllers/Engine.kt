@@ -40,13 +40,7 @@ class Engine(
         @PathVariable("secret") secret: String,
         response: HttpServletResponse
     ) {
-        val quest = loader
-            .load()
-            .scenarios.find { it.name == scenario }
-            ?.quests
-            ?.find { it.order == 1 }
-            ?.takeIf { it.secret == secret }
-            ?: throw TechnicalError("No such quest for you my friend")
+        val quest = loader.questFor(scenario, 1, secret)
 
         if (scenario == SCENARIO_ANCIENT_BLOOD) {
             startAncientBlood(scenario, quest, cookieData, response)
@@ -66,13 +60,7 @@ class Engine(
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
     ) {
-        val quest = loader
-            .load()
-            .scenarios.find { it.name == scenario }
-            ?.quests
-            ?.find { it.order == questToStart }
-            ?.takeIf { it.secret == secret }
-            ?: throw TechnicalError("No such quest for you my friend")
+        val quest = loader.questFor(scenario, questToStart, secret)
 
         if (cookieData == null) {
             // TODO: We need to have special page for this to explain. Imagine if someone,
@@ -97,9 +85,26 @@ class Engine(
         response.sendRedirect(countdownPage(now().plusSeconds(quest.countdown).toEpochSecond(), quest.location))
     }
 
+
+    // This just does the redirection to location granting, which redirects back
+    // to the other complete endpoint with location.
+    @GetMapping("/engine/complete/{scenario}/{quest}/{secret}")
+    @ResponseBody
+    fun initComplete(
+            @PathVariable("scenario") scenario: String,
+            @PathVariable("quest") questToComplete: Int,
+            @PathVariable("secret") secret: String,
+            response: HttpServletResponse
+    ) {
+        val quest = loader.questFor(scenario, questToComplete, secret)
+        response.sendRedirect(
+                askForLocation(
+                        questCompleteUrl(scenario, quest)));
+    }
+
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
-    fun process(
+    fun complete(
         @CookieValue(COOKIE_NAME) cookieData: String?,
         @PathVariable("scenario") scenario: String,
         @PathVariable("quest") questOrder: Int,
@@ -107,14 +112,7 @@ class Engine(
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
     ) {
-        val quest = loader
-            .load()
-            .scenarios.find { it.name == scenario }
-            ?.quests
-            ?.find { it.order == questOrder }
-            ?.takeIf { it.secret == secret }
-            ?: throw TechnicalError("No such quest for you my friend")
-
+        val quest = loader.questFor(scenario, questOrder, secret)
         if (cookieData == null) {
             // TODO: We need to have special page for this to explain. Imagine if someone,
             // scans the qr code found by accident.
@@ -180,10 +178,10 @@ class Engine(
             )
 
         response.addCookie(cookieManager.toWebCookie(cookie))
-        response.sendRedirect(askForLocation(questVerifyUrl(scenario, quest)))
+        response.sendRedirect(askForLocation(questCompleteUrl(scenario, quest)))
     }
 
-    private fun questVerifyUrl(scenario: String, quest: Quest): String {
+    private fun questCompleteUrl(scenario: String, quest: Quest): String {
         return "/engine/complete/$scenario/${quest.order}/${quest.secret}"
     }
 

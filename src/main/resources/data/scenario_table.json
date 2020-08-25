@@ -12,7 +12,7 @@
           },
           "countdown": 60,
           "failurePage": "/shouldNotBeUsed.html",
-          "successPage": "/s1q1_success_dd19b04ceeaf.html"
+          "successPage": "/results/s1q1_success_dd19b04ceeaf.html"
         },
         {
           "order": 2,
@@ -22,8 +22,8 @@
             "lon": 24.904306
           },
           "countdown": 60,
-          "failurePage": "/s1q2_failure_17d522b044bc.html",
-          "successPage": "/s1q1_success_dd19b04ceeaf.html"
+          "failurePage": "/results/s1q2_failure_17d522b044bc.html",
+          "successPage": "/results/s1q2_success_2612a7062d96.html"
         }
 
       ]

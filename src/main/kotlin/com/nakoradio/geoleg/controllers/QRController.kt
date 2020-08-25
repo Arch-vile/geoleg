@@ -17,8 +17,8 @@ class QRController() {
     // Codes are random strings to avoid guessing and for flexible replacing
     private val QR_CODE_MAPPING = mapOf(
         "2e910ca65a107421" to "/engine/init/ancient-blood/656a0b0924da",
-        "a77e677275f1d5bf" to "/engine/ancient-blood/",
-        "5f47fb7bd175f3fa" to "/engine/ancient-blood/",
+        "a77e677275f1d5bf" to "/engine/complete/ancient-blood/2/138d0d22b893",
+        "5f47fb7bd175f3fa" to "/engine/complete/ancient-blood/3/xxxxxxxxxx",
         "55a20ef6c20eb34d" to "/engine/ancient-blood/",
         "1767c3c0e11b500c" to "/engine/ancient-blood/",
         "d6ae79f3091b4586" to "/engine/ancient-blood/",

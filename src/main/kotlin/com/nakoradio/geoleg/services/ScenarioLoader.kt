@@ -1,25 +1,31 @@
 package com.nakoradio.geoleg.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.ScenarioTable
+import com.nakoradio.geoleg.model.TechnicalError
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 
 @Service
-class ScenarioLoader(val mapper: ObjectMapper) {
+class ScenarioLoader(mapper: ObjectMapper) {
 
-    var table: ScenarioTable? = null
+    lateinit var table: ScenarioTable
 
     init {
-        load()
+        var data = ClassPathResource("/data/scenario_table.json")
+        table = mapper.readValue(data.inputStream, ScenarioTable::class.java)
     }
 
-    fun load(): ScenarioTable {
-        if (table == null) {
-            var data = ClassPathResource("/data/scenario_table.json")
-            table = mapper.readValue(data.inputStream, ScenarioTable::class.java)
-        }
+    fun questFor(scenario: String, questOrder: Int, secret: String): Quest {
+        return table
+                .scenarios.find { it.name == scenario }
+                ?.quests
+                ?.find { it.order == questOrder }
+                ?.takeIf { it.secret == secret }
+                ?: throw TechnicalError("No such quest for you my friend")
 
-        return table!!
+
+
     }
 }
