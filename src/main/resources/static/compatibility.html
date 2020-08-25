@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="./css/main.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="./js/geoApi.js"></script>
+  <title>Yhteensopivuustestisivu</title>
+</head>
+<body class="black">
+
+<h1>Testataan toimintoja:</h1>
+
+<h2>GPS sijainnin lukeminen:</h2>
+<p>
+  Kätkön toiminta vaatii älypuhelimen sijainnin jakamista. Pyydämme oikeutta käyttää puhelimen sijaintia.
+  Sijaintia tarvitaan vain hetkellisesti kätkön aikana ja jaat sijaintisi vain ollessasi sivuillamme.
+</p>
+<p>
+  Tarkista, että GPS sijaintisi tulee näkymään alle vihreällä.
+</p>
+<p>
+    Sijaintisi on: <h3 id="gps">XXX sijainti XXX</h3>
+</p>
+
+<h2>QR koodin lukeminen</h2>
+<p>
+  Kätkön suorittaminen helpottuu jos puhelimellasi voi lukea QR-koodeja. Uusimmilla puhelinmalleilla
+  riittää kameran avaaminen ja kohti QR-koodia osoittaminen. Jos ominaisuutta ei ole tuettu suoraan
+  voit ladata siihen sopivan ohjelman (esim. Androidilla Google Lens).
+</p>
+<p>
+  Jos et pysty lukemaan QR-koodeja puhelimellasi voit syöttää annetun koodin tälle sivulle:
+  <a href="">QR koodin syöttö</a>
+</p>
+<p>
+  Lue alla oleva QR koodi ja tarkista, että saat vihreän OK merkin alle.
+  <h3 id="qr">XXXXXXXXX</h3>
+  <img src="./images/qrTestCode.png">
+</p>
+
+<script>
+
+  function processNewLocation(position) {
+    const lat = position.coords.latitude.toFixed(5);
+    const lon = position.coords.longitude.toFixed(5);
+    document.getElementById('gps').innerHTML =
+        '<span class="green">'  + lat + ', ' + lon + '</span>';
+  }
+
+  function processError(error) {
+    document.getElementById('gps').innerHTML =
+        '<span class="red">'  + error + '</span>';
+  }
+
+  getLocation(processNewLocation, processError);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const qr = urlParams.get('qr');
+  if(qr === "ok")
+    document.getElementById('qr').innerHTML =
+        '<span class="green">OK</span>';
+</script>
+
+
+</body>
+</html>

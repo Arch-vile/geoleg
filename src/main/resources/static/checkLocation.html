@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" type="text/css" href="/css/main.css">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="./css/main.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="./js/geoApi.js"></script>
 </head>
 <body class="black">
 
@@ -19,17 +21,15 @@
   const status = document.getElementById('status');
   const errorContainer = document.getElementById("errorContainer");
 
-  function getLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(processNewLocation, processError);
-    } else {
-      showError("Geolocation is not supported by this browser.");
-    }
+  function processError(message) {
+    startTime = 0;
+    showError(message);
   }
 
   function processNewLocation(position) {
     var lat = position.coords.latitude.toFixed(5);
     var lon = position.coords.longitude.toFixed(5);
+    console.log('Processing location: ' + lat + ',' + lon);
 
     latitudeHistory.unshift(lat);
     longitudeHistory.unshift(lon);
@@ -81,39 +81,20 @@
   }
 
   function sendLocation(lat, lon) {
+    console.log("Sending location");
     const locationString = lat + ';' + lon + ';' + new Date().getTime();
     const urlParams = new URLSearchParams(window.location.search);
     const targetUrl = urlParams.get('target') + '/' + crypt(locationString);
     window.location = targetUrl;
-    console.log("Sending location");
   }
 
   function showError(text) {
+    console.log('show error called with ' + text);
     errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text + '</span>';
   }
 
-  function processError(error) {
-   startTime = 0;
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        showError("User denied the request for Geolocation.");
-        break;
-      case error.POSITION_UNAVAILABLE:
-        showError("Location information is unavailable.");
-        break;
-      case error.TIMEOUT:
-        showError("The request to get user location timed out.");
-        break;
-      case error.UNKNOWN_ERROR:
-        showError("An unknown error occurred.");
-        break;
-    }
-  }
-
-  getLocation();
+  getLocation(processNewLocation, processError);
   checkElapsed();
-
-
 </script>
 
 <script>
