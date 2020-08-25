@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/admin")
 class AdminController(
-        val cookieManager: CookieManager,
-        val engine: Engine) {
+    val cookieManager: CookieManager,
+    val engine: Engine
+) {
 
     @GetMapping("/yummy")
     fun checkCookie(@CookieValue(COOKIE_NAME) cookieData: String): CookieExposeResponse {
@@ -24,7 +25,7 @@ class AdminController(
 
     @GetMapping("/toggleLocationVerify")
     fun toggleLocationVerify(): Boolean {
-       return engine.toggleLocationVerification();
+        return engine.toggleLocationVerification()
     }
 }
 

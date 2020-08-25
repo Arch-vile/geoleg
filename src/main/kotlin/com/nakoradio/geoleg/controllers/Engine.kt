@@ -24,9 +24,10 @@ import org.springframework.web.bind.annotation.ResponseBody
 
 @Controller
 class Engine(
-        @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
-        val cookieManager: CookieManager,
-        val loader: ScenarioLoader) {
+    @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
+    val cookieManager: CookieManager,
+    val loader: ScenarioLoader
+) {
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -85,21 +86,22 @@ class Engine(
         response.sendRedirect(countdownPage(now().plusSeconds(quest.countdown).toEpochSecond(), quest.location))
     }
 
-
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}")
     @ResponseBody
     fun initComplete(
-            @PathVariable("scenario") scenario: String,
-            @PathVariable("quest") questToComplete: Int,
-            @PathVariable("secret") secret: String,
-            response: HttpServletResponse
+        @PathVariable("scenario") scenario: String,
+        @PathVariable("quest") questToComplete: Int,
+        @PathVariable("secret") secret: String,
+        response: HttpServletResponse
     ) {
         val quest = loader.questFor(scenario, questToComplete, secret)
         response.sendRedirect(
-                askForLocation(
-                        questCompleteUrl(scenario, quest)));
+            askForLocation(
+                questCompleteUrl(scenario, quest)
+            )
+        )
     }
 
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
@@ -140,8 +142,8 @@ class Engine(
     }
 
     private fun assertProximity(quest: Quest, location: Coordinates) {
-        if(!verifyLocation)
-            return;
+        if (!verifyLocation)
+            return
 
         var distance = distance(quest.location, location)
         if (distance > 500) {
