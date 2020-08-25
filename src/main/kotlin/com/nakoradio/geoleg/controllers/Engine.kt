@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse
 import kotlin.math.absoluteValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,7 +23,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseBody
 
 @Controller
-class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
+class Engine(
+        @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
+        val cookieManager: CookieManager,
+        val loader: ScenarioLoader) {
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -138,6 +142,9 @@ class Engine(val cookieManager: CookieManager, val loader: ScenarioLoader) {
     }
 
     private fun assertProximity(quest: Quest, location: Coordinates) {
+        if(!verifyLocation)
+            return;
+
         var distance = distance(quest.location, location)
         if (distance > 500) {
             logger.error("quest location [${quest.location}] location [$location] distance [$distance]")
