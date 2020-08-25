@@ -28,7 +28,11 @@
   function updateTimer() {
     var seconds = expiresAt - Math.round(new Date().getTime() / 1000);
     if(seconds < 0) { seconds = 0;}
-    document.getElementById("timer").innerText = seconds + ' seconds';
+
+    const minutes = Math.floor(seconds / 60);
+    const leftSeconds = seconds - minutes * 60;
+
+    document.getElementById("timer").innerText = minutes + 'min ' + leftSeconds + 'seconds';
 
     if(seconds > 0)
       setTimeout(updateTimer, 1000);
