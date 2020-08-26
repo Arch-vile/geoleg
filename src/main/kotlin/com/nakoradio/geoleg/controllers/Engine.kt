@@ -147,7 +147,7 @@ class Engine(
         }
 
         var distance = distance(quest.location, location)
-        if (distance > 500) {
+        if (distance > 100) {
             logger.error("quest location [${quest.location}] location [$location] distance [$distance]")
             throw TechnicalError("Bad gps accuracy")
         }
