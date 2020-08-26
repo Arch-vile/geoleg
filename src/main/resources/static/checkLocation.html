@@ -8,7 +8,7 @@
 </head>
 <body class="black">
 
-<h2>Preparing, please standby</h2>
+<h2>Valmistellaan tehtävää, odota...</h2>
 <div id="status"></div>
 <p id="errorContainer"></p>
 
@@ -50,7 +50,7 @@
     const elapsed = new Date().getTime() - startTime;
     if(elapsed > 20000) {
       if(!latitudeHistory[0]) {
-        showError('Cannot get location! Please reload the page.');
+        showError('Sijainnin saaminen ei onnistunut. Lataa sivu uudestaan.');
       } else {
         sendLocation(latitudeHistory[0], longitudeHistory[0]);
       }
@@ -58,13 +58,13 @@
     else {
 
       if(statusCounter % 4 == 0)
-        addStatus('Running diagnostics...', false);
+        addStatus('Ajetaan diagnostiikka...', false);
       if(statusCounter % 4 == 1)
-        addStatus('Warming up flux capacitators...', true);
+        addStatus('Lämmitetään vuokapasitaattoreita...', true);
       if(statusCounter % 4 == 2)
-        addStatus('Remolding space and time...', true);
+        addStatus('Muovataan aika-avaruutta...', true);
       if(statusCounter % 4 == 3)
-        addStatus('Dividing by zero...', true);
+        addStatus('Jaetaan nollalla...', true);
 
       statusCounter++;
       setTimeout(checkElapsed, 5000);
@@ -89,7 +89,6 @@
   }
 
   function showError(text) {
-    console.log('show error called with ' + text);
     errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text + '</span>';
   }
 
