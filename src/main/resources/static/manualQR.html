@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="./css/main.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR-koodin lukija</title>
+</head>
+<body class="black">
+<body class="black">
+
+<label for="qrCode">Syötä QR koodi</label>
+<input type="text" id="qrCode" name="qrCode">
+<button type="button" onclick="send()">Lähetä</button>
+
+<script>
+  function send() {
+    const code = document.getElementById("qrCode").value;
+    window.location = "./qr/" + code;
+  }
+</script>
+</body>
+</html>

@@ -29,6 +29,7 @@ BODY.black {
 
 .w100 {
   width: 100%;
+  max-width: 300px;
 }
 
 table, th, td {
