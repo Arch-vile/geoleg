@@ -11,6 +11,27 @@ BODY.black {
   color: green;
 }
 
+.black {
+  color: black;
+}
+
+.bgreen {
+  background-color: green;
+}
+
+.bred {
+  background-color: red;
+}
+
+.byellow {
+  background-color: yellow;
+}
+
 .w100 {
   width: 100%;
+}
+
+table, th, td {
+  border: 1px solid white;
+
 }

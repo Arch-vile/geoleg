@@ -11,25 +11,37 @@
 
 <h1>Testataan toimintoja:</h1>
 <p>
-  Avaa tämä sivu puhelimellasi varmistaaksesi älypuhelimen yhteensopivuuden.
+  Avaa tämä sivu puhelimellasi varmistaaksesi älypuhelimen yhteensopivuuden. Tarkista, että kaikki
+  tarkistukset alla ovat tilassa <span class="bgreen black">OK</span>.
 </p>
+<table>
+  <tr>
+    <td>GPS sijainti</td>
+    <td id="gpsStatus" class="byellow black">Odottaa tilaa</td>
+  </tr>
+  <tr>
+    <td>QR-koodien luku</td>
+    <td id="qrStatus" class="byellow black">Odottaa tilaa</td>
+  </tr>
+</table>
+<p>Lue alta lisää jokaisesta toiminnosta.</p>
 
 <h2>GPS sijainnin lukeminen:</h2>
+<p>
+  <h3 id="gps" class="byellow black">Odottaa sijaintia...</h3>
+</p>
 <p>
   Kätkön toiminta vaatii älypuhelimen sijainnin jakamista. Pyydämme oikeutta käyttää puhelimen sijaintia.
   Sijaintia tarvitaan vain hetkellisesti kätkön aikana ja jaat sijaintisi vain ollessasi sivuillamme.
 </p>
-<p>
-  Tarkista, että GPS sijaintisi tulee näkymään alle vihreällä.
-</p>
-<p>
-    Sijaintisi on: <h3 id="gps">XXX sijainti XXX</h3>
-</p>
 
-<h2>QR koodin lukeminen</h2>
+<h2>QR-koodin lukeminen</h2>
+<p>
+  <h3 id="qr" class="byellow black">Odottaa QR-koodin lukemista...</h3>
+</p>
 <p>
   Kätkön suorittaminen helpottuu jos puhelimellasi voi lukea QR-koodeja. Uusimmilla puhelinmalleilla
-  riittää kameran avaaminen ja kohti QR-koodia osoittaminen. Jos ominaisuutta ei ole tuettu suoraan
+  riittää kameran avaaminen ja QR-koodia kohti osoittaminen. Jos ominaisuutta ei ole tuettu suoraan
   voit ladata siihen sopivan ohjelman (esim. Androidilla Google Lens).
 </p>
 <p>
@@ -37,9 +49,8 @@
   <a href="">QR koodin syöttö</a>
 </p>
 <p>
-  Lue alla oleva QR koodi ja tarkista, että saat vihreän OK merkin alle.
-  <h3 id="qr">XXXXXXXXX</h3>
-  <img src="./images/qrTestCode.png">
+  Lue alla oleva QR koodi testaaksesi ominaisuuden toimivuus.
+  <img class="w100" src="./images/qrTestCode.png">
 </p>
 
 <script>
@@ -47,22 +58,30 @@
   function processNewLocation(position) {
     const lat = position.coords.latitude.toFixed(5);
     const lon = position.coords.longitude.toFixed(5);
-    document.getElementById('gps').innerHTML =
-        '<span class="green">'  + lat + ', ' + lon + '</span>';
+    document.getElementById('gps').innerText = lat + ', ' + lon;
+    document.getElementById('gps').className = "bgreen";
+    document.getElementById('gpsStatus').innerText = "OK";
+    document.getElementById('gpsStatus').className = "bgreen";
   }
 
   function processError(error) {
-    document.getElementById('gps').innerHTML =
-        '<span class="red">'  + error + '</span>';
-  }
+    document.getElementById('gps').innerText = error;
+    document.getElementById('gps').className = "bred";
+    document.getElementById('gpsStatus').className = "bred";
+    document.getElementById('gpsStatus').innerText = "Virhe";
+    }
 
   getLocation(processNewLocation, processError);
 
   const urlParams = new URLSearchParams(window.location.search);
   const qr = urlParams.get('qr');
-  if(qr === "ok")
-    document.getElementById('qr').innerHTML =
-        '<span class="green">OK</span>';
+  if(qr === "ok") {
+    document.getElementById('qr').innerText = "OK";
+    document.getElementById('qr').className = "bgreen";
+
+    document.getElementById('qrStatus').className = "bgreen";
+    document.getElementById('qrStatus').innerText = "OK";
+  }
 </script>
 
 
