@@ -4,7 +4,7 @@ https://www.qr-code-generator.com/free-generator/?ut_source=google_c&ut_medium=c
 id=CjwKCAjwyo36BRAXEiwA24CwGSvw-kTy0QAfZEEwhzS6SZexyp4GSR-qu2Ld86gCd_jJcUeFNc5bYhoCu_4QAvD_BwE
 
 Adding url by running this on console
-var a = document.createElement('div'); a.innerHTML = '<span style="font-size: 6pt">https://qeust.herokuapp.com/qr/7c5a22bebf288eaf</span>'; document.getElementById('svgContainer')
+var a = document.createElement('div'); a.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 22pt">44b6bscn</span>'; document.getElementById('svgContainer')
 .appendChild(a);
 
 taking screenshot
