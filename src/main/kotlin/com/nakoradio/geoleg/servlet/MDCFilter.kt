@@ -18,7 +18,7 @@ class MDCFilter(val cookieManager: CookieManager) : Filter {
     override fun doFilter(request: ServletRequest?, response: ServletResponse?, next: FilterChain?) {
         val httpRequest = request as HttpServletRequest
 
-        val cookieData = httpRequest.cookies.find { it.name == COOKIE_NAME }?.value
+        val cookieData = httpRequest.cookies?.find { it.name == COOKIE_NAME }?.value
         val cookie = cookieData?.let {
         cookieManager.fromWebCookie(cookieData)
         }

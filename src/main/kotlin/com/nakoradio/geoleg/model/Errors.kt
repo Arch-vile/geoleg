@@ -6,4 +6,4 @@ open class CustomError(message: String) : RuntimeException(message)
 
 class TechnicalError(message: String) : CustomError(message)
 
-class StoryError(message: String) : CustomError(message)
+class MissingCookieError(val lat: Double, val lon: Double) : CustomError("Cookie was missing")

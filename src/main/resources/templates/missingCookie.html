@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Missing cookie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
+</head>
+<body class="black">
+<body>
+<h1>You have found a geo cache</h1>
+<img th:src="@{/images/missingCookie.png}" class="w100">
+<p>
+  This is a multi cache. A cache containing of multiple separate caches. Unfortunately this is not
+  the first one. Go read the cache description from <a href="">Geocaching.com</a> and get started on
+  the first cache.
+</p>
+<p>
+  If you were solving the caches in correct order and still got this page, something went wrong and
+  you did not have the required cookie. This could be due to:
+<ul>
+  <li>You used a different web browser</li>
+  <li>You have cleared your cookies</li>
+</ul>
+</p>
+</body>
+</html>

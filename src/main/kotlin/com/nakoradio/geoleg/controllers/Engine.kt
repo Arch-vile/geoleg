@@ -2,25 +2,29 @@ package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.Coordinates
 import com.nakoradio.geoleg.model.LocationReading
+import com.nakoradio.geoleg.model.MissingCookieError
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.StateCookie
-import com.nakoradio.geoleg.model.StoryError
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.ScenarioLoader
 import com.nakoradio.geoleg.utils.distance
 import com.nakoradio.geoleg.utils.now
-import java.time.Duration
-import javax.servlet.http.HttpServletResponse
-import kotlin.math.absoluteValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.servlet.ModelAndView
+import java.time.Duration
+import java.util.Locale
+import javax.servlet.http.HttpServletResponse
+import kotlin.math.absoluteValue
+
 
 @Controller
 class Engine(
@@ -61,19 +65,14 @@ class Engine(
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
     ) {
-        val quest = loader.questFor(scenario, questToStart, secret)
 
-        if (cookieData == null) {
-            // TODO: We need to have special page for this to explain. Imagine if someone,
-            // scans the qr code found by accident.
-            throw StoryError("You need to start from the first quest! Go at coordinates: ${quest.location.lat}, ${quest.location.lon}")
-        }
+        val quest = loader.questFor(scenario, questToStart, secret)
+        val cookie = assertCookieIsPresent(cookieData, scenario)
 
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
         assertProximity(quest, locationReading.toCoordinates())
 
-        val cookie = cookieManager.fromWebCookie(cookieData)
         assertEqual(cookie.scenario, scenario, "Bad cookie scenario")
         assertEqual(cookie.quest, questToStart - 1, "Bad cookie quest")
 
@@ -115,18 +114,30 @@ class Engine(
         response: HttpServletResponse
     ) {
         val quest = loader.questFor(scenario, questOrder, secret)
-        if (cookieData == null) {
-            // TODO: We need to have special page for this to explain. Imagine if someone,
-            // scans the qr code found by accident.
-            throw StoryError("You need to start from the first quest! Go at coordinates: ${quest.location.lat}, ${quest.location.lon}")
-        }
+        val cookie = assertCookieIsPresent(cookieData, scenario)
 
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
-        val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), cookieManager.fromWebCookie(cookieData))
+        val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), cookie)
 
         response.sendRedirect(nextPage)
+    }
+
+    @ExceptionHandler(value = [MissingCookieError::class])
+    fun missinCoookieHandler(ex: MissingCookieError): ModelAndView {
+        return ModelAndView("missingCookie", "msg", "doo")
+    }
+
+    private fun assertCookieIsPresent(cookieData: String?, scenario: String): StateCookie {
+        if (cookieData == null) {
+            // TODO: We need to have special page for this to explain. Imagine if someone,
+            // scans the qr code found by accident.
+            val firstQuest = loader.firstQuestFor(scenario)
+            throw MissingCookieError(firstQuest.location.lat, firstQuest.location.lon)
+        } else {
+            return cookieManager.fromWebCookie(cookieData)
+        }
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: StateCookie): String {
