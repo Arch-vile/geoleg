@@ -23,14 +23,12 @@ class ScenarioLoader(mapper: ObjectMapper) {
             ?.quests
             ?.find { it.order == questOrder }
             ?.takeIf { it.secret == secret }
-                ?: throw TechnicalError("No such quest for you my friend")
+            ?: throw TechnicalError("No such quest for you my friend")
     }
 
     fun firstQuestFor(scenario: String) =
-            table.scenarios.find { it.name == scenario }
-                    ?.quests
-                    ?.find { it.order == 1 }
-                    ?: throw TechnicalError("No such quest for you my friend")
-
-
+        table.scenarios.find { it.name == scenario }
+            ?.quests
+            ?.find { it.order == 1 }
+            ?: throw TechnicalError("No such quest for you my friend")
 }

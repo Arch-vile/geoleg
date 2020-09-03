@@ -10,6 +10,9 @@ import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.ScenarioLoader
 import com.nakoradio.geoleg.utils.distance
 import com.nakoradio.geoleg.utils.now
+import java.time.Duration
+import javax.servlet.http.HttpServletResponse
+import kotlin.math.absoluteValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -20,11 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.servlet.ModelAndView
-import java.time.Duration
-import java.util.Locale
-import javax.servlet.http.HttpServletResponse
-import kotlin.math.absoluteValue
-
 
 @Controller
 class Engine(
@@ -46,7 +44,6 @@ class Engine(
         response: HttpServletResponse
     ) {
         val quest = loader.questFor(scenario, 1, secret)
-
         if (scenario == SCENARIO_ANCIENT_BLOOD) {
             startAncientBlood(scenario, quest, cookieData, response)
             return
@@ -65,7 +62,6 @@ class Engine(
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
     ) {
-
         val quest = loader.questFor(scenario, questToStart, secret)
         val cookie = assertCookieIsPresent(cookieData, scenario)
 
