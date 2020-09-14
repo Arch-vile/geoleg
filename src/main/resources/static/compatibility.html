@@ -5,6 +5,7 @@
   <link rel="stylesheet" type="text/css" href="./css/main.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="./js/geoApi.js"></script>
+  <script src="./js/urlApi.js"></script>
   <title>Yhteensopivuustestisivu</title>
 </head>
 <body class="black">
@@ -73,8 +74,7 @@
 
   getLocation(processNewLocation, processError);
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const qr = urlParams.get('qr');
+  const qr = getQueryParam('qr');
   if(qr === "ok") {
     document.getElementById('qr').innerText = "OK";
     document.getElementById('qr').className = "bgreen";

@@ -5,6 +5,7 @@
   <link rel="stylesheet" type="text/css" href="./css/main.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="./js/geoApi.js"></script>
+  <script src="./js/urlApi.js"></script>
 </head>
 <body class="black">
 
@@ -83,8 +84,7 @@
   function sendLocation(lat, lon) {
     console.log("Sending location");
     const locationString = lat + ';' + lon + ';' + new Date().getTime();
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetUrl = urlParams.get('target') + '/' + crypt(locationString);
+    const targetUrl = getQueryParam('target') + '/' + crypt(locationString);
     window.location = targetUrl;
   }
 

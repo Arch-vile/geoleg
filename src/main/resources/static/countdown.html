@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" type="text/css" href="./css/main.css">
+  <script src="./js/urlApi.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Laskuri</title>
 </head>
@@ -12,11 +13,10 @@
 <h2 id="destination"></h2>
 
 <script>
-  const urlParams = new URLSearchParams(window.location.search);
   // Epoch seconds
-  const expiresAt = urlParams.get('expiresAt');
-  const lat = urlParams.get('lat');
-  const lon = urlParams.get('lon');
+  const expiresAt = getQueryParam('expiresAt');
+  const lat = getQueryParam('lat');
+  const lon = getQueryParam('lon');
 
   document.getElementById("destination").innerText =
       lat + ', ' + lon;
