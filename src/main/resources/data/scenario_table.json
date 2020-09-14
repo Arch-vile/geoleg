@@ -11,6 +11,7 @@
             "lon": 24.904306
           },
           "countdown": 60,
+          "fictionalCountdown": 3033,
           "failurePage": "/shouldNotBeUsed.html",
           "successPage": "/results/s1q1_success_dd19b04ceeaf.html"
         },
@@ -22,6 +23,7 @@
             "lon": 24.904306
           },
           "countdown": 60,
+          "fictionalCountdown": 3033,
           "failurePage": "/results/s1q2_failure_17d522b044bc.html",
           "successPage": "/results/s1q2_success_2612a7062d96.html"
         },
@@ -33,6 +35,7 @@
             "lon": 24.904306
           },
           "countdown": 120,
+          "fictionalCountdown": 3033,
           "failurePage": "/results/s1q3_failure_c127bdc2e9cf.html",
           "successPage": "/results/s1q3_success_8f9874319882.html"
         }

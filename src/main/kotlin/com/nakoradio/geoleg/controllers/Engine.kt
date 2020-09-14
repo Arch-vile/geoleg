@@ -78,7 +78,9 @@ class Engine(
             expiresAt = now().plusSeconds(quest.countdown)
         )
         response.addCookie(cookieManager.toWebCookie(updatedCookie))
-        response.sendRedirect(countdownPage(now().plusSeconds(quest.countdown).toEpochSecond(), quest.location))
+        var expiresAt = now().plusSeconds(quest.countdown).toEpochSecond()
+        var now = now().toEpochSecond()
+        response.sendRedirect(countdownPage(expiresAt, now, quest.fictionalCountdown, quest.location))
     }
 
     // This just does the redirection to location granting, which redirects back
@@ -199,8 +201,8 @@ class Engine(
         return "/checkLocation.html?target=$questUrl"
     }
 
-    private fun countdownPage(expiresAt: Long, location: Coordinates) =
-        "/countdown.html?expiresAt=$expiresAt&lat=${location.lat}&lon=${location.lon}"
+    private fun countdownPage(expiresAt: Long, now: Long, fictionalCountdown: Long, location: Coordinates) =
+        "/countdown.html?expiresAt=$expiresAt&now=$now&countdown=$fictionalCountdown&lat=${location.lat}&lon=${location.lon}"
 
     fun toggleLocationVerification(): Boolean {
         verifyLocation = !verifyLocation

@@ -13,30 +13,63 @@
 <h2 id="destination"></h2>
 
 <script>
-  // Epoch seconds
+  // Let's keep the start timestamp so that we know how much time has passed. With this
+  // we can scale the real countdown to fictional countdown and be consistent on page reload also.
+  // Epoch seconds on countdown start
+  const now = getQueryParam('now');
+
+  // Epoch seconds of the real expiration time
   const expiresAt = getQueryParam('expiresAt');
+
+  // Augmented reality time to complete the mission in seconds.
+  // For example if the story says you have 1 hour to complete the task, but the real
+  // expiration is set 60 seconds from now, the fictional countdown will progress at one minute per second
+  // rate.
+  // How many fictional seconds is the fictional countdown
+  const fictionalCountdownSeconds = getQueryParam('countdown');
+
+  // How many real seconds is the countdown
+  const realCountdownSeconds = expiresAt - now;
+
   const lat = getQueryParam('lat');
   const lon = getQueryParam('lon');
 
   document.getElementById("destination").innerText =
       lat + ', ' + lon;
 
-  updateTimer();
+  const secondsInMinute = 60;
+  const secondsInHour = 60 * secondsInMinute;
+  const secondsInDay = 24 * secondsInHour;
 
   function updateTimer() {
-    var seconds = expiresAt - Math.round(new Date().getTime() / 1000);
-    if(seconds < 0) { seconds = 0;}
+    var actualMilliSecondsRemaining = expiresAt*1000 - new Date().getTime();
+    if(actualMilliSecondsRemaining < 0) { actualMilliSecondsRemaining = 0;}
 
-    const minutes = Math.floor(seconds / 60);
-    const leftSeconds = seconds - minutes * 60;
+    var fictionalSecondsRemaining =
+        Math.round((actualMilliSecondsRemaining/1000 / realCountdownSeconds) * fictionalCountdownSeconds);
 
-    document.getElementById("timer").innerText = minutes + 'min ' + leftSeconds + 'seconds';
+    var leftSeconds = fictionalSecondsRemaining;
+    const days = Math.floor(leftSeconds / secondsInDay);
+    leftSeconds = leftSeconds - days * secondsInDay;
 
-    if(seconds > 0)
-      setTimeout(updateTimer, 1000);
+    const hours = Math.floor(leftSeconds  / secondsInHour );
+    leftSeconds = leftSeconds - hours * secondsInHour;
+
+    const minutes = Math.floor(leftSeconds / 60);
+    leftSeconds = leftSeconds - minutes * secondsInMinute;
+
+    document.getElementById("timer").innerText =
+        days + ' days ' +
+        hours + ' hours ' +
+        minutes + ' minutes ' +
+        leftSeconds + ' seconds';
+
+    if(actualMilliSecondsRemaining > 0)
+      setTimeout(updateTimer, 100);
   }
 
 
+  updateTimer();
 </script>
 
 </body>
