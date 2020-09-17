@@ -18,7 +18,6 @@ private object AES256 {
     private val encorder = Base64.getEncoder()
     private val decorder = Base64.getDecoder()
     private fun cipher(opmode: Int, secretKey: String): Cipher {
-        println(secretKey)
         if (secretKey.length != 32) throw RuntimeException("SecretKey length is not 32 chars")
         val c = Cipher.getInstance("AES/CBC/PKCS5Padding")
         val sk = SecretKeySpec(secretKey.toByteArray(Charsets.UTF_8), "AES")

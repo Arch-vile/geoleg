@@ -19,8 +19,6 @@ data class LocationReading(val lat: Double, val lon: Double, val createdAt: Offs
                 encypted += ceaserTarget[ceaserSource.indexOf(element)]
             }
 
-            print(encypted)
-
             var splitted = encypted.split(';')
             var instant = Instant.ofEpochMilli(splitted[2].toLong())
             return LocationReading(

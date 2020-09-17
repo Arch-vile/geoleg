@@ -1,6 +1,8 @@
 package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.TechnicalError
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
@@ -13,6 +15,8 @@ Handles the scanned QR codes
  */
 @Controller
 class QRController() {
+
+    var logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     // Codes are random strings to avoid guessing and for flexible replacing
     private val QR_CODE_MAPPING = mapOf(
@@ -33,10 +37,11 @@ class QRController() {
         @PathVariable("qrCode") qrCode: String,
         response: HttpServletResponse
     ) {
-        if (!QR_CODE_MAPPING.containsKey(qrCode)) {
+        QR_CODE_MAPPING[qrCode]?.run {
+            logger.info("QR code $qrCode redirecting to $this")
+            response.sendRedirect(this)
+        } ?: run {
             throw TechnicalError("Unknown QR code $qrCode")
         }
-
-        response.sendRedirect(QR_CODE_MAPPING[qrCode])
     }
 }
