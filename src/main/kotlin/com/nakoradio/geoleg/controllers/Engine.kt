@@ -6,6 +6,7 @@ import com.nakoradio.geoleg.model.MissingCookieError
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.StateCookie
 import com.nakoradio.geoleg.model.TechnicalError
+import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.ScenarioLoader
 import com.nakoradio.geoleg.utils.distance
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.servlet.ModelAndView
-import kotlin.math.log
 
 @Controller
 class Engine(
@@ -32,10 +32,14 @@ class Engine(
     val loader: ScenarioLoader
 ) {
 
-
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
     val SCENARIO_ANCIENT_BLOOD = "ancient-blood"
 
+    /**
+     * Initialize certain scenario. The first QR code scanned points here.
+     * We still want to make sure you scan the code at the actual location,
+     * to not give any advantage for the next quest.
+     */
     @GetMapping("/engine/init/{scenario}/{secret}")
     @ResponseBody
     fun initScenario(
@@ -46,7 +50,8 @@ class Engine(
     ) {
         val quest = loader.questFor(scenario, 1, secret)
         if (scenario == SCENARIO_ANCIENT_BLOOD) {
-            startAncientBlood(scenario, quest, cookieData, response)
+            var action = startAncientBlood(scenario, quest, cookieData)
+            processAction(response, action)
             return
         }
 
@@ -128,6 +133,12 @@ class Engine(
         return ModelAndView("missingCookie", "msg", "doo")
     }
 
+    private fun processAction(response: HttpServletResponse, action: WebAction) {
+        logger.info("Setting cookie [${action.cookie}] and redirecting to ${action.url}")
+        response.addCookie(cookieManager.toWebCookie(action.cookie))
+        response.sendRedirect(action.url)
+    }
+
     private fun assertCookieIsPresent(cookieData: String?, scenario: String): StateCookie {
         if (cookieData == null) {
             // TODO: We need to have special page for this to explain. Imagine if someone,
@@ -179,7 +190,7 @@ class Engine(
     // Create new start scenario token, with unlimited time to complete the first quest (which is
     // actually where the user already is)
     // Preserving the userId if present
-    private fun startAncientBlood(scenario: String, quest: Quest, cookieData: String?, response: HttpServletResponse) {
+    private fun startAncientBlood(scenario: String, quest: Quest, cookieData: String?): WebAction {
         val existingCookie = cookieData?.let { cookieManager.fromWebCookie(cookieData) }
 
         val cookie =
@@ -190,17 +201,15 @@ class Engine(
                 now().plusYears(10)
             )
 
-        response.addCookie(cookieManager.toWebCookie(cookie))
-        response.sendRedirect(askForLocation(questCompleteUrl(scenario, quest)))
+        return WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie)
     }
 
     private fun questCompleteUrl(scenario: String, quest: Quest): String {
         return "/engine/complete/$scenario/${quest.order}/${quest.secret}"
     }
 
-    private fun askForLocation(questUrl: String): String {
-        return "/checkLocation.html?target=$questUrl"
-    }
+    private fun askForLocation(questUrl: String) =
+        "/checkLocation.html?target=$questUrl"
 
     private fun countdownPage(expiresAt: Long, now: Long, fictionalCountdown: Long, location: Coordinates) =
         "/countdown.html?expiresAt=$expiresAt&now=$now&countdown=$fictionalCountdown&lat=${location.lat}&lon=${location.lon}"

@@ -1,9 +1,9 @@
 package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.TechnicalError
+import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import javax.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
