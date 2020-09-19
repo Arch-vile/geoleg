@@ -1,4 +1,4 @@
-package com.nakoradio.geoleg.controllers
+package com.nakoradio.geoleg.services
 
 import com.nakoradio.geoleg.model.Coordinates
 import com.nakoradio.geoleg.model.LocationReading
@@ -7,25 +7,16 @@ import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.StateCookie
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
-import com.nakoradio.geoleg.services.CookieManager
-import com.nakoradio.geoleg.services.ScenarioLoader
 import com.nakoradio.geoleg.utils.distance
 import com.nakoradio.geoleg.utils.now
 import java.time.Duration
-import javax.servlet.http.HttpServletResponse
 import kotlin.math.absoluteValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.CookieValue
-import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.servlet.ModelAndView
+import org.springframework.stereotype.Service
 
-@Controller
+@Service
 class Engine(
     @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
     val cookieManager: CookieManager,
@@ -49,14 +40,11 @@ class Engine(
      * to reach it (also countdown set to zero, so timer not shown).
      *
      */
-    @GetMapping("/engine/init/{scenario}/{secret}")
-    @ResponseBody
     fun initScenario(
-        @CookieValue(COOKIE_NAME) cookieData: String?,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("secret") secret: String,
-        response: HttpServletResponse
-    ) {
+        cookieData: String?,
+        scenario: String,
+        secret: String
+    ): WebAction {
         val quest = loader.questFor(scenario, 0, secret)
         val cookie =
             cookieManager.updateOrCreate(
@@ -66,22 +54,19 @@ class Engine(
                 now().plusYears(10)
             )
 
-        return processAction(response, WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie))
+        return WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie)
     }
 
     /**
      * Start next quest. This endpoint is called when clicking "GO" to start the next quest.
      */
-    @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")
-    @ResponseBody
     fun startQuest(
-        @CookieValue(COOKIE_NAME) cookieData: String?,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questToStart: Int,
-        @PathVariable("secret") secret: String,
-        @PathVariable("location") locationString: String,
-        response: HttpServletResponse
-    ) {
+        cookieData: String?,
+        scenario: String,
+        questToStart: Int,
+        secret: String,
+        locationString: String
+    ): WebAction {
         val quest = loader.questFor(scenario, questToStart, secret)
         val cookie = assertCookieIsPresent(cookieData, scenario)
 
@@ -102,37 +87,30 @@ class Engine(
         var now = now().toEpochSecond()
         var countdownPageUrl = countdownPage(expiresAt, now, quest.fictionalCountdown, quest.location)
 
-        processAction(response, WebAction(countdownPageUrl, updatedCookie))
+        return WebAction(countdownPageUrl, updatedCookie)
     }
 
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
-    @GetMapping("/engine/complete/{scenario}/{quest}/{secret}")
-    @ResponseBody
     fun initComplete(
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questToComplete: Int,
-        @PathVariable("secret") secret: String,
-        response: HttpServletResponse
-    ) {
+        scenario: String,
+        questToComplete: Int,
+        secret: String
+    ): String {
         val quest = loader.questFor(scenario, questToComplete, secret)
-        response.sendRedirect(
-            askForLocation(
-                questCompleteUrl(scenario, quest)
-            )
+
+        return askForLocation(
+            questCompleteUrl(scenario, quest)
         )
     }
 
-    @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
-    @ResponseBody
     fun complete(
-        @CookieValue(COOKIE_NAME) cookieData: String?,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questOrder: Int,
-        @PathVariable("secret") secret: String,
-        @PathVariable("location") locationString: String,
-        response: HttpServletResponse
-    ) {
+        cookieData: String?,
+        scenario: String,
+        questOrder: Int,
+        secret: String,
+        locationString: String
+    ): String {
         val quest = loader.questFor(scenario, questOrder, secret)
         val cookie = assertCookieIsPresent(cookieData, scenario)
 
@@ -141,18 +119,7 @@ class Engine(
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), cookie)
         logger.info("Redirecting to $nextPage")
-        response.sendRedirect(nextPage)
-    }
-
-    @ExceptionHandler(value = [MissingCookieError::class])
-    fun missinCoookieHandler(ex: MissingCookieError): ModelAndView {
-        return ModelAndView("missingCookie", "msg", "doo")
-    }
-
-    private fun processAction(response: HttpServletResponse, action: WebAction) {
-        logger.info("Setting cookie [${action.cookie}] and redirecting to ${action.url}")
-        response.addCookie(cookieManager.toWebCookie(action.cookie))
-        response.sendRedirect(action.url)
+        return nextPage
     }
 
     private fun assertCookieIsPresent(cookieData: String?, scenario: String): StateCookie {
