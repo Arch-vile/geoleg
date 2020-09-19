@@ -33,13 +33,20 @@ class Engine(
 ) {
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
-    val SCENARIO_ANCIENT_BLOOD = "ancient-blood"
 
     /**
-     * Initialize certain scenario. The QR code scanned from the web page (and link) points here and you
-     * will get the coordinates of the first on field QR code.
+     * Initialize certain scenario. The QR code scanned from the web page (and link) points here.
      *
-     * Time to complete this quest is not limited.
+     * We will set cookie for the first quest and then redirect to quest complete url.
+     *
+     * In the quest config, the first quest has location and countdown verification turned off,
+     * so arriving to the complete url will be accepted as success and the success page will
+     * be shown (which is the introduction text to the scenario). We will get location anyway
+     * to be confident user's device is compatible on upcoming quests also.
+     *
+     * Proceeding to second quest will give the location of the first on field QR code. You should
+     * note that the second quest has `"shouldVerifyCountdown": false` so there is no time limit
+     * to reach it (also countdown set to zero, so timer not shown).
      *
      */
     @GetMapping("/engine/init/{scenario}/{secret}")
@@ -51,12 +58,16 @@ class Engine(
         response: HttpServletResponse
     ) {
         val quest = loader.questFor(scenario, 0, secret)
-        if (scenario == SCENARIO_ANCIENT_BLOOD) {
-            var action = startAncientBlood(scenario, quest, cookieData)
-            processAction(response, action)
-        } else {
-            throw TechnicalError("Unknown scenario")
-        }
+            val existingCookie = cookieData?.let { cookieManager.fromWebCookie(cookieData) }
+            val cookie =
+                    cookieManager.updateOrCreate(
+                            existingCookie,
+                            scenario,
+                            0,
+                            now().plusYears(10)
+                    )
+
+            processAction(response, WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie))
     }
 
     @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")
@@ -84,10 +95,12 @@ class Engine(
             quest = questToStart,
             expiresAt = now().plusSeconds(quest.countdown)
         )
-        response.addCookie(cookieManager.toWebCookie(updatedCookie))
+
         var expiresAt = now().plusSeconds(quest.countdown).toEpochSecond()
         var now = now().toEpochSecond()
-        response.sendRedirect(countdownPage(expiresAt, now, quest.fictionalCountdown, quest.location))
+        var countdownPageUrl = countdownPage(expiresAt, now, quest.fictionalCountdown, quest.location)
+
+        processAction(response, WebAction(countdownPageUrl, updatedCookie))
     }
 
     // This just does the redirection to location granting, which redirects back
@@ -193,22 +206,6 @@ class Engine(
         }
     }
 
-    // Create new start scenario token, with unlimited time to complete the first quest (which is
-    // actually where the user already is)
-    // Preserving the userId if present
-    private fun startAncientBlood(scenario: String, quest: Quest, cookieData: String?): WebAction {
-        val existingCookie = cookieData?.let { cookieManager.fromWebCookie(cookieData) }
-
-        val cookie =
-            cookieManager.updateOrCreate(
-                existingCookie,
-                scenario,
-                quest.order,
-                now().plusYears(10)
-            )
-
-        return WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie)
-    }
 
     private fun questCompleteUrl(scenario: String, quest: Quest): String {
         return "/engine/complete/$scenario/${quest.order}/${quest.secret}"
