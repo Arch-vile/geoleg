@@ -36,9 +36,11 @@ class Engine(
     val SCENARIO_ANCIENT_BLOOD = "ancient-blood"
 
     /**
-     * Initialize certain scenario. The first QR code scanned points here.
-     * We still want to make sure you scan the code at the actual location,
-     * to not give any advantage for the next quest.
+     * Initialize certain scenario. The QR code scanned from the web page (and link) points here and you
+     * will get the coordinates of the first on field QR code.
+     *
+     * Time to complete this quest is not limited.
+     *
      */
     @GetMapping("/engine/init/{scenario}/{secret}")
     @ResponseBody
@@ -48,14 +50,13 @@ class Engine(
         @PathVariable("secret") secret: String,
         response: HttpServletResponse
     ) {
-        val quest = loader.questFor(scenario, 1, secret)
+        val quest = loader.questFor(scenario, 0, secret)
         if (scenario == SCENARIO_ANCIENT_BLOOD) {
             var action = startAncientBlood(scenario, quest, cookieData)
             processAction(response, action)
-            return
+        } else {
+            throw TechnicalError("Unknown scenario")
         }
-
-        throw TechnicalError("Unknown scenario")
     }
 
     @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")
@@ -124,7 +125,7 @@ class Engine(
         checkIsFresh(locationReading)
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), cookie)
-
+        logger.info("Redirecting to $nextPage")
         response.sendRedirect(nextPage)
     }
 
@@ -153,11 +154,16 @@ class Engine(
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: StateCookie): String {
         assertEqual(scenario, state.scenario, "scenario completion")
         assertEqual(quest.order, state.quest, "quest matching")
-        assertProximity(quest, location)
 
-        return if (now().isAfter(state.expiresAt)) {
+        if (quest.shouldVerifyLocation) {
+            assertProximity(quest, location)
+        }
+
+        return if (quest.shouldVerifyCountdown && now().isAfter(state.expiresAt)) {
+            logger.info("Quest failed due to time running out")
             quest.failurePage
         } else {
+            logger.info("Quest success!")
             quest.successPage
         }
     }
@@ -197,7 +203,7 @@ class Engine(
             cookieManager.updateOrCreate(
                 existingCookie,
                 scenario,
-                1,
+                quest.order,
                 now().plusYears(10)
             )
 

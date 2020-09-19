@@ -69,7 +69,11 @@
   }
 
 
-  updateTimer();
+  // If quest has countdown of zero, expiresAt is set to now, realCountDownSeconds
+  // will be <= 0, in which case we do not want to show the timer
+  if(realCountdownSeconds > 0)
+    updateTimer();
+
 </script>
 
 </body>

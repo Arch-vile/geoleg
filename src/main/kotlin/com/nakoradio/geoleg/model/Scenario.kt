@@ -6,6 +6,8 @@ data class Quest(
     val order: Int,
     val secret: String,
     val location: Coordinates,
+    val shouldVerifyLocation: Boolean = true,
+    val shouldVerifyCountdown: Boolean = true,
 
     // Time in seconds to complete the quest
     val countdown: Long,

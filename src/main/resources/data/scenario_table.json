@@ -4,15 +4,30 @@
       "name": "ancient-blood",
       "quests": [
         {
+          "order": 0,
+          "secret": "6a5fc6c0f8ec",
+          "shouldVerifyLocation": false,
+          "shouldVerifyCountdown": false,
+          "location": {
+            "lat": 0,
+            "lon": 0
+          },
+          "countdown": 0,
+          "fictionalCountdown": 0,
+          "failurePage": "/s1q1_failure_shouldNotBeUsed.html",
+          "successPage": "/results/s1_introduction_defe34c03ace.html"
+        },
+        {
           "order": 1,
           "secret": "656a0b0924da",
+          "shouldVerifyCountdown": false,
           "location": {
             "lat": 60.283411,
             "lon": 24.904306
           },
-          "countdown": 60,
-          "fictionalCountdown": 3033,
-          "failurePage": "/shouldNotBeUsed.html",
+          "countdown": 0,
+          "fictionalCountdown": 0,
+          "failurePage": "/s1q2_failure_shouldNotBeUsed.html",
           "successPage": "/results/s1q1_success_dd19b04ceeaf.html"
         },
         {
