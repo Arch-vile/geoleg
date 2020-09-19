@@ -58,17 +58,20 @@ class Engine(
         response: HttpServletResponse
     ) {
         val quest = loader.questFor(scenario, 0, secret)
-            val cookie =
-                    cookieManager.updateOrCreate(
-                            cookieData,
-                            scenario,
-                            0,
-                            now().plusYears(10)
-                    )
+        val cookie =
+            cookieManager.updateOrCreate(
+                cookieData,
+                scenario,
+                0,
+                now().plusYears(10)
+            )
 
-            return processAction(response, WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie))
+        return processAction(response, WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie))
     }
 
+    /**
+     * Start next quest. This endpoint is called when clicking "GO" to start the next quest.
+     */
     @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
     fun startQuest(
@@ -204,7 +207,6 @@ class Engine(
             throw TechnicalError("Something funny with the location")
         }
     }
-
 
     private fun questCompleteUrl(scenario: String, quest: Quest): String {
         return "/engine/complete/$scenario/${quest.order}/${quest.secret}"
