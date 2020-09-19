@@ -58,16 +58,15 @@ class Engine(
         response: HttpServletResponse
     ) {
         val quest = loader.questFor(scenario, 0, secret)
-            val existingCookie = cookieData?.let { cookieManager.fromWebCookie(cookieData) }
             val cookie =
                     cookieManager.updateOrCreate(
-                            existingCookie,
+                            cookieData,
                             scenario,
                             0,
                             now().plusYears(10)
                     )
 
-            processAction(response, WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie))
+            return processAction(response, WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie))
     }
 
     @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")

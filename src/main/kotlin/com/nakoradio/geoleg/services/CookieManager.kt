@@ -23,14 +23,15 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
     fun fromWebCookie(cookieData: String): StateCookie =
         jsonMapper.readValue(cryptor.aesDecrypt(cookieData), StateCookie::class.java)
 
-    fun updateOrCreate(existingCookie: StateCookie?, scenario: String, leg: Int, expiresAt: OffsetDateTime): StateCookie {
+    fun updateOrCreate(cookieData: String?, scenario: String, leg: Int, expiresAt: OffsetDateTime): StateCookie {
+        val existingCookie = cookieData?.run { fromWebCookie(cookieData) }
         return StateCookie(
-            scenario,
-            leg,
-            expiresAt,
-            now(),
-            existingCookie?.userId ?: UUID.randomUUID(),
-            (existingCookie?.restartCount ?: 0) + 1
+                scenario,
+                leg,
+                expiresAt,
+                now(),
+                existingCookie?.userId ?: UUID.randomUUID(),
+                (existingCookie?.restartCount ?: 0) + 1
         )
     }
 }
