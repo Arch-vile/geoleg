@@ -4,7 +4,7 @@ import com.nakoradio.geoleg.model.Coordinates
 import com.nakoradio.geoleg.model.LocationReading
 import com.nakoradio.geoleg.model.MissingCookieError
 import com.nakoradio.geoleg.model.Quest
-import com.nakoradio.geoleg.model.StateCookie
+import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.distance
@@ -25,36 +25,23 @@ class Engine(
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    /**
-     * Initialize certain scenario. The QR code scanned from the web page (and link) points here.
-     *
-     * We will set cookie for the first quest and then redirect to quest complete url.
-     *
-     * In the quest config, the first quest has location and countdown verification turned off,
-     * so arriving to the complete url will be accepted as success and the success page will
-     * be shown (which is the introduction text to the scenario). We will get location anyway
-     * to be confident user's device is compatible on upcoming quests also.
-     *
-     * Proceeding to second quest will give the location of the first on field QR code. You should
-     * note that the second quest has `"shouldVerifyCountdown": false` so there is no time limit
-     * to reach it (also countdown set to zero, so timer not shown).
-     *
-     */
+    // For scenario init, we will redirect to the complete URL, so that the quest
+    // will be automatically completed.
     fun initScenario(
-        cookieData: String?,
-        scenario: String,
-        secret: String
+            state: State,
+            scenario: String,
+            secret: String
     ): WebAction {
+        logger.info("Initializing scenario: $scenario")
         val quest = loader.questFor(scenario, 0, secret)
-        val cookie =
-            cookieManager.updateOrCreate(
-                cookieData,
-                scenario,
-                0,
-                now().plusYears(10)
-            )
-
-        return WebAction(askForLocation(questCompleteUrl(scenario, quest)), cookie)
+        val newState = state.copy(
+                scenario = scenario,
+                deadline = now().plusYears(10),
+                started = now(),
+                currentQuest = 0,
+                scenarioRestartCount = state.scenarioRestartCount+1
+                )
+        return WebAction(askForLocation(questCompleteUrl(scenario, quest)),newState)
     }
 
     /**
@@ -75,12 +62,12 @@ class Engine(
         assertProximity(quest, locationReading.toCoordinates())
 
         assertEqual(cookie.scenario, scenario, "Bad cookie scenario")
-        assertEqual(cookie.quest, questToStart - 1, "Bad cookie quest")
+        assertEqual(cookie.currentQuest, questToStart - 1, "Bad cookie quest")
 
         var updatedCookie = cookie.copy(
-            createdAt = now(),
-            quest = questToStart,
-            expiresAt = now().plusSeconds(quest.countdown)
+            started = now(),
+            currentQuest = questToStart,
+            deadline = now().plusSeconds(quest.countdown)
         )
 
         var expiresAt = now().plusSeconds(quest.countdown).toEpochSecond()
@@ -122,7 +109,7 @@ class Engine(
         return nextPage
     }
 
-    private fun assertCookieIsPresent(cookieData: String?, scenario: String): StateCookie {
+    private fun assertCookieIsPresent(cookieData: String?, scenario: String): State {
         if (cookieData == null) {
             // TODO: We need to have special page for this to explain. Imagine if someone,
             // scans the qr code found by accident.
@@ -133,15 +120,15 @@ class Engine(
         }
     }
 
-    private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: StateCookie): String {
+    private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {
         assertEqual(scenario, state.scenario, "scenario completion")
-        assertEqual(quest.order, state.quest, "quest matching")
+        assertEqual(quest.order, state.currentQuest, "quest matching")
 
         if (quest.shouldVerifyLocation) {
             assertProximity(quest, location)
         }
 
-        return if (quest.shouldVerifyCountdown && now().isAfter(state.expiresAt)) {
+        return if (quest.shouldVerifyCountdown && now().isAfter(state.deadline)) {
             logger.info("Quest failed due to time running out")
             quest.failurePage
         } else {

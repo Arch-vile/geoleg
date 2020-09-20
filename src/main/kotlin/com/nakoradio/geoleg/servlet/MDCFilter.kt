@@ -1,7 +1,7 @@
 package com.nakoradio.geoleg.servlet
 
 import com.nakoradio.geoleg.controllers.COOKIE_NAME
-import com.nakoradio.geoleg.model.StateCookie
+import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.services.CookieManager
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -29,4 +29,4 @@ class MDCFilter(val cookieManager: CookieManager) : Filter {
     }
 }
 
-data class LogContext(val URI: String, val cookie: StateCookie?)
+data class LogContext(val URI: String, val cookie: State?)

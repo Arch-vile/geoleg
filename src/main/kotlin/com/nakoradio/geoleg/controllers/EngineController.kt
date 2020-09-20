@@ -1,6 +1,7 @@
 package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.MissingCookieError
+import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.Engine
@@ -26,7 +27,8 @@ class EngineController(
     /**
      * Initialize certain scenario. The QR code scanned from the web page (and link) points here.
      *
-     * We will set cookie for the first quest and then redirect to quest complete url.
+     * We will set cookie for the first quest and then redirect to quest complete url. If state
+     * (cookie) already exists, we will keep the userId and update the restart count.
      *
      * In the quest config, the first quest has location and countdown verification turned off,
      * so arriving to the complete url will be accepted as success and the success page will
@@ -46,7 +48,11 @@ class EngineController(
         @PathVariable("secret") secret: String,
         response: HttpServletResponse
     ) {
-        return processAction(response, engine.initScenario(cookieData, scenario, secret))
+        val state =
+                cookieData?.let { cookieManager.fromWebCookie(it) }
+                        ?: State.empty()
+
+        return processAction(response, engine.initScenario(state, scenario, secret))
     }
 
     /**
