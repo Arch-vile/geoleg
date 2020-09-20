@@ -48,23 +48,22 @@ class Engine(
      * Start next quest. This endpoint is called when clicking "GO" to start the next quest.
      */
     fun startQuest(
-        cookieData: String?,
+        state: State,
         scenario: String,
         questToStart: Int,
         secret: String,
         locationString: String
     ): WebAction {
         val quest = loader.questFor(scenario, questToStart, secret)
-        val cookie = assertCookieIsPresent(cookieData, scenario)
 
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
         assertProximity(quest, locationReading.toCoordinates())
 
-        assertEqual(cookie.scenario, scenario, "Bad cookie scenario")
-        assertEqual(cookie.currentQuest, questToStart - 1, "Bad cookie quest")
+        assertEqual(state.scenario, scenario, "Bad cookie scenario")
+        assertEqual(state.currentQuest, questToStart - 1, "Bad cookie quest")
 
-        var updatedCookie = cookie.copy(
+        var updatedCookie = state.copy(
             started = now(),
             currentQuest = questToStart,
             deadline = now().plusSeconds(quest.countdown)
@@ -92,32 +91,18 @@ class Engine(
     }
 
     fun complete(
-        cookieData: String?,
+        state: State,
         scenario: String,
         questOrder: Int,
         secret: String,
         locationString: String
     ): String {
         val quest = loader.questFor(scenario, questOrder, secret)
-        val cookie = assertCookieIsPresent(cookieData, scenario)
-
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
-        val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), cookie)
-        logger.info("Redirecting to $nextPage")
+        val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
         return nextPage
-    }
-
-    private fun assertCookieIsPresent(cookieData: String?, scenario: String): State {
-        if (cookieData == null) {
-            // TODO: We need to have special page for this to explain. Imagine if someone,
-            // scans the qr code found by accident.
-            val firstQuest = loader.firstQuestFor(scenario)
-            throw MissingCookieError(firstQuest.location.lat, firstQuest.location.lon)
-        } else {
-            return cookieManager.fromWebCookie(cookieData)
-        }
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {

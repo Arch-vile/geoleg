@@ -61,14 +61,15 @@ class EngineController(
     @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
     fun startQuest(
-        @CookieValue(COOKIE_NAME) cookieData: String?,
+        @CookieValue(COOKIE_NAME) cookieData: String,
         @PathVariable("scenario") scenario: String,
         @PathVariable("quest") questToStart: Int,
         @PathVariable("secret") secret: String,
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
     ) {
-        return processAction(response, engine.startQuest(cookieData, scenario, questToStart, secret, locationString))
+        val state = cookieManager.fromWebCookie(cookieData)
+        return processAction(response, engine.startQuest(state, scenario, questToStart, secret, locationString))
     }
 
     // This just does the redirection to location granting, which redirects back
@@ -87,14 +88,15 @@ class EngineController(
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
     fun complete(
-        @CookieValue(COOKIE_NAME) cookieData: String?,
+        @CookieValue(COOKIE_NAME) cookieData: String,
         @PathVariable("scenario") scenario: String,
         @PathVariable("quest") questOrder: Int,
         @PathVariable("secret") secret: String,
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
     ) {
-        val nextPage = engine.complete(cookieData, scenario, questOrder, secret, locationString)
+        val state = cookieManager.fromWebCookie(cookieData)
+        val nextPage = engine.complete(state, scenario, questOrder, secret, locationString)
         logger.info("Redirecting to $nextPage")
         response.sendRedirect(nextPage)
     }
@@ -109,4 +111,5 @@ class EngineController(
         response.addCookie(cookieManager.toWebCookie(action.cookie))
         response.sendRedirect(action.url)
     }
+
 }
