@@ -1,0 +1,2 @@
+- what if cookie is missing
+- rescanning qr code at different stages

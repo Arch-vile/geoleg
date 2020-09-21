@@ -5,16 +5,14 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 data class State(
-        val scenario: String,
-        val currentQuest: Int,
-        val deadline: OffsetDateTime,
-        val started: OffsetDateTime,
-        val userId: UUID,
-        val scenarioRestartCount: Int
-){
+    val scenario: String,
+    val currentQuest: Int,
+    val deadline: OffsetDateTime,
+    val started: OffsetDateTime,
+    val userId: UUID,
+    val scenarioRestartCount: Int
+) {
     companion object Factory {
-        fun empty() = State("",0,now(),now(),UUID.randomUUID(),0)
+        fun empty() = State("", 0, now(), now(), UUID.randomUUID(), 0)
     }
 }
-
-

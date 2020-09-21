@@ -49,8 +49,8 @@ class EngineController(
         response: HttpServletResponse
     ) {
         val state =
-                cookieData?.let { cookieManager.fromWebCookie(it) }
-                        ?: State.empty()
+            cookieData?.let { cookieManager.fromWebCookie(it) }
+                ?: State.empty()
 
         return processAction(response, engine.initScenario(state, scenario, secret))
     }
@@ -107,9 +107,8 @@ class EngineController(
     }
 
     private fun processAction(response: HttpServletResponse, action: WebAction) {
-        logger.info("Setting cookie [${action.cookie}] and redirecting to ${action.url}")
-        response.addCookie(cookieManager.toWebCookie(action.cookie))
+        logger.info("Setting cookie [${action.state}] and redirecting to ${action.url}")
+        response.addCookie(cookieManager.toWebCookie(action.state))
         response.sendRedirect(action.url)
     }
-
 }

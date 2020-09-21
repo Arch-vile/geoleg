@@ -1,3 +1,3 @@
 package com.nakoradio.geoleg.model
 
-data class WebAction(val url: String, val cookie: State)
+data class WebAction(val url: String, val state: State)

@@ -2,7 +2,6 @@ package com.nakoradio.geoleg.services
 
 import com.nakoradio.geoleg.model.Coordinates
 import com.nakoradio.geoleg.model.LocationReading
-import com.nakoradio.geoleg.model.MissingCookieError
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
@@ -28,20 +27,22 @@ class Engine(
     // For scenario init, we will redirect to the complete URL, so that the quest
     // will be automatically completed.
     fun initScenario(
-            state: State,
-            scenario: String,
-            secret: String
+        state: State,
+        scenario: String,
+        secret: String
     ): WebAction {
         logger.info("Initializing scenario: $scenario")
         val quest = loader.questFor(scenario, 0, secret)
-        val newState = state.copy(
-                scenario = scenario,
-                deadline = now().plusYears(10),
-                started = now(),
-                currentQuest = 0,
-                scenarioRestartCount = state.scenarioRestartCount+1
-                )
-        return WebAction(askForLocation(questCompleteUrl(scenario, quest)),newState)
+        val newState = State(
+            scenario = scenario,
+            deadline = now().plusYears(10),
+            started = now(),
+            currentQuest = 0,
+            scenarioRestartCount =
+                if (state.scenario == scenario) state.scenarioRestartCount + 1 else 0,
+            userId = state.userId
+        )
+        return WebAction(askForLocation(questCompleteUrl(scenario, quest)), newState)
     }
 
     /**
