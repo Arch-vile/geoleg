@@ -96,9 +96,9 @@ class EngineController(
         response: HttpServletResponse
     ) {
         val state = cookieManager.fromWebCookie(cookieData)
-        val nextPage = engine.complete(state, scenario, questOrder, secret, locationString)
-        logger.info("Redirecting to $nextPage")
-        response.sendRedirect(nextPage)
+        processAction(
+                response,
+                engine.complete(state, scenario, questOrder, secret, locationString))
     }
 
     @ExceptionHandler(value = [MissingCookieError::class])

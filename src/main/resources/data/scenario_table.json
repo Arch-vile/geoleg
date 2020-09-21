@@ -54,7 +54,25 @@
           "failurePage": "/results/s1q3_failure_c127bdc2e9cf.html",
           "successPage": "/results/s1q3_success_8f9874319882.html"
         }
-
+      ]
+    },
+    {
+      "name": "testing-dummy",
+      "quests": [
+        {
+          "order": 0,
+          "secret": "aaaaaaaaaaaa",
+          "shouldVerifyLocation": false,
+          "shouldVerifyCountdown": false,
+          "location": {
+            "lat": 0,
+            "lon": 0
+          },
+          "countdown": 0,
+          "fictionalCountdown": 0,
+          "failurePage": "/foo.html",
+          "successPage": "/bar.html"
+        }
       ]
     }
   ]

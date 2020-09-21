@@ -97,13 +97,13 @@ class Engine(
         questOrder: Int,
         secret: String,
         locationString: String
-    ): String {
+    ): WebAction {
         val quest = loader.questFor(scenario, questOrder, secret)
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
-        return nextPage
+        return WebAction(nextPage, state)
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {
