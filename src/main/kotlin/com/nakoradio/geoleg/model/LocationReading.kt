@@ -1,20 +1,17 @@
 package com.nakoradio.geoleg.model
 
-import com.nakoradio.geoleg.utils.now
+import com.nakoradio.geoleg.utils.Time
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
-
 data class LocationReading(val lat: Double, val lon: Double, val createdAt: OffsetDateTime) {
 
-
-
     fun toCoordinates() = Coordinates(lat, lon)
-    fun asString(): String {
-        val locationString = "" + lat + ';' + lon + ';' + now().toEpochSecond()*1000
+    fun asString(time: Time): String {
+        val locationString = "" + lat + ';' + lon + ';' + time.now().toEpochSecond()*1000
         var output = ""
         for (i in locationString) {
             output += ceaserSource[ceaserTarget.indexOf(i)]

@@ -5,25 +5,31 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.nakoradio.geoleg.model.LocationReading
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
-import com.nakoradio.geoleg.utils.now
-import java.util.UUID
+import com.nakoradio.geoleg.utils.Time
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito.mock
+import java.time.OffsetDateTime
+import java.util.UUID
 
 internal class EngineTest {
 
     private val jsonmappper = ObjectMapper().registerModule(KotlinModule())
     private val loader = ScenarioLoader(jsonmappper)
-
-
+    private val timeProvider = object  : Time() {
+        val now = super.now()
+        override fun now(): OffsetDateTime {
+            return  now
+        }
+    }
 
     // Engine has location verification turned on (there is no location check on init)
     private val engine = Engine(
             true,
-            CookieManager(Cryptor("bbc02fc2febb11d73ec4215cd8014ad2"), jsonmappper),
+            timeProvider,
             loader
     )
 
@@ -33,15 +39,15 @@ internal class EngineTest {
         val scenario = loader.table.scenarios[0]
 
         // Given: Location far away from quest location. (intro quest does not check location)
-        val locationString = LocationReading(37.156027,145.379261,now()).asString()
+        val locationString = LocationReading(37.156027, 145.379261, timeProvider.now()).asString(timeProvider)
 
         // And: Proper state for the scenario intro quest
         val state = State(
                 scenario = scenario.name,
                 currentQuest = 0,
-                // Deadline is already passed (intro quest does not check deadline)
-               deadline = now().minusDays(10),
-                started = now().minusDays(11),
+                // questDeadline is already passed (intro quest does not check questDeadline)
+                questDeadline = timeProvider.now().minusDays(10),
+                questStarted = timeProvider.now().minusDays(11),
                 userId = UUID.randomUUID(),
                 scenarioRestartCount = 10)
 
@@ -62,7 +68,7 @@ internal class EngineTest {
 
             // When: Intro quest is completed, error is thrown due to mismatch in quest number
             assertThrows<TechnicalError> {
-            val (url, newState) = engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
+                val (url, newState) = engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
             }
         }
 
@@ -70,7 +76,7 @@ internal class EngineTest {
         fun `trying to complete intro with bad quest order in params`() {
             // When: Intro quest is completed, error is thrown due to mismatch in quest number
             assertThrows<TechnicalError> {
-                val (url, newState) = engine.complete(state, scenario.name, 1, scenario.quests[0].secret, locationString)
+                engine.complete(state, scenario.name, 1, scenario.quests[0].secret, locationString)
             }
         }
 
@@ -78,13 +84,13 @@ internal class EngineTest {
         fun `trying to complete intro with unknown scenario in params`() {
             // When: Intro quest is completed, error is thrown due scenario not found
             assertThrows<TechnicalError> {
-                val (url, newState) = engine.complete(state, "other scenario", 0, scenario.quests[0].secret, locationString)
+                engine.complete(state, "other scenario", 0, scenario.quests[0].secret, locationString)
             }
         }
 
         @Test
         fun `trying to complete intro with unknown scenario in state`() {
-           // Given: State has unknown scenario (should not technically be possible)
+            // Given: State has unknown scenario (should not technically be possible)
             val badState = state.copy(scenario = "other scenario")
 
             // When: Intro quest is completed, error is thrown due to mismatch in scenario
@@ -139,7 +145,7 @@ internal class EngineTest {
             val scenario = loader.table.scenarios[0]
 
             // Given: State with old dates and later quest order
-            val existingState = State(scenario.name, 10, now().minusDays(20), now().minusDays(39), UUID.randomUUID(), 10)
+            val existingState = State(scenario.name, 10, timeProvider.now().minusDays(20), timeProvider.now().minusDays(39), UUID.randomUUID(), 10)
 
             // When: scenario is initialized
             val (url, newState) = engine.initScenario(
@@ -151,8 +157,8 @@ internal class EngineTest {
             // Then: State is reset to first quest
             assertThat(newState.currentQuest, equalTo(0))
 
-            // And: Deadline is set far in future, to "never" expire
-            assertThat(newState.deadline.isAfter(now().plusYears(10).minusMinutes(1)), equalTo(true))
+            // And: questDeadline is set far in future, to "never" expire
+            assertThat(newState.questDeadline.isAfter(timeProvider.now().plusYears(10).minusMinutes(1)), equalTo(true))
 
             // And: Restart count is increased by one
             assertThat(newState.scenarioRestartCount, equalTo(11))
@@ -166,7 +172,7 @@ internal class EngineTest {
             val scenario = loader.table.scenarios[0]
 
             // Given: State for another scenario
-            val existingState = State("the other scenario", 1, now().plusDays(1), now(), UUID.randomUUID(), 2)
+            val existingState = State("the other scenario", 1, timeProvider.now().plusDays(1), timeProvider.now(), UUID.randomUUID(), 2)
 
             // When: scenario is initialized
             val (url, newState) = engine.initScenario(
@@ -202,7 +208,7 @@ internal class EngineTest {
 
             // When: scenario is initialized with bad secret
             val (url, newState) = engine.initScenario(
-                    State.empty(),
+                    State.empty(timeProvider),
                     scenario.name,
                     scenario.quests[0].secret
             )
@@ -221,7 +227,7 @@ internal class EngineTest {
             // Then: Throws
             assertThrows<TechnicalError> {
                 val (url, newState) = engine.initScenario(
-                        State.empty(),
+                        State.empty(timeProvider),
                         scenario.name,
                         "bad secret"
                 )
@@ -231,4 +237,98 @@ internal class EngineTest {
     }
 
 
+    /**
+     * There is some speciality to the second quest also. Because the first quest is completed
+     * at home, the second quest is also started from home (thus we cannot specify the location)
+     * for it. Usually quest need to be started at the same location as the previous one was
+     * completed, but this does not apply for the second quest.
+     *
+     * First quest is the introduction quest that is automatically instantly completed. Second
+     * quest is thus also started right away at home. This has the following implications
+     * for the second quest processing logic:
+     * - Second quest can be started anywhere (not in the end point of previous one, as others)
+     * - Second quest has unlimited time to complete
+     */
+    @Nested
+    inner class `Starting the second quest` {
+
+        val scenario = loader.table.scenarios[1]
+        val questToStart = scenario.quests[1]
+
+        @Test
+        fun `fail if location reading is not fresh enough`() {
+
+
+        }
+
+        /**
+         * Quest is meant to be started from the previous quest's endpoint. Otherwise
+         * you could cheat in the next quest by first failing the quest once
+         * to get the location and on a second try go close to the quest endpoint
+         * already before starting the timer.
+         *
+         *
+         */
+        @Test
+        fun `fail if location is not close enough to current quest's endpoint`() {
+
+        }
+
+        @Test
+        fun `fail if state's scenario is different from param`() {
+
+        }
+
+        @Test
+        fun `fail if quest in state is not the previous one`() {
+
+        }
+
+
+        @Test
+        fun `quest successfully started`() {
+            // Given: Location that is far away from the first quest's end location.
+            val locationString = LocationReading(
+                    48.854546, 2.347316, // This is Paris
+                    timeProvider.now()).asString(timeProvider)
+
+            // And: State that
+            val state = State(
+                    scenario.name,
+                    0,
+                    // Has a questDeadline that is already passed
+                    timeProvider.now().minusDays(1),
+                    timeProvider.now(),
+                    UUID.randomUUID(),
+                    5
+            )
+
+            // When: Starting the second quest
+            val (url, newState) = engine.startQuest(state, scenario.name, 1, questToStart.secret, locationString)
+
+            // Then: Redirected to countdown page
+            // Regardless of questDeadline already passed
+            // Regardless of location not matching
+            assertThat(url,
+                    equalTo(
+                            """
+                        |/countdown.html?
+                            |expiresAt=${newState.questDeadline.toEpochSecond()}&
+                            |now=${newState.questStarted.toEpochSecond()}&
+                            |countdown=0&
+                            |lat=${questToStart.location.lat}&
+                            |lon=${questToStart.location.lon}
+                    """.trimMargin().replace("\\n".toRegex(),"")))
+
+
+            // And: New state is updated with deadline accordingly to quest spec
+            assertThat(newState.questDeadline, equalTo(timeProvider.now().plusSeconds(questToStart.countdown)))
+
+            // Ans: questStarted timestamp update
+            assertThat(newState.questStarted, equalTo(timeProvider.now()))
+
+            // And: current quest set to the one to start
+            assertThat(newState.currentQuest, equalTo(1))
+        }
+    }
 }

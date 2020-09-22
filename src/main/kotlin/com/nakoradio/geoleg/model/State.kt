@@ -1,18 +1,18 @@
 package com.nakoradio.geoleg.model
 
-import com.nakoradio.geoleg.utils.now
+import com.nakoradio.geoleg.utils.Time
 import java.time.OffsetDateTime
 import java.util.UUID
 
 data class State(
     val scenario: String,
     val currentQuest: Int,
-    val deadline: OffsetDateTime,
-    val started: OffsetDateTime,
+    val questDeadline: OffsetDateTime,
+    val questStarted: OffsetDateTime,
     val userId: UUID,
     val scenarioRestartCount: Int
 ) {
     companion object Factory {
-        fun empty() = State("", 0, now(), now(), UUID.randomUUID(), 0)
+        fun empty(time: Time) = State("", 0, time.now(), time.now(), UUID.randomUUID(), 0)
     }
 }

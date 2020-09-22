@@ -5,6 +5,7 @@ import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.Engine
+import com.nakoradio.geoleg.utils.Time
 import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,7 +20,8 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 class EngineController(
     val cookieManager: CookieManager,
-    val engine: Engine
+    val engine: Engine,
+    val time: Time
 ) {
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -50,7 +52,7 @@ class EngineController(
     ) {
         val state =
             cookieData?.let { cookieManager.fromWebCookie(it) }
-                ?: State.empty()
+                ?: State.empty(time)
 
         return processAction(response, engine.initScenario(state, scenario, secret))
     }

@@ -1,5 +1,9 @@
 package com.nakoradio.geoleg.utils
 
+import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 
-fun now(): OffsetDateTime = OffsetDateTime.now()
+@Service
+class Time {
+    fun now(): OffsetDateTime = OffsetDateTime.now()
+}

@@ -6,8 +6,8 @@ import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
+import com.nakoradio.geoleg.utils.Time
 import com.nakoradio.geoleg.utils.distance
-import com.nakoradio.geoleg.utils.now
 import java.time.Duration
 import kotlin.math.absoluteValue
 import org.slf4j.Logger
@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service
 
 @Service
 class Engine(
-    @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
-    val cookieManager: CookieManager,
-    val loader: ScenarioLoader
+        @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
+        val timeProvider: Time,
+        val loader: ScenarioLoader
 ) {
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -35,8 +35,8 @@ class Engine(
         val quest = loader.questFor(scenario, 0, secret)
         val newState = State(
             scenario = scenario,
-            deadline = now().plusYears(10),
-            started = now(),
+            questDeadline = timeProvider.now().plusYears(10),
+            questStarted = timeProvider.now(),
             currentQuest = 0,
             scenarioRestartCount =
                 if (state.scenario == scenario) state.scenarioRestartCount + 1 else 0,
@@ -56,22 +56,23 @@ class Engine(
         locationString: String
     ): WebAction {
         val quest = loader.questFor(scenario, questToStart, secret)
-
-        val locationReading = LocationReading.fromString(locationString)
-        checkIsFresh(locationReading)
-        assertProximity(quest, locationReading.toCoordinates())
-
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
         assertEqual(state.currentQuest, questToStart - 1, "Bad cookie quest")
 
+        if(quest.shouldVerifyStartLocation) {
+            val locationReading = LocationReading.fromString(locationString)
+            checkIsFresh(locationReading)
+            assertProximity(quest, locationReading.toCoordinates())
+        }
+
         var updatedCookie = state.copy(
-            started = now(),
+            questStarted = timeProvider.now(),
             currentQuest = questToStart,
-            deadline = now().plusSeconds(quest.countdown)
+            questDeadline = timeProvider.now().plusSeconds(quest.countdown)
         )
 
-        var expiresAt = now().plusSeconds(quest.countdown).toEpochSecond()
-        var now = now().toEpochSecond()
+        var expiresAt = timeProvider.now().plusSeconds(quest.countdown).toEpochSecond()
+        var now = timeProvider.now().toEpochSecond()
         var countdownPageUrl = countdownPage(expiresAt, now, quest.fictionalCountdown, quest.location)
 
         return WebAction(countdownPageUrl, updatedCookie)
@@ -110,11 +111,11 @@ class Engine(
         assertEqual(scenario, state.scenario, "scenario completion")
         assertEqual(quest.order, state.currentQuest, "quest matching")
 
-        if (quest.shouldVerifyLocation) {
+        if (quest.shouldVerifyEndLocation) {
             assertProximity(quest, location)
         }
 
-        return if (quest.shouldVerifyCountdown && now().isAfter(state.deadline)) {
+        return if (quest.shouldVerifyCountdown && timeProvider.now().isAfter(state.questDeadline)) {
             logger.info("Quest failed due to time running out")
             quest.failurePage
         } else {
@@ -143,7 +144,7 @@ class Engine(
 
     private fun checkIsFresh(location: LocationReading) {
         // We should receive the location right after granted, if it takes longer, suspect something funny
-        if (Duration.between(now(), location.createdAt).seconds.absoluteValue > 10) {
+        if (Duration.between(timeProvider.now(), location.createdAt).seconds.absoluteValue > 10) {
             throw TechnicalError("Something funny with the location")
         }
     }

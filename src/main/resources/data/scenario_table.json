@@ -6,7 +6,7 @@
         {
           "order": 0,
           "secret": "6a5fc6c0f8ec",
-          "shouldVerifyLocation": false,
+          "shouldVerifyEndLocation": false,
           "shouldVerifyCountdown": false,
           "location": {
             "lat": 0,
@@ -22,8 +22,8 @@
           "secret": "656a0b0924da",
           "shouldVerifyCountdown": false,
           "location": {
-            "lat": 60.283411,
-            "lon": 24.904306
+            "lat": 60.167251,
+            "lon": 24.943512
           },
           "countdown": 0,
           "fictionalCountdown": 0,
@@ -34,8 +34,8 @@
           "order": 2,
           "secret": "138d0d22b893",
           "location": {
-            "lat": 60.283411,
-            "lon": 24.904306
+            "lat": 60.204638,
+            "lon": 24.655577
           },
           "countdown": 60,
           "fictionalCountdown": 3033,
@@ -46,8 +46,8 @@
           "order": 3,
           "secret": "a41e1e8068c3",
           "location": {
-            "lat": 60.283411,
-            "lon": 24.904306
+            "lat": 60.292966,
+            "lon": 25.037099
           },
           "countdown": 120,
           "fictionalCountdown": 3033,
@@ -61,8 +61,9 @@
       "quests": [
         {
           "order": 0,
-          "secret": "aaaaaaaaaaaa",
-          "shouldVerifyLocation": false,
+          "secret": "c8f101246f60",
+          "shouldVerifyEndLocation": false,
+          "shouldVerifyStartLocation": false,
           "shouldVerifyCountdown": false,
           "location": {
             "lat": 0,
@@ -70,8 +71,46 @@
           },
           "countdown": 0,
           "fictionalCountdown": 0,
-          "failurePage": "/foo.html",
-          "successPage": "/bar.html"
+          "failurePage": "/testing_0_fail.html",
+          "successPage": "/results/testing_0_success.html"
+        },
+        {
+          "order": 1,
+          "secret": "d3b07d1eea7f",
+          "shouldVerifyStartLocation": false,
+          "shouldVerifyCountdown": false,
+          "location": {
+            "lat": 60.167251,
+            "lon": 24.943512
+          },
+          "countdown": 0,
+          "fictionalCountdown": 0,
+          "failurePage": "/testing_1_fail.html",
+          "successPage": "/results/testing_1_success.html"
+        },
+        {
+          "order": 2,
+          "secret": "a5fc2243ea7b",
+          "location": {
+            "lat": 60.204638,
+            "lon": 24.655577
+          },
+          "countdown": 60,
+          "fictionalCountdown": 3033,
+          "failurePage": "/results/testing_2_fail.html",
+          "successPage": "/results/testing_2_success.html"
+        },
+        {
+          "order": 3,
+          "secret": "65baf038164a",
+          "location": {
+            "lat": 60.292966,
+            "lon": 25.037099
+          },
+          "countdown": 120,
+          "fictionalCountdown": 300,
+          "failurePage": "/results/testing_3_fail.html",
+          "successPage": "/results/testing_3_success.html"
         }
       ]
     }
