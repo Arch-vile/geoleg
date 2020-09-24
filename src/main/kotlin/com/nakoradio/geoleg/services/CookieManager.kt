@@ -19,5 +19,4 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
 
     fun fromWebCookie(cookieData: String): State =
         jsonMapper.readValue(cryptor.aesDecrypt(cookieData), State::class.java)
-
 }

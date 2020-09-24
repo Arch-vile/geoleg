@@ -99,8 +99,9 @@ class EngineController(
     ) {
         val state = cookieManager.fromWebCookie(cookieData)
         processAction(
-                response,
-                engine.complete(state, scenario, questOrder, secret, locationString))
+            response,
+            engine.complete(state, scenario, questOrder, secret, locationString)
+        )
     }
 
     @ExceptionHandler(value = [MissingCookieError::class])

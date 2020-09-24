@@ -1,2 +1,4 @@
 - what if cookie is missing
 - rescanning qr code at different stages
+- trying to restart quest by rescanning it
+

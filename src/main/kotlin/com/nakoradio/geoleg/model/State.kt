@@ -13,6 +13,6 @@ data class State(
     val scenarioRestartCount: Int
 ) {
     companion object Factory {
-        fun empty(time: Time) = State("", 0, time.now(), time.now(), UUID.randomUUID(), 0)
+        fun empty(time: Time) = State("", 0, time.now().minusDays(100), time.now(), UUID.randomUUID(), 0)
     }
 }

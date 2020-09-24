@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service
 
 @Service
 class Engine(
-        @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
-        val timeProvider: Time,
-        val loader: ScenarioLoader
+    @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
+    val timeProvider: Time,
+    val loader: ScenarioLoader
 ) {
 
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -59,7 +59,7 @@ class Engine(
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
         assertEqual(state.currentQuest, questToStart - 1, "Bad cookie quest")
 
-        if(quest.shouldVerifyStartLocation) {
+        if (quest.shouldVerifyStartLocation) {
             val locationReading = LocationReading.fromString(locationString)
             checkIsFresh(locationReading)
             assertProximity(quest, locationReading.toCoordinates())
@@ -138,14 +138,14 @@ class Engine(
 
     private fun assertEqual(val1: Any, val2: Any, context: String) {
         if (val1 != val2) {
-            throw TechnicalError("Not good $context")
+            throw TechnicalError("Not good: $context")
         }
     }
 
     private fun checkIsFresh(location: LocationReading) {
         // We should receive the location right after granted, if it takes longer, suspect something funny
-        if (Duration.between(timeProvider.now(), location.createdAt).seconds.absoluteValue > 10) {
-            throw TechnicalError("Something funny with the location")
+        if (Duration.between(timeProvider.now(), location.createdAt).seconds.absoluteValue > 30) {
+            throw TechnicalError("Location not fresh")
         }
     }
 
