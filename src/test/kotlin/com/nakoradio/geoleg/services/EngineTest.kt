@@ -14,6 +14,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 
 internal class EngineTest {
 
@@ -26,7 +27,7 @@ internal class EngineTest {
         }
     }
 
-    // Engine has location verification turned on (there is no location check on init)
+    // Engine has location verification turned on
     private val engine = Engine(
         true,
         timeProvider,
@@ -471,6 +472,43 @@ internal class EngineTest {
         }
     }
 
+    /**
+     * Completing the second quest is a special case. Because the second quest is started
+     * at home (this is the first quest that gives coordinates to the field), it does not
+     * check for the deadline.
+     */
+    @Nested
+    inner class `Completing the second quest` {
+
+        val scenario = loader.table.scenarios[1]
+        val questToComplete = scenario.quests[1]
+
+        @Test
+        fun `Fail if location is not fresh`() {
+            fail("")
+        }
+
+        @Test
+        fun `Fail if location is not close to quest location`() {
+            fail("")
+        }
+
+        @Test
+        fun `Fail if state's scenario does not match params`() {
+            fail("")
+        }
+
+        @Test
+        fun `Fail if state's quest does not match params`() {
+            fail("")
+        }
+
+        @Test
+        fun `success`() {
+            even after long time has passed
+        }
+
+    }
     private fun freshLocation(questToStart: Quest) =
         LocationReading(
             questToStart.location.lat, questToStart.location.lon,

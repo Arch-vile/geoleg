@@ -6,6 +6,12 @@
         {
           "order": 0,
           "secret": "6a5fc6c0f8ec",
+
+          can we not just use zero location,
+          and,
+          zero countdown to make the decision if we check or not?
+          would make more sense
+
           "shouldVerifyEndLocation": false,
           "shouldVerifyCountdown": false,
           "location": {
@@ -77,7 +83,6 @@
         {
           "order": 1,
           "secret": "d3b07d1eea7f",
-          "shouldVerifyStartLocation": false,
           "shouldVerifyCountdown": false,
           "location": {
             "lat": 60.167251,
