@@ -22,8 +22,9 @@ class AdminController(
         var stateCookie = cookieManager.fromWebCookie(cookieData)
 
         return CookieExposeResponse(
-                stateCookie,
-                stateCookie.questDeadline?.atZoneSameInstant(ZoneId.of("Europe/Helsinki")))
+            stateCookie,
+            stateCookie.questDeadline?.atZoneSameInstant(ZoneId.of("Europe/Helsinki"))
+        )
     }
 
     @GetMapping("/toggleLocationVerify")

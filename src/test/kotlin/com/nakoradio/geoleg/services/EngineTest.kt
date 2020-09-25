@@ -423,7 +423,7 @@ internal class EngineTest {
 
         @Test
         fun `quest successfully started`() {
-            val previousQuest = loader.questFor(scenario.name, questToStart.order-1)
+            val previousQuest = loader.questFor(scenario.name, questToStart.order - 1)
 
             // Given: Proper state. The previous quest has been completed (deadline could have passed already on that)
             val state = State(
@@ -442,7 +442,7 @@ internal class EngineTest {
                     scenario.name,
                     questToStart.order,
                     questToStart.secret,
-                        // At the location of previous quest
+                    // At the location of previous quest
                     freshLocation(previousQuest)
                 )
 
@@ -490,9 +490,10 @@ internal class EngineTest {
 
             // And: Old location reading
             val locationString = LocationReading(
-                    questToComplete.location!!.lat,
-                    questToComplete.location!!.lon,
-            timeProvider.now().minusDays(200)).asString()
+                questToComplete.location!!.lat,
+                questToComplete.location!!.lon,
+                timeProvider.now().minusDays(200)
+            ).asString()
 
             // When: Completing the quest
             // Then: Error about expired location
@@ -509,9 +510,10 @@ internal class EngineTest {
 
             // And: Location not close to target
             val locationString = LocationReading(
-                    questToComplete.location!!.lat-0.002,
-                    questToComplete.location!!.lon,
-                    timeProvider.now()).asString()
+                questToComplete.location!!.lat - 0.002,
+                questToComplete.location!!.lon,
+                timeProvider.now()
+            ).asString()
 
             // When: Completing the quest
             // Then: Error about not being close to target location
@@ -553,27 +555,25 @@ internal class EngineTest {
             val state = validStateToComplete()
 
             // When: Starting the quest
-            val ( url, newState ) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            val (url, newState) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-           // Then: Success page is shown
+            // Then: Success page is shown
             assertThat(url, equalTo("/results/testing_1_success.html"))
         }
 
         private fun validStateToComplete(): State {
             return State(
-                    scenario = scenario.name,
-                    currentQuest = questToComplete.order,
-                    // Quest has been started ages ago
-                    questStarted = timeProvider.now().minusDays(100),
-                    userId = UUID.randomUUID(),
-                    scenarioRestartCount = 0,
-                    // No deadline for the second quest
-                    questDeadline = null
+                scenario = scenario.name,
+                currentQuest = questToComplete.order,
+                // Quest has been started ages ago
+                questStarted = timeProvider.now().minusDays(100),
+                userId = UUID.randomUUID(),
+                scenarioRestartCount = 0,
+                // No deadline for the second quest
+                questDeadline = null
             )
         }
-
     }
-
 
     @Nested
     inner class `Completing the Nth quest` {
@@ -585,10 +585,10 @@ internal class EngineTest {
         fun `Fail if not completed in time`() {
             // Given: Deadline has expired
             val state = validStateToComplete()
-                    .copy(questDeadline = timeProvider.now().minusMinutes(1))
+                .copy(questDeadline = timeProvider.now().minusMinutes(1))
 
             // When: Starting the quest
-            val ( url, newState ) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            val (url, newState) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Failure page is shown
             assertThat(url, equalTo("/results/testing_3_fail.html"))
@@ -601,9 +601,10 @@ internal class EngineTest {
 
             // And: Old location reading
             val locationString = LocationReading(
-                    questToComplete.location!!.lat,
-                    questToComplete.location!!.lon,
-                    timeProvider.now().minusDays(200)).asString()
+                questToComplete.location!!.lat,
+                questToComplete.location!!.lon,
+                timeProvider.now().minusDays(200)
+            ).asString()
 
             // When: Completing the quest
             // Then: Error about expired location
@@ -620,9 +621,10 @@ internal class EngineTest {
 
             // And: Location not close to target
             val locationString = LocationReading(
-                    questToComplete.location!!.lat-0.002,
-                    questToComplete.location!!.lon,
-                    timeProvider.now()).asString()
+                questToComplete.location!!.lat - 0.002,
+                questToComplete.location!!.lon,
+                timeProvider.now()
+            ).asString()
 
             // When: Completing the quest
             // Then: Error about not being close to target location
@@ -664,7 +666,7 @@ internal class EngineTest {
             val state = validStateToComplete()
 
             // When: Starting the quest
-            val ( url, newState ) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            val (url, newState) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Success page is shown
             assertThat(url, equalTo("/results/testing_3_success.html"))
@@ -672,19 +674,17 @@ internal class EngineTest {
 
         private fun validStateToComplete(): State {
             return State(
-                    scenario = scenario.name,
-                    currentQuest = questToComplete.order,
-                    // Quest has been started ages ago
-                    questStarted = timeProvider.now().minusDays(100),
-                    userId = UUID.randomUUID(),
-                    scenarioRestartCount = 0,
-                    // Deadline not yet reached
-                    questDeadline = timeProvider.now().plusMinutes(5)
+                scenario = scenario.name,
+                currentQuest = questToComplete.order,
+                // Quest has been started ages ago
+                questStarted = timeProvider.now().minusDays(100),
+                userId = UUID.randomUUID(),
+                scenarioRestartCount = 0,
+                // Deadline not yet reached
+                questDeadline = timeProvider.now().plusMinutes(5)
             )
         }
-
     }
-
 
     private fun freshLocation(questToStart: Quest) =
         LocationReading(
