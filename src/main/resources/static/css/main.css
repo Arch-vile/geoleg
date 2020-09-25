@@ -36,3 +36,9 @@ table, th, td {
   border: 1px solid white;
 
 }
+
+a:link, a:visited, a:hover, a:active {
+  background-color: white;
+  color: black;
+}
+

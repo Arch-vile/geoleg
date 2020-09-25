@@ -1,6 +1,5 @@
 package com.nakoradio.geoleg.controllers
 
-import com.nakoradio.geoleg.model.MissingCookieError
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
@@ -10,6 +9,7 @@ import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
+import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
@@ -104,10 +104,9 @@ class EngineController(
         )
     }
 
-    @ExceptionHandler(value = [MissingCookieError::class])
-    fun missinCoookieHandler(ex: MissingCookieError): ModelAndView {
-        return ModelAndView("missingCookie", "msg", "doo")
-    }
+    @ExceptionHandler(value = [MissingRequestCookieException::class])
+    fun missinCoookieHandler(ex: MissingRequestCookieException) =
+        ModelAndView("missingCookie", "msg", "doo")
 
     private fun processAction(response: HttpServletResponse, action: WebAction) {
         logger.info("Setting cookie [${action.state}] and redirecting to ${action.url}")
