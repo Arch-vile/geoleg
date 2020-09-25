@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="./css/main.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="./js/geoApi.js"></script>
-  <script src="./js/urlApi.js"></script>
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments :: headPart (title = 'Odota')"></head>
 <body class="black">
 
 <h2>Valmistellaan tehtävää, odota...</h2>
 <div id="status"></div>
 <p id="errorContainer"></p>
 
+<script src="/js/geoApi.js"></script>
+
+<script th:inline="javascript">
+  var targetUrlFromModel = [[${model.target}]];
+</script>
 <script>
   var startTime = new Date().getTime();
   var statusCounter = 0;
@@ -84,7 +84,7 @@
   function sendLocation(lat, lon) {
     console.log("Sending location");
     const locationString = lat + ';' + lon + ';' + new Date().getTime();
-    const targetUrl = getQueryParam('target') + '/' + crypt(locationString);
+    const targetUrl = targetUrlFromModel + '/' + crypt(locationString);
     window.location = targetUrl;
   }
 

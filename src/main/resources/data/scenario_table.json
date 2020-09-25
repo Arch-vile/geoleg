@@ -6,8 +6,8 @@
         {
           "order": 0,
           "secret": "6a5fc6c0f8ec",
-          "failurePage": "/s1q1_failure_shouldNotBeUsed.html",
-          "successPage": "/results/s1_introduction_defe34c03ace.html"
+          "failurePage": "/s1q0_failure_shouldNotBeUsed",
+          "successPage": "/quests/s1_introduction_defe34c03ace"
         },
         {
           "order": 1,
@@ -16,8 +16,8 @@
             "lat": 60.167251,
             "lon": 24.943512
           },
-          "failurePage": "/s1q2_failure_shouldNotBeUsed.html",
-          "successPage": "/results/s1q1_success_dd19b04ceeaf.html"
+          "failurePage": "/s1q1_failure_shouldNotBeUsed",
+          "successPage": "/quests/s1q1_success_dd19b04ceeaf"
         },
         {
           "order": 2,
@@ -28,8 +28,8 @@
           },
           "countdown": 60,
           "fictionalCountdown": 3033,
-          "failurePage": "/results/s1q2_failure_17d522b044bc.html",
-          "successPage": "/results/s1q2_success_2612a7062d96.html"
+          "failurePage": "/quests/s1q2_failure_17d522b044bc",
+          "successPage": "/quests/s1q2_success_2612a7062d96"
         },
         {
           "order": 3,
@@ -40,8 +40,8 @@
           },
           "countdown": 120,
           "fictionalCountdown": 3033,
-          "failurePage": "/results/s1q3_failure_c127bdc2e9cf.html",
-          "successPage": "/results/s1q3_success_8f9874319882.html"
+          "failurePage": "/quests/s1q3_failure_c127bdc2e9cf",
+          "successPage": "/quests/s1q3_success_8f9874319882"
         }
       ]
     },
@@ -51,8 +51,8 @@
         {
           "order": 0,
           "secret": "c8f101246f60",
-          "failurePage": "/testing_0_fail.html",
-          "successPage": "/results/testing_0_success.html"
+          "failurePage": "/testing_0_fail",
+          "successPage": "/quests/testing_0_success"
         },
         {
           "order": 1,
@@ -61,8 +61,8 @@
             "lat": 60.167251,
             "lon": 24.943512
           },
-          "failurePage": "/testing_1_fail.html",
-          "successPage": "/results/testing_1_success.html"
+          "failurePage": "/testing_1_fail",
+          "successPage": "/quests/testing_1_success"
         },
         {
           "order": 2,
@@ -73,8 +73,8 @@
           },
           "countdown": 60,
           "fictionalCountdown": 3033,
-          "failurePage": "/results/testing_2_fail.html",
-          "successPage": "/results/testing_2_success.html"
+          "failurePage": "/quests/testing_2_fail",
+          "successPage": "/quests/testing_2_success"
         },
         {
           "order": 3,
@@ -85,8 +85,8 @@
           },
           "countdown": 120,
           "fictionalCountdown": 300,
-          "failurePage": "/results/testing_3_fail.html",
-          "successPage": "/results/testing_3_success.html"
+          "failurePage": "/quests/testing_3_fail",
+          "successPage": "/quests/testing_3_success"
         }
       ]
     }

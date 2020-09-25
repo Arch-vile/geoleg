@@ -1,5 +1,6 @@
 package com.nakoradio.geoleg.controllers
 
+import com.nakoradio.geoleg.model.ModelView
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
@@ -9,13 +10,17 @@ import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
+import org.springframework.ui.Model
 import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.support.SpringWebConstraintValidatorFactory
 import org.springframework.web.servlet.ModelAndView
+import java.time.OffsetDateTime
 
 @Controller
 class EngineController(
@@ -49,7 +54,7 @@ class EngineController(
         @PathVariable("scenario") scenario: String,
         @PathVariable("secret") secret: String,
         response: HttpServletResponse
-    ) {
+    ): ModelAndView {
         val state =
             cookieData?.let { cookieManager.fromWebCookie(it) }
                 ?: State.empty(time)
@@ -69,13 +74,13 @@ class EngineController(
         @PathVariable("secret") secret: String,
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
-    ) {
+    ): ModelAndView {
         val state = cookieManager.fromWebCookie(cookieData)
         return processAction(response, engine.startQuest(state, scenario, questToStart, secret, locationString))
     }
 
     // This just does the redirection to location granting, which redirects back
-    // to the other complete endpoint with location.
+    // to the other complete endpoint with the gain location.
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}")
     @ResponseBody
     fun initComplete(
@@ -83,9 +88,8 @@ class EngineController(
         @PathVariable("quest") questToComplete: Int,
         @PathVariable("secret") secret: String,
         response: HttpServletResponse
-    ) {
-        response.sendRedirect(engine.initComplete(scenario, questToComplete, secret))
-    }
+    ) =
+        processWebView(engine.initComplete(scenario, questToComplete, secret))
 
     @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
     @ResponseBody
@@ -96,21 +100,43 @@ class EngineController(
         @PathVariable("secret") secret: String,
         @PathVariable("location") locationString: String,
         response: HttpServletResponse
-    ) {
+    ): ModelAndView {
         val state = cookieManager.fromWebCookie(cookieData)
-        processAction(
-            response,
+        return processWebView(
             engine.complete(state, scenario, questOrder, secret, locationString)
         )
     }
+
+    @GetMapping("/checkLocation")
+    @ResponseBody
+    fun checkLocation(
+            // TODO: This also as map of all params
+            @RequestParam("target") target: String
+    ) =
+       processWebView(ModelView("checkLocation",  mapOf("target" to target)))
+
+    @GetMapping("/countdown")
+    fun countdown(
+            @RequestParam params: Map<String,String>
+    ) =
+        processWebView(ModelView( "countdown", params ))
+
 
     @ExceptionHandler(value = [MissingRequestCookieException::class])
     fun missinCoookieHandler(ex: MissingRequestCookieException) =
         ModelAndView("missingCookie", "msg", "doo")
 
-    private fun processAction(response: HttpServletResponse, action: WebAction) {
-        logger.info("Setting cookie [${action.state}] and redirecting to ${action.url}")
+    private fun processAction(response: HttpServletResponse, action: WebAction): ModelAndView {
+        logger.info("Setting cookie [${action.state}] and rendering view ${action.modelAndView.view} with model ${action.modelAndView.model}")
         response.addCookie(cookieManager.toWebCookie(action.state))
-        response.sendRedirect(action.url)
+        return asModelAndView(action.modelAndView)
     }
+
+    private fun processWebView(webView: ModelView): ModelAndView {
+       logger.info("Rendering view [${webView.view}] with model [${webView.model}]")
+        return asModelAndView(webView)
+    }
+
+    private fun asModelAndView(modelView: ModelView) =
+            ModelAndView(modelView.view, "model", modelView.model)
 }

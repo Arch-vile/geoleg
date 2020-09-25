@@ -2,6 +2,7 @@ package com.nakoradio.geoleg.services
 
 import com.nakoradio.geoleg.model.Coordinates
 import com.nakoradio.geoleg.model.LocationReading
+import com.nakoradio.geoleg.model.ModelView
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
@@ -76,9 +77,9 @@ class Engine(
         var expiresAt =
             questToStart.countdown?.let { timeProvider.now().plusSeconds(it).toEpochSecond() }
         var now = timeProvider.now().toEpochSecond()
-        var countdownPageUrl = countdownPage(expiresAt, now, questToStart.fictionalCountdown, questToStart.location!!)
+        var countDownView = countdownView(expiresAt, now, questToStart.fictionalCountdown, questToStart.location!!)
 
-        return WebAction(countdownPageUrl, updatedCookie)
+        return WebAction(countDownView, updatedCookie)
     }
 
     // This just does the redirection to location granting, which redirects back
@@ -87,9 +88,8 @@ class Engine(
         scenario: String,
         questToComplete: Int,
         secret: String
-    ): String {
+    ): ModelView {
         val quest = loader.questFor(scenario, questToComplete, secret)
-
         return askForLocation(
             questCompleteUrl(scenario, quest)
         )
@@ -101,13 +101,14 @@ class Engine(
         questOrder: Int,
         secret: String,
         locationString: String
-    ): WebAction {
+    ): ModelView {
         val quest = loader.questFor(scenario, questOrder, secret)
+        val nextQuest = loader.questFor(scenario, questOrder+1)
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
-        return WebAction(nextPage, state)
+        return ModelView(nextPage, mapOf("nextQuest" to nextQuest))
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {
@@ -155,17 +156,23 @@ class Engine(
     }
 
     private fun askForLocation(questUrl: String) =
-        "/checkLocation.html?target=$questUrl"
+        ModelView("checkLocation" , mapOf("target" to questUrl))
 
-    private fun countdownPage(expiresAt: Long?, now: Long, fictionalCountdown: Long?, location: Coordinates) =
-        "/countdown.html?" +
-            "now=$now" +
-            "&lat=${location.lat}&lon=${location.lon}" +
-            (expiresAt?.let { "&expiresAt=$expiresAt" } ?: "") +
-            (fictionalCountdown?.let { "&countdown=$fictionalCountdown" } ?: "")
+    private fun countdownView(expiresAt: Long?, now: Long, fictionalCountdown: Long?, location: Coordinates): ModelView {
+        val model = mutableMapOf(
+                "now" to now,
+                "lat" to location.lat,
+                "lon" to location.lon
+        )
+        expiresAt?.let { model.put("expiresAt", it) }
+        fictionalCountdown?.let { model.put("fictionalCountdown", it) }
 
-    fun toggleLocationVerification(): Boolean {
-        verifyLocation = !verifyLocation
-        return verifyLocation
+        return ModelView("countdown", model)
     }
+
+
+                fun toggleLocationVerification(): Boolean {
+                    verifyLocation = !verifyLocation
+                    return verifyLocation
+                }
 }

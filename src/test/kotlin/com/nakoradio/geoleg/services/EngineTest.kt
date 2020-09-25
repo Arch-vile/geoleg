@@ -83,10 +83,10 @@ internal class EngineTest {
         @Test
         fun `complete the intro quest`() {
             // When: Intro quest is completed
-            val (url, newState) = engine.complete(state, scenario.name, 0, scenario.quests[0].secret, locationString)
+            val modelView = engine.complete(state, scenario.name, 0, scenario.quests[0].secret, locationString)
 
             // Then: Redirected to success page
-            assertThat(url, equalTo(scenario.quests[0].successPage))
+            assertThat(modelView.view, equalTo(scenario.quests[0].successPage))
         }
 
         @Test
@@ -242,7 +242,7 @@ internal class EngineTest {
             // Then: Redirected to quest complete
             // We want to read the location also although not needed, as this could allow user to
             // catch any technical errors on location reading already at home.
-            assertThat(url, equalTo("/checkLocation.html?target=/engine/complete/ancient-blood/0/6a5fc6c0f8ec"))
+            assertThat(url.view, equalTo("/checkLocation.html?target=/engine/complete/ancient-blood/0/6a5fc6c0f8ec"))
         }
 
         @Test
@@ -346,7 +346,7 @@ internal class EngineTest {
             // Regardless of questDeadline already passed
             // Regardless of location not matching
             assertThat(
-                url,
+                url.view,
                 equalTo(
                     """
                         |/countdown.html?
@@ -476,7 +476,7 @@ internal class EngineTest {
 
             // Then: Redirected to countdown page
             assertThat(
-                url,
+                url.view,
                 equalTo(
                     """
                         |/countdown.html?
@@ -583,10 +583,10 @@ internal class EngineTest {
             val state = validStateToComplete()
 
             // When: Starting the quest
-            val (url, newState) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            val url = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Success page is shown
-            assertThat(url, equalTo("/results/testing_1_success.html"))
+            assertThat(url.view, equalTo("/results/testing_1_success.html"))
         }
 
         private fun validStateToComplete(): State {
@@ -616,10 +616,10 @@ internal class EngineTest {
                 .copy(questDeadline = timeProvider.now().minusMinutes(1))
 
             // When: Starting the quest
-            val (url, newState) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            val url = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Failure page is shown
-            assertThat(url, equalTo("/results/testing_3_fail.html"))
+            assertThat(url.view, equalTo("/results/testing_3_fail.html"))
         }
 
         @Test
@@ -693,11 +693,11 @@ internal class EngineTest {
             // Given: Valid state to complete this quest
             val state = validStateToComplete()
 
-            // When: Starting the quest
-            val (url, newState) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            // When: Completing the quest
+            val url = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Success page is shown
-            assertThat(url, equalTo("/results/testing_3_success.html"))
+            assertThat(url.view, equalTo("/results/testing_3_success.html"))
         }
 
         private fun validStateToComplete(): State {

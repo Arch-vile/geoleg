@@ -1,38 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="./css/main.css">
-  <script src="./js/urlApi.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Laskuri</title>
-</head>
+<html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments :: headPart (title = 'Laskuri')"></head>
 <body class="black">
 
 <h2 id="timer"></h2>
 <h2 id="destination"></h2>
 
-<script>
+<script th:inline="javascript">
   // Let's keep the start timestamp so that we know how much time has passed. With this
   // we can scale the real countdown to fictional countdown and be consistent on page reload also.
   // Epoch seconds on countdown start
-  const now = getQueryParam('now');
+  const now = [[${model.now}]];
 
   // Epoch seconds of the real expiration time
-  const expiresAt = getQueryParam('expiresAt');
+  const expiresAt = [[${model.get('expiresAt')}]];
 
   // Augmented reality time to complete the mission in seconds.
   // For example if the story says you have 1 hour to complete the task, but the real
   // expiration is set 60 seconds from now, the fictional countdown will progress at one minute per second
   // rate.
   // How many fictional seconds is the fictional countdown
-  const fictionalCountdownSeconds = getQueryParam('countdown');
+  const fictionalCountdownSeconds = [[${model.get('fictionalCountdown')}]];
 
+  const lat = [[${model.lat}]];
+  const lon = [[${model.lon}]];
+</script>
+
+<script>
   // How many real seconds is the countdown
   const realCountdownSeconds = expiresAt - now;
-
-  const lat = getQueryParam('lat');
-  const lon = getQueryParam('lon');
 
   document.getElementById("destination").innerText =
       lat + ', ' + lon;
