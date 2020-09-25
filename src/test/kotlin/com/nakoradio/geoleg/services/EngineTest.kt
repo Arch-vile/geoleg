@@ -33,8 +33,39 @@ internal class EngineTest {
         loader
     )
 
+
+    @Nested
+    inner class `All the hacky stuff`() {
+
+        val scenario = loader.table.scenarios[0]
+
+        @Test
+        fun `Restarting quest by requesting again the start quest url`() {
+            // Given: User is currently doing quest 3
+            val currentQuest = scenario.quests[3]
+            val previousQuest = scenario.quests[2]
+
+            // Given: State is set for running quest 3
+            val state = State(
+                    scenario = scenario.name,
+                    currentQuest = currentQuest.order,
+                    // There is still time left
+                    questDeadline = timeProvider.now().plusMinutes(5),
+                    questStarted = timeProvider.now(),
+                    userId = UUID.randomUUID(),
+                    scenarioRestartCount = 3
+            )
+            val error = assertThrows<TechnicalError> {
+                engine.startQuest(state, scenario.name, currentQuest.order, currentQuest.secret, freshLocation(previousQuest))
+            }
+            assertThat(error.message, equalTo("Not good: Bad cookie quest"))
+
+        }
+    }
+
     @Nested
     inner class `Scenario's intro quest completion` {
+
 
         val scenario = loader.table.scenarios[0]
 
