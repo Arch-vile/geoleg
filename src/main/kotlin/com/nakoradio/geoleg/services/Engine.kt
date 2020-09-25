@@ -49,31 +49,34 @@ class Engine(
      * Start next quest. This endpoint is called when clicking "GO" to start the next quest.
      */
     fun startQuest(
-        state: State,
-        scenario: String,
-        questToStart: Int,
-        secret: String,
-        locationString: String
+            state: State,
+            scenario: String,
+            questOrderToStart: Int,
+            secret: String,
+            locationString: String
     ): WebAction {
-        val quest = loader.questFor(scenario, questToStart, secret)
-        assertEqual(state.scenario, scenario, "Bad cookie scenario")
-        assertEqual(state.currentQuest, questToStart - 1, "Bad cookie quest")
+        val questToStart = loader.questFor(scenario, questOrderToStart, secret)
+        val currentQuest = loader.questFor(scenario, questOrderToStart-1)
 
-        if (quest.shouldVerifyStartLocation) {
+        assertEqual(state.scenario, scenario, "Bad cookie scenario")
+        assertEqual(state.currentQuest, questOrderToStart - 1, "Bad cookie quest")
+
+        currentQuest.location?.let {
             val locationReading = LocationReading.fromString(locationString)
             checkIsFresh(locationReading)
-            assertProximity(quest, locationReading.toCoordinates())
+            assertProximity(it, locationReading.toCoordinates())
         }
 
         var updatedCookie = state.copy(
             questStarted = timeProvider.now(),
-            currentQuest = questToStart,
-            questDeadline = timeProvider.now().plusSeconds(quest.countdown)
+            currentQuest = questOrderToStart,
+            questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) }
         )
 
-        var expiresAt = timeProvider.now().plusSeconds(quest.countdown).toEpochSecond()
+        var expiresAt =
+                questToStart.countdown?.let { timeProvider.now().plusSeconds(it).toEpochSecond() }
         var now = timeProvider.now().toEpochSecond()
-        var countdownPageUrl = countdownPage(expiresAt, now, quest.fictionalCountdown, quest.location)
+        var countdownPageUrl = countdownPage(expiresAt, now, questToStart.fictionalCountdown, questToStart.location!!)
 
         return WebAction(countdownPageUrl, updatedCookie)
     }
@@ -111,11 +114,9 @@ class Engine(
         assertEqual(scenario, state.scenario, "scenario completion")
         assertEqual(quest.order, state.currentQuest, "quest matching")
 
-        if (quest.shouldVerifyEndLocation) {
-            assertProximity(quest, location)
-        }
+        quest.location?.let { assertProximity(it, location) }
 
-        return if (quest.shouldVerifyCountdown && timeProvider.now().isAfter(state.questDeadline)) {
+        return if (quest.countdown != null && timeProvider.now().isAfter(state.questDeadline)) {
             logger.info("Quest failed due to time running out")
             quest.failurePage
         } else {
@@ -124,14 +125,14 @@ class Engine(
         }
     }
 
-    private fun assertProximity(quest: Quest, location: Coordinates) {
+    private fun assertProximity(target: Coordinates, location: Coordinates) {
         if (!verifyLocation) {
             return
         }
 
-        var distance = distance(quest.location, location)
+        var distance = distance(target, location)
         if (distance > 100) {
-            logger.error("quest location [${quest.location}] location [$location] distance [$distance]")
+            logger.error("quest location [${target}] location [$location] distance [$distance]")
             throw TechnicalError("Bad gps accuracy")
         }
     }
@@ -156,8 +157,12 @@ class Engine(
     private fun askForLocation(questUrl: String) =
         "/checkLocation.html?target=$questUrl"
 
-    private fun countdownPage(expiresAt: Long, now: Long, fictionalCountdown: Long, location: Coordinates) =
-        "/countdown.html?expiresAt=$expiresAt&now=$now&countdown=$fictionalCountdown&lat=${location.lat}&lon=${location.lon}"
+    private fun countdownPage(expiresAt: Long?, now: Long, fictionalCountdown: Long?, location: Coordinates) =
+        "/countdown.html?" +
+                "now=$now" +
+                "&lat=${location.lat}&lon=${location.lon}" +
+                (expiresAt?.let { "&expiresAt=$expiresAt"  } ?: "") +
+                (fictionalCountdown?.let {  "&countdown=$fictionalCountdown" } ?: "")
 
     fun toggleLocationVerification(): Boolean {
         verifyLocation = !verifyLocation

@@ -6,33 +6,16 @@
         {
           "order": 0,
           "secret": "6a5fc6c0f8ec",
-
-          can we not just use zero location,
-          and,
-          zero countdown to make the decision if we check or not?
-          would make more sense
-
-          "shouldVerifyEndLocation": false,
-          "shouldVerifyCountdown": false,
-          "location": {
-            "lat": 0,
-            "lon": 0
-          },
-          "countdown": 0,
-          "fictionalCountdown": 0,
           "failurePage": "/s1q1_failure_shouldNotBeUsed.html",
           "successPage": "/results/s1_introduction_defe34c03ace.html"
         },
         {
           "order": 1,
           "secret": "656a0b0924da",
-          "shouldVerifyCountdown": false,
           "location": {
             "lat": 60.167251,
             "lon": 24.943512
           },
-          "countdown": 0,
-          "fictionalCountdown": 0,
           "failurePage": "/s1q2_failure_shouldNotBeUsed.html",
           "successPage": "/results/s1q1_success_dd19b04ceeaf.html"
         },
@@ -68,28 +51,16 @@
         {
           "order": 0,
           "secret": "c8f101246f60",
-          "shouldVerifyEndLocation": false,
-          "shouldVerifyStartLocation": false,
-          "shouldVerifyCountdown": false,
-          "location": {
-            "lat": 0,
-            "lon": 0
-          },
-          "countdown": 0,
-          "fictionalCountdown": 0,
           "failurePage": "/testing_0_fail.html",
           "successPage": "/results/testing_0_success.html"
         },
         {
           "order": 1,
           "secret": "d3b07d1eea7f",
-          "shouldVerifyCountdown": false,
           "location": {
             "lat": 60.167251,
             "lon": 24.943512
           },
-          "countdown": 0,
-          "fictionalCountdown": 0,
           "failurePage": "/testing_1_fail.html",
           "successPage": "/results/testing_1_success.html"
         },

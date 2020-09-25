@@ -21,7 +21,9 @@ class AdminController(
     fun checkCookie(@CookieValue(COOKIE_NAME) cookieData: String): CookieExposeResponse {
         var stateCookie = cookieManager.fromWebCookie(cookieData)
 
-        return CookieExposeResponse(stateCookie, stateCookie.questDeadline.atZoneSameInstant(ZoneId.of("Europe/Helsinki")))
+        return CookieExposeResponse(
+                stateCookie,
+                stateCookie.questDeadline?.atZoneSameInstant(ZoneId.of("Europe/Helsinki")))
     }
 
     @GetMapping("/toggleLocationVerify")
@@ -30,4 +32,4 @@ class AdminController(
     }
 }
 
-class CookieExposeResponse(val cookie: State, val _expiresAt: ZonedDateTime)
+class CookieExposeResponse(val cookie: State, val _expiresAt: ZonedDateTime?)

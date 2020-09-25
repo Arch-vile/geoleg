@@ -157,7 +157,7 @@ internal class EngineTest {
             assertThat(newState.currentQuest, equalTo(0))
 
             // And: questDeadline is set far in future, to "never" expire
-            assertThat(newState.questDeadline.isAfter(timeProvider.now().plusYears(10).minusMinutes(1)), equalTo(true))
+            assertThat(newState.questDeadline?.isAfter(timeProvider.now().plusYears(10).minusMinutes(1)), equalTo(true))
 
             // And: Restart count is increased by one
             assertThat(newState.scenarioRestartCount, equalTo(11))
@@ -236,9 +236,9 @@ internal class EngineTest {
 
     /**
      * There is some speciality to the second quest also. Because the first quest is completed
-     * at home, the second quest is also started from home (thus we cannot specify the location)
-     * for it. Usually quest need to be started at the same location as the previous one was
-     * completed, but this does not apply for the second quest.
+     * at home, the second quest is also started from home. Usually quest need to be started
+     * at the same location as the previous one was completed, but this does not apply
+     * for the second quest.
      *
      * First quest is the introduction quest that is automatically instantly completed. Second
      * quest is thus also started right away at home. This has the following implications
@@ -315,7 +315,7 @@ internal class EngineTest {
             // When: Starting the second quest
             val (url, newState) = engine.startQuest(state, scenario.name, 1, questToStart.secret, locationString)
 
-            // Then: Redirected to countdown page
+            // Then: Redirected to countdown page, but without countdown or expiry
             // Regardless of questDeadline already passed
             // Regardless of location not matching
             assertThat(
@@ -323,17 +323,15 @@ internal class EngineTest {
                 equalTo(
                     """
                         |/countdown.html?
-                            |expiresAt=${newState.questDeadline.toEpochSecond()}&
                             |now=${newState.questStarted.toEpochSecond()}&
-                            |countdown=0&
-                            |lat=${questToStart.location.lat}&
-                            |lon=${questToStart.location.lon}
+                            |lat=${questToStart.location?.lat}&
+                            |lon=${questToStart.location?.lon}
                     """.trimMargin().replace("\\n".toRegex(), "")
                 )
             )
 
-            // And: New state is updated with deadline accordingly to quest spec
-            assertThat(newState.questDeadline, equalTo(timeProvider.now().plusSeconds(questToStart.countdown)))
+            // And: New state has no deadline set
+            assertThat(newState.questDeadline == null, equalTo(true))
 
             // Ans: questStarted timestamp update
             assertThat(newState.questStarted, equalTo(timeProvider.now()))
@@ -346,14 +344,14 @@ internal class EngineTest {
     @Nested
     inner class `Starting Nth quest` {
 
-        val scenario = loader.table.scenarios[1]
-        val questToStart = scenario.quests[2]
+        private val scenario = loader.table.scenarios[1]
+        private val questToStart = scenario.quests[2]
 
         @Test
         fun `fail if location reading is not fresh enough`() {
             // Given: Location that is old
             val locationString = LocationReading(
-                questToStart.location.lat, questToStart.location.lon,
+                questToStart.location!!.lat, questToStart.location!!.lon,
                 timeProvider.now().minusMinutes(2)
             ).asString()
 
@@ -380,7 +378,7 @@ internal class EngineTest {
             // Given: Location that is not close to current quest's end point
             val locationString = LocationReading(
                 // About 200 meters off
-                questToStart.location.lat + 0.002, questToStart.location.lon,
+                questToStart.location!!.lat + 0.002, questToStart.location!!.lon,
                 timeProvider.now()
             ).asString()
 
@@ -426,6 +424,8 @@ internal class EngineTest {
 
         @Test
         fun `quest successfully started`() {
+            val previousQuest = loader.questFor(scenario.name, questToStart.order-1)
+
             // Given: Proper state. The previous quest has been completed (deadline could have passed already on that)
             val state = State(
                 scenario.name,
@@ -443,7 +443,8 @@ internal class EngineTest {
                     scenario.name,
                     questToStart.order,
                     questToStart.secret,
-                    freshLocation(questToStart)
+                        // At the location of previous quest
+                    freshLocation(previousQuest)
                 )
 
             // Then: Redirected to countdown page
@@ -452,17 +453,17 @@ internal class EngineTest {
                 equalTo(
                     """
                         |/countdown.html?
-                            |expiresAt=${newState.questDeadline.toEpochSecond()}&
                             |now=${newState.questStarted.toEpochSecond()}&
-                            |countdown=${questToStart.fictionalCountdown}&
-                            |lat=${questToStart.location.lat}&
-                            |lon=${questToStart.location.lon}
+                            |lat=${questToStart.location!!.lat}&
+                            |lon=${questToStart.location!!.lon}&
+                            |expiresAt=${newState.questDeadline!!.toEpochSecond()}&
+                            |countdown=${questToStart.fictionalCountdown}
                     """.trimMargin().replace("\\n".toRegex(), "")
                 )
             )
 
             // And: New state is updated with deadline accordingly to quest spec
-            assertThat(newState.questDeadline, equalTo(timeProvider.now().plusSeconds(questToStart.countdown)))
+            assertThat(newState.questDeadline, equalTo(timeProvider.now().plusSeconds(questToStart.countdown!!)))
 
             // Ans: questStarted timestamp update
             assertThat(newState.questStarted, equalTo(timeProvider.now()))
@@ -505,13 +506,13 @@ internal class EngineTest {
 
         @Test
         fun `success`() {
-            even after long time has passed
+            fail("even after long time has passed")
         }
 
     }
     private fun freshLocation(questToStart: Quest) =
         LocationReading(
-            questToStart.location.lat, questToStart.location.lon,
+            questToStart.location!!.lat, questToStart.location!!.lon,
             timeProvider.now()
         ).asString()
 }

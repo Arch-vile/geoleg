@@ -7,7 +7,10 @@ import java.util.UUID
 data class State(
     val scenario: String,
     val currentQuest: Int,
-    val questDeadline: OffsetDateTime,
+
+    // Can be omitted to indicate no deadline
+    val questDeadline: OffsetDateTime?,
+
     val questStarted: OffsetDateTime,
     val userId: UUID,
     val scenarioRestartCount: Int

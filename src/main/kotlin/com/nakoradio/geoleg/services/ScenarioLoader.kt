@@ -17,11 +17,16 @@ class ScenarioLoader(mapper: ObjectMapper) {
         table = mapper.readValue(data.inputStream, ScenarioTable::class.java)
     }
 
-    fun questFor(scenario: String, questOrder: Int, secret: String): Quest {
+    fun questFor(scenario: String, questOrder: Int): Quest {
         return table
-            .scenarios.find { it.name == scenario }
-            ?.quests
-            ?.find { it.order == questOrder }
+                .scenarios.find { it.name == scenario }
+                ?.quests
+                ?.find { it.order == questOrder }
+                ?: throw TechnicalError("No such quest for you my friend")
+    }
+
+    fun questFor(scenario: String, questOrder: Int, secret: String): Quest {
+        return questFor(scenario, questOrder)
             ?.takeIf { it.secret == secret }
             ?: throw TechnicalError("No such quest for you my friend")
     }
