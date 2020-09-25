@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="./css/main.css">
+  <link rel="stylesheet" type="text/css" href="/css/main.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="./js/geoApi.js"></script>
-  <script src="./js/urlApi.js"></script>
+  <script src="/js/geoApi.js"></script>
+  <script src="/js/urlApi.js"></script>
   <title>Yhteensopivuustestisivu</title>
 </head>
 <body class="black">
@@ -19,6 +19,10 @@
   <tr>
     <td>GPS sijainti</td>
     <td id="gpsStatus" class="byellow black">Odottaa tilaa</td>
+  </tr>
+  <tr>
+    <td>Evästeet</td>
+    <td id="cookieStatus" class="byellow black">Odottaa tilaa</td>
   </tr>
   <tr>
     <td>QR-koodien luku</td>
@@ -36,6 +40,14 @@
   Sijaintia tarvitaan vain hetkellisesti kätkön aikana ja jaat sijaintisi vain ollessasi sivuillamme.
 </p>
 
+<h2>Evästeiden asettaminen:</h2>
+<p>
+<h3 id="cookie" class="byellow black">Odottaa tarkistusta...</h3>
+</p>
+<p>
+  Kätkön toiminta vaatii evästeiden käyttöä.
+</p>
+
 <h2>QR-koodin lukeminen</h2>
 <p>
   <h3 id="qr" class="byellow black">Odottaa QR-koodin lukemista...</h3>
@@ -47,14 +59,38 @@
 </p>
 <p>
   Jos et pysty lukemaan QR-koodeja puhelimellasi voit syöttää annetun koodin tälle sivulle:
-  <a href="./manualQR.html">QR koodin syöttö</a>
+  <a href="/manualQR.html">QR koodin syöttö</a>
 </p>
 <p>
   Lue alla oleva QR-koodi ( f2pvf2np ) testaaksesi ominaisuuden toimivuus.
 </p>
-<img class="w100" src="./images/qrTestCode.png">
+<img class="w100" src="/images/qrTestCode.png">
+<h2 th:text="${cookieValue}">
+  More details here
+</h2>
+
+<script th:inline="javascript">
+  var expectedCookieValue = [[${compatibility.expectedCookieValue}]];
+  var qrValue = [[${compatibility.qrCode}]];
+</script>
 
 <script>
+
+  function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
 
   function processNewLocation(position) {
     const lat = position.coords.latitude.toFixed(5);
@@ -74,14 +110,24 @@
 
   getLocation(processNewLocation, processError);
 
-  const qr = getQueryParam('qr');
-  if(qr === "ok") {
+  if(qrValue === "ok") {
     document.getElementById('qr').innerText = "OK";
     document.getElementById('qr').className = "bgreen";
 
     document.getElementById('qrStatus').className = "bgreen";
     document.getElementById('qrStatus').innerText = "OK";
   }
+
+  // Has the epoch seconds
+  const cookieValue = getCookie("testCookie");
+  if(expectedCookieValue === cookieValue) {
+    document.getElementById('cookie').innerText = "OK";
+    document.getElementById('cookie').className = "bgreen";
+    document.getElementById('cookieStatus').className = "bgreen";
+    document.getElementById('cookieStatus').innerText = "OK";
+  }
+
+
 </script>
 
 

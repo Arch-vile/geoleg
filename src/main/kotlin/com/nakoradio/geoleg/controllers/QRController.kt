@@ -29,7 +29,7 @@ class QRController() {
         "7f865c66f0881510" to "/engine/ancient-blood/",
         "9fc219ddea992ea2" to "/engine/ancient-blood/",
         "a1cc85ec13238523" to "/engine/ancient-blood/",
-        "f2pvf2np" to "/compatibility.html?qr=ok"
+        "f2pvf2np" to "/compatibility/qr?qr=ok"
     )
 
     @GetMapping("/qr/{qrCode}")
