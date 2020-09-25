@@ -14,7 +14,6 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 
 internal class EngineTest {
 
@@ -574,6 +573,119 @@ internal class EngineTest {
         }
 
     }
+
+
+    @Nested
+    inner class `Completing the Nth quest` {
+
+        val scenario = loader.table.scenarios[1]
+        val questToComplete = scenario.quests[3]
+
+        @Test
+        fun `Fail if not completed in time`() {
+            // Given: Deadline has expired
+            val state = validStateToComplete()
+                    .copy(questDeadline = timeProvider.now().minusMinutes(1))
+
+            // When: Starting the quest
+            val ( url, newState ) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Failure page is shown
+            assertThat(url, equalTo("/results/testing_3_fail.html"))
+        }
+
+        @Test
+        fun `Fail if location is not fresh`() {
+            // Given: Valid state to complete quest
+            val state = validStateToComplete()
+
+            // And: Old location reading
+            val locationString = LocationReading(
+                    questToComplete.location!!.lat,
+                    questToComplete.location!!.lon,
+                    timeProvider.now().minusDays(200)).asString()
+
+            // When: Completing the quest
+            // Then: Error about expired location
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, locationString)
+            }
+            assertThat(error.message, equalTo("Location not fresh"))
+        }
+
+        @Test
+        fun `Fail if location is not close to quest location`() {
+            // Given: Valid state to complete quest
+            val state = validStateToComplete()
+
+            // And: Location not close to target
+            val locationString = LocationReading(
+                    questToComplete.location!!.lat-0.002,
+                    questToComplete.location!!.lon,
+                    timeProvider.now()).asString()
+
+            // When: Completing the quest
+            // Then: Error about not being close to target location
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, locationString)
+            }
+            assertThat(error.message, equalTo("Bad gps accuracy"))
+        }
+
+        @Test
+        fun `Fail if state's scenario does not match params`() {
+            // Given: State has bad scenario
+            val state = validStateToComplete().copy(scenario = "not correct")
+
+            // When: Starting the quest
+            // Then: Error about bad scenario
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            }
+            assertThat(error.message, equalTo("Not good: scenario completion"))
+        }
+
+        @Test
+        fun `Fail if state's quest does not match params`() {
+            // Given: State has different quest
+            val state = validStateToComplete().copy(currentQuest = 7)
+
+            // When: Starting the quest
+            // Then: Error about bad scenario
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            }
+            assertThat(error.message, equalTo("Not good: quest matching"))
+        }
+
+        @Test
+        fun `success`() {
+            // Given: Valid state to complete this quest
+            val state = validStateToComplete()
+
+            // When: Starting the quest
+            val ( url, newState ) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Success page is shown
+            assertThat(url, equalTo("/results/testing_3_success.html"))
+        }
+
+        private fun validStateToComplete(): State {
+            return State(
+                    scenario = scenario.name,
+                    currentQuest = questToComplete.order,
+                    // Quest has been started ages ago
+                    questStarted = timeProvider.now().minusDays(100),
+                    userId = UUID.randomUUID(),
+                    scenarioRestartCount = 0,
+                    // Deadline not yet reached
+                    questDeadline = timeProvider.now().plusMinutes(5)
+            )
+        }
+
+    }
+
+
     private fun freshLocation(questToStart: Quest) =
         LocationReading(
             questToStart.location!!.lat, questToStart.location!!.lon,
