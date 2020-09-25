@@ -486,27 +486,91 @@ internal class EngineTest {
 
         @Test
         fun `Fail if location is not fresh`() {
-            fail("")
+            // Given: Valid state to complete quest
+            val state = validStateToComplete()
+
+            // And: Old location reading
+            val locationString = LocationReading(
+                    questToComplete.location!!.lat,
+                    questToComplete.location!!.lon,
+            timeProvider.now().minusDays(200)).asString()
+
+            // When: Completing the quest
+            // Then: Error about expired location
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, locationString)
+            }
+            assertThat(error.message, equalTo("Location not fresh"))
         }
 
         @Test
         fun `Fail if location is not close to quest location`() {
-            fail("")
+            // Given: Valid state to complete quest
+            val state = validStateToComplete()
+
+            // And: Location not close to target
+            val locationString = LocationReading(
+                    questToComplete.location!!.lat-0.002,
+                    questToComplete.location!!.lon,
+                    timeProvider.now()).asString()
+
+            // When: Completing the quest
+            // Then: Error about not being close to target location
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, locationString)
+            }
+            assertThat(error.message, equalTo("Bad gps accuracy"))
         }
 
         @Test
         fun `Fail if state's scenario does not match params`() {
-            fail("")
+            // Given: State has bad scenario
+            val state = validStateToComplete().copy(scenario = "not correct")
+
+            // When: Starting the quest
+            // Then: Error about bad scenario
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            }
+            assertThat(error.message, equalTo("Not good: scenario completion"))
         }
 
         @Test
         fun `Fail if state's quest does not match params`() {
-            fail("")
+            // Given: State has different quest
+            val state = validStateToComplete().copy(currentQuest = 7)
+
+            // When: Starting the quest
+            // Then: Error about bad scenario
+            val error = assertThrows<TechnicalError> {
+                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            }
+            assertThat(error.message, equalTo("Not good: quest matching"))
         }
 
         @Test
         fun `success`() {
-            fail("even after long time has passed")
+            // Given: Valid state to complete this quest
+            val state = validStateToComplete()
+
+            // When: Starting the quest
+            val ( url, newState ) = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+           // Then: Success page is shown
+            assertThat(url, equalTo("/results/testing_1_success.html"))
+        }
+
+        private fun validStateToComplete(): State {
+            return State(
+                    scenario = scenario.name,
+                    currentQuest = questToComplete.order,
+                    // Quest has been started ages ago
+                    questStarted = timeProvider.now().minusDays(100),
+                    userId = UUID.randomUUID(),
+                    scenarioRestartCount = 0,
+                    // No deadline for the second quest
+                    questDeadline = null
+            )
         }
 
     }
