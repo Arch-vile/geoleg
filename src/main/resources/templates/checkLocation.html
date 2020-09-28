@@ -12,7 +12,8 @@
 
 <script th:inline="javascript">
   var targetUrlFromModel = [[${model.target}]];
-  // var skipLocationReading = model.skipLocation}]];
+  var readLocation = "" + [[${@environment.getProperty('location.reading.enabled')}]];
+  console.log("VARRRRRRRRRR " + readLocation);
 </script>
 <script>
   var startTime = new Date().getTime();
@@ -93,13 +94,7 @@
     errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text + '</span>';
   }
 
-  getLocation(processNewLocation, processError);
-  checkElapsed();
 
-  // Just for development
-  // if(skipLocationReading) {
-    sendLocation(0,0)
-  // }
 </script>
 
 <script>
@@ -119,5 +114,18 @@
   }
 
 </script>
+
+<script>
+  // Just for development
+  if(readLocation === "false") {
+    console.log("skip");
+    sendLocation(0,0);
+  } else {
+    console.log("read");
+    getLocation(processNewLocation, processError);
+    checkElapsed();
+  }
+</script>
+
 </body>
 </html>
