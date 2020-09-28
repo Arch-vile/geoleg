@@ -12,6 +12,7 @@
 
 <script th:inline="javascript">
   var targetUrlFromModel = [[${model.target}]];
+  // var skipLocationReading = model.skipLocation}]];
 </script>
 <script>
   var startTime = new Date().getTime();
@@ -94,6 +95,11 @@
 
   getLocation(processNewLocation, processError);
   checkElapsed();
+
+  // Just for development
+  // if(skipLocationReading) {
+    sendLocation(0,0)
+  // }
 </script>
 
 <script>

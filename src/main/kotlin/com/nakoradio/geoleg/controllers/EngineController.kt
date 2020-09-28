@@ -1,26 +1,24 @@
 package com.nakoradio.geoleg.controllers
 
-import com.nakoradio.geoleg.model.ModelView
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
+import com.nakoradio.geoleg.services.CountdownViewModel
 import com.nakoradio.geoleg.services.Engine
+import com.nakoradio.geoleg.services.LocationReadingViewModel
+import com.nakoradio.geoleg.services.ViewModel
 import com.nakoradio.geoleg.utils.Time
 import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
 import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.support.SpringWebConstraintValidatorFactory
 import org.springframework.web.servlet.ModelAndView
-import java.time.OffsetDateTime
 
 @Controller
 class EngineController(
@@ -107,19 +105,15 @@ class EngineController(
         )
     }
 
+    // Stupid proxy for rendering the view
     @GetMapping("/checkLocation")
-    @ResponseBody
-    fun checkLocation(
-            // TODO: This also as map of all params
-            @RequestParam("target") target: String
-    ) =
-       processWebView(ModelView("checkLocation",  mapOf("target" to target)))
+    fun checkLocation( viewModel: LocationReadingViewModel ) =
+       processWebView(viewModel)
 
+    // Stupid proxy for rendering the view
     @GetMapping("/countdown")
-    fun countdown(
-            @RequestParam params: Map<String,String>
-    ) =
-        processWebView(ModelView( "countdown", params ))
+    fun countdown(model: CountdownViewModel ) =
+        processWebView( model )
 
 
     @ExceptionHandler(value = [MissingRequestCookieException::class])
@@ -127,16 +121,16 @@ class EngineController(
         ModelAndView("missingCookie", "msg", "doo")
 
     private fun processAction(response: HttpServletResponse, action: WebAction): ModelAndView {
-        logger.info("Setting cookie [${action.state}] and rendering view ${action.modelAndView.view} with model ${action.modelAndView.model}")
+        logger.info("Setting cookie [${action.state}] and rendering view ${action.modelAndView.view} with model ${action.modelAndView}")
         response.addCookie(cookieManager.toWebCookie(action.state))
         return asModelAndView(action.modelAndView)
     }
 
-    private fun processWebView(webView: ModelView): ModelAndView {
-       logger.info("Rendering view [${webView.view}] with model [${webView.model}]")
+    private fun processWebView(webView: ViewModel): ModelAndView {
+       logger.info("Rendering view [${webView.view}] with model [${webView}]")
         return asModelAndView(webView)
     }
 
-    private fun asModelAndView(modelView: ModelView) =
-            ModelAndView(modelView.view, "model", modelView.model)
+    private fun asModelAndView(modelView: ViewModel) =
+            ModelAndView(modelView.view, "model", modelView)
 }

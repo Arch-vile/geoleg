@@ -14,14 +14,14 @@
   const now = [[${model.now}]];
 
   // Epoch seconds of the real expiration time
-  const expiresAt = [[${model.get('expiresAt')}]];
+  const expiresAt = [[${model.expiresAt}]];
 
   // Augmented reality time to complete the mission in seconds.
   // For example if the story says you have 1 hour to complete the task, but the real
   // expiration is set 60 seconds from now, the fictional countdown will progress at one minute per second
   // rate.
   // How many fictional seconds is the fictional countdown
-  const fictionalCountdownSeconds = [[${model.get('fictionalCountdown')}]];
+  const fictionalCountdownSeconds = [[${model.fictionalCountdown}]];
 
   const lat = [[${model.lat}]];
   const lon = [[${model.lon}]];

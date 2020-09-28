@@ -1,5 +1,6 @@
 package com.nakoradio.geoleg.model
 
-data class WebAction(val modelAndView: ModelView, val state: State)
+import com.nakoradio.geoleg.services.ViewModel
 
-data class ModelView(val view: String, val model: Map<String,Any>)
+data class WebAction(val modelAndView: ViewModel, val state: State)
+
