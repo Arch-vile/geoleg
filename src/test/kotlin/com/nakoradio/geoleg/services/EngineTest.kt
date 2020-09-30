@@ -96,7 +96,7 @@ internal class EngineTest {
 
             // When: Intro quest is completed, error is thrown due to mismatch in quest number
             assertThrows<TechnicalError> {
-                 engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
+                engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
             }
         }
 
@@ -123,7 +123,7 @@ internal class EngineTest {
 
             // When: Intro quest is completed, error is thrown due to mismatch in scenario
             assertThrows<TechnicalError> {
-                 engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
+                engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
             }
         }
 
@@ -134,7 +134,7 @@ internal class EngineTest {
 
             // When: Intro quest is completed, error is thrown due to mismatch in scenario
             assertThrows<TechnicalError> {
-                 engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
+                engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
             }
         }
 
@@ -142,7 +142,7 @@ internal class EngineTest {
         fun `trying to complete intro with different scenario in params`() {
             // When: Intro quest is completed, error is thrown due to mismatch in scenario
             assertThrows<TechnicalError> {
-                 engine.complete(state, loader.table.scenarios[1].name, 0, scenario.quests[0].secret, locationString)
+                engine.complete(state, loader.table.scenarios[1].name, 0, scenario.quests[0].secret, locationString)
             }
         }
 
