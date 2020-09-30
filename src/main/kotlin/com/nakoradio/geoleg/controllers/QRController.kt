@@ -20,16 +20,16 @@ class QRController {
 
     // Codes are random strings to avoid guessing and for flexible replacing
     private val QR_CODE_MAPPING = mapOf(
-        "2e910ca65a107421" to "/engine/init/ancient-blood/6a5fc6c0f8ec",
-        "a77e677275f1d5bf" to "/engine/complete/ancient-blood/1/656a0b0924da",
-        "5f47fb7bd175f3fa" to "/engine/complete/ancient-blood/2/138d0d22b893",
-        "55a20ef6c20eb34d" to "/engine/complete/ancient-blood/3/a41e1e8068c3",
+        "6ecp98eu" to "/engine/init/ancient-blood/6a5fc6c0f8ec",
+        "snwxfqgj" to "/engine/complete/ancient-blood/1/656a0b0924da",
+        "4c8czet6" to "/engine/complete/ancient-blood/2/138d0d22b893",
+        "6frvz9m6" to "/engine/complete/ancient-blood/3/a41e1e8068c3",
         "1767c3c0e11b500c" to "/engine/x/",
         "d6ae79f3091b4586" to "/engine/x/",
         "7f865c66f0881510" to "/engine/x/",
         "9fc219ddea992ea2" to "/engine/x/",
         "a1cc85ec13238523" to "/engine/x/",
-        "f2pvf2np" to "/compatibility/qr?qr=ok"
+        "hj7hujue" to "/compatibility/qr?qr=ok"
     )
 
     @GetMapping("/qr/{qrCode}")
