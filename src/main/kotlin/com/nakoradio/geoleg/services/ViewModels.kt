@@ -19,4 +19,4 @@ data class QuestEndViewModel(
 
 data class LocationReadingViewModel(
     val target: String
-) : ViewModel("CheckLocation")
+) : ViewModel("checkLocation")
