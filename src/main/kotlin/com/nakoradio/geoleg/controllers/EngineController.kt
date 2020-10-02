@@ -49,8 +49,8 @@ class EngineController(
     @ResponseBody
     fun initScenario(
         @CookieValue(COOKIE_NAME) cookieData: String?,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("secret") secret: String,
+        @PathVariable scenario: String,
+        @PathVariable secret: String,
         response: HttpServletResponse
     ): ModelAndView {
         val state =
@@ -63,40 +63,41 @@ class EngineController(
     /**
      * Start next quest. This endpoint is called when clicking "GO" to start the next quest.
      */
-    @GetMapping("/engine/start/{scenario}/{quest}/{secret}/{location}")
+    @GetMapping("/engine/start/{scenario}/{questToStart}/{secret}/{locationString}")
     @ResponseBody
     fun startQuest(
-        @CookieValue(COOKIE_NAME) cookieData: String,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questToStart: Int,
-        @PathVariable("secret") secret: String,
-        @PathVariable("location") locationString: String,
-        response: HttpServletResponse
+            @CookieValue(COOKIE_NAME) cookieData: String,
+            @PathVariable scenario: String,
+            @PathVariable questToStart: Int,
+            @PathVariable secret: String,
+            @PathVariable locationString: String,
+            response: HttpServletResponse
     ): ModelAndView {
+
         val state = cookieManager.fromWebCookie(cookieData)
         return processAction(response, engine.startQuest(state, scenario, questToStart, secret, locationString))
     }
 
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with the gain location.
-    @GetMapping("/engine/complete/{scenario}/{quest}/{secret}")
+    @GetMapping("/engine/complete/{scenario}/{questToComplete}/{secret}")
     @ResponseBody
     fun initComplete(
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questToComplete: Int,
-        @PathVariable("secret") secret: String,
+        @PathVariable scenario: String,
+        @PathVariable questToComplete: Int,
+        @PathVariable secret: String,
         response: HttpServletResponse
     ) =
         processWebView(engine.initComplete(scenario, questToComplete, secret))
 
-    @GetMapping("/engine/complete/{scenario}/{quest}/{secret}/{location}")
+    @GetMapping("/engine/complete/{scenario}/{questOrder}/{secret}/{locationString}")
     @ResponseBody
     fun complete(
         @CookieValue(COOKIE_NAME) cookieData: String,
-        @PathVariable("scenario") scenario: String,
-        @PathVariable("quest") questOrder: Int,
-        @PathVariable("secret") secret: String,
-        @PathVariable("location") locationString: String,
+        @PathVariable scenario: String,
+        @PathVariable questOrder: Int,
+        @PathVariable secret: String,
+        @PathVariable locationString: String,
         response: HttpServletResponse
     ): ModelAndView {
         val state = cookieManager.fromWebCookie(cookieData)

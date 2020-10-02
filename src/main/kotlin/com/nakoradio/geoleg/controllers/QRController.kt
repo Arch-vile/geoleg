@@ -34,7 +34,7 @@ class QRController {
 
     @GetMapping("/qr/{qrCode}")
     fun processCode(
-        @PathVariable("qrCode") qrCode: String,
+        @PathVariable qrCode: String,
         response: HttpServletResponse
     ) {
         QR_CODE_MAPPING[qrCode]?.run {
