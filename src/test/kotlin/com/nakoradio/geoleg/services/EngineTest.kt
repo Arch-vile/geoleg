@@ -59,6 +59,7 @@ internal class EngineTest {
             }
             assertThat(error.message, equalTo("Not good: Bad cookie quest"))
         }
+
     }
 
     @Nested
