@@ -5,6 +5,12 @@
   <title th:text="${title}">the title</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
+  <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
 </head>
 
 <h1 th:fragment="startNextLink"><a th:href="@{/checkLocation(target='/engine/start/ancient-blood/'+${model.nextQuest.order}+'/'+${model.nextQuest.secret})}">GO!</a></h1>
+
+
+<div th:fragment="storyBanner">
+  <h1  class="clock" th:text="${model.nextQuest.fictionalClock}"></h1>
+</div>

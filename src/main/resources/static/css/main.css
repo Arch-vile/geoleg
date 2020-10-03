@@ -42,3 +42,7 @@ a:link, a:visited, a:hover, a:active {
   color: black;
 }
 
+.clock {
+  font-family: 'Orbitron', sans-serif;
+  color: #41FF00;
+}

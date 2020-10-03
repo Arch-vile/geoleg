@@ -6,12 +6,14 @@
         {
           "order": 0,
           "secret": "6a5fc6c0f8ec",
+          "fictionalClock": "091725ZSEP20",
           "failurePage": "s1q0_failure_shouldNotBeUsed",
           "successPage": "quests/s1_introduction_defe34c03ace"
         },
         {
           "order": 1,
           "secret": "656a0b0924da",
+          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.167251,
             "lon": 24.943512
@@ -22,6 +24,7 @@
         {
           "order": 2,
           "secret": "138d0d22b893",
+          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.204638,
             "lon": 24.655577
@@ -34,6 +37,7 @@
         {
           "order": 3,
           "secret": "a41e1e8068c3",
+          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.292966,
             "lon": 25.037099
@@ -51,12 +55,14 @@
         {
           "order": 0,
           "secret": "c8f101246f60",
+          "fictionalClock": "091725ZSEP20",
           "failurePage": "testing_0_fail",
           "successPage": "quests/testing_0_success"
         },
         {
           "order": 1,
           "secret": "d3b07d1eea7f",
+          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.167251,
             "lon": 24.943512
@@ -67,6 +73,7 @@
         {
           "order": 2,
           "secret": "a5fc2243ea7b",
+          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.204638,
             "lon": 24.655577
@@ -79,6 +86,7 @@
         {
           "order": 3,
           "secret": "65baf038164a",
+          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.292966,
             "lon": 25.037099
