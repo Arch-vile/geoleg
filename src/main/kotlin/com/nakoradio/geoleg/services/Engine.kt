@@ -101,12 +101,16 @@ class Engine(
         locationString: String
     ): ViewModel {
         val quest = loader.questFor(scenario, questOrder, secret)
-        val nextQuest = loader.questFor(scenario, questOrder + 1)
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
-        return QuestEndViewModel(nextPage, nextQuest)
+        if( loader.isLastQuest(scenario, questOrder)) {
+            return ScenarioEndViewModel(nextPage)
+        } else {
+            val nextQuest = loader.questFor(scenario, questOrder + 1)
+            return QuestEndViewModel(nextPage, nextQuest)
+        }
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {

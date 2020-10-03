@@ -265,21 +265,21 @@ internal class EngineTest {
         }
     }
 
-    /**
-     * There is some speciality to the second quest also. Because the first quest is completed
-     * at home, the second quest is also started from home. Usually quest need to be started
-     * at the same location as the previous one was completed, but this does not apply
-     * for the second quest.
-     *
-     * First quest is the introduction quest that is automatically instantly completed. Second
-     * quest is thus also started right away at home. This has the following implications
-     * for the second quest processing logic:
-     * - Second quest can be started anywhere (not in the end point of previous one, as others)
-     * - Second quest has unlimited time to complete
-     */
+
     @Nested
     inner class `Starting the second quest` {
-
+        /**
+         * There is some speciality to the second quest also. Because the first quest is completed
+         * at home, the second quest is also started from home. Usually quest need to be started
+         * at the same location as the previous one was completed, but this does not apply
+         * for the second quest.
+         *
+         * First quest is the introduction quest that is automatically instantly completed. Second
+         * quest is thus also started right away at home. This has the following implications
+         * for the second quest processing logic:
+         * - Second quest can be started anywhere (not in the end point of previous one, as others)
+         * - Second quest has unlimited time to complete
+         */
         val scenario = loader.table.scenarios[1]
         val questToStart = scenario.quests[1]
 
@@ -699,6 +699,39 @@ internal class EngineTest {
 
             // Then: Success page is shown
             assertThat(viewModel.view, equalTo("quests/testing_2_success"))
+        }
+
+        private fun validStateToComplete(): State {
+            return State(
+                    scenario = scenario.name,
+                    currentQuest = questToComplete.order,
+                    // Quest has been started ages ago
+                    questStarted = timeProvider.now().minusDays(100),
+                    userId = UUID.randomUUID(),
+                    scenarioRestartCount = 0,
+                    // Deadline not yet reached
+                    questDeadline = timeProvider.now().plusMinutes(5)
+            )
+        }
+    }
+
+    @Nested
+    inner class `Completing the last quest` {
+
+        val scenario = loader.table.scenarios[1]
+        val questToComplete = scenario.quests[3]
+
+        @Test
+        fun `success`() {
+            // Given: Valid state to complete this quest
+            val state = validStateToComplete()
+
+            // When: Completing the quest
+            val viewModel = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Success page is shown
+            assertThat(viewModel as ScenarioEndViewModel, equalTo(
+                    ScenarioEndViewModel("quests/testing_3_success")))
         }
 
         private fun validStateToComplete(): State {

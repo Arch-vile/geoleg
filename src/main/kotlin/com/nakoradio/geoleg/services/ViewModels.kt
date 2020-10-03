@@ -17,6 +17,10 @@ data class QuestEndViewModel(
     val nextQuest: Quest
 ) : ViewModel(view)
 
+data class ScenarioEndViewModel(
+        override val view: String
+) : ViewModel(view)
+
 data class LocationReadingViewModel(
     val target: String
 ) : ViewModel("checkLocation")

@@ -31,9 +31,7 @@ class ScenarioLoader(mapper: ObjectMapper) {
             ?: throw TechnicalError("No such quest for you my friend")
     }
 
-    fun firstQuestFor(scenario: String) =
-        table.scenarios.find { it.name == scenario }
-            ?.quests
-            ?.find { it.order == 1 }
-            ?: throw TechnicalError("No such quest for you my friend")
+    fun isLastQuest(scenario: String, questOrder: Int) =
+       questOrder+1 >= table.scenarios.find { it.name == scenario }
+               ?.quests!!.size
 }
