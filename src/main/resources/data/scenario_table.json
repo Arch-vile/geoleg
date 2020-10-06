@@ -6,10 +6,6 @@
         {
           "order": 0,
           "secret": "6a5fc6c0f8ec",
-          "location": {
-            "lat": 60.287583,
-            "lon": 24.903278
-          },
           "fictionalClock": "091725ZSEP20",
           "failurePage": "s1q0_failure_shouldNotBeUsed",
           "successPage": "quests/s1_introduction_defe34c03ace"
