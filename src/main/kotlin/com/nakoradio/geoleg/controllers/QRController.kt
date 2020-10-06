@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.servlet.ModelAndView
 
 const val COOKIE_NAME = "yummy"
 
@@ -53,6 +54,11 @@ class QRController(
         "a1cc85ec13238523" to "/engine/x/",
         "hj7hujue" to "/compatibility/qr?qr=ok"
     )
+
+    @GetMapping("/manualqr")
+    fun manual(): ModelAndView {
+        return ModelAndView("manualQR")
+    }
 
     @GetMapping("/qr/{qrCode}")
     fun processCode(
