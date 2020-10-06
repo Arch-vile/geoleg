@@ -14,7 +14,8 @@ data class CountdownViewModel(
 
 data class QuestEndViewModel(
     override val view: String,
-    val nextQuest: Quest
+    val nextQuest: Quest,
+    val currentQuest: Quest
 ) : ViewModel(view)
 
 data class ScenarioEndViewModel(
@@ -22,5 +23,7 @@ data class ScenarioEndViewModel(
 ) : ViewModel(view)
 
 data class LocationReadingViewModel(
-    val target: String
+        val action: String,
+        val lat: Double?,
+        val lon: Double?
 ) : ViewModel("checkLocation")

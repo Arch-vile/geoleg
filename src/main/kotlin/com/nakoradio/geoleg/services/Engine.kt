@@ -41,7 +41,7 @@ class Engine(
                 if (state.scenario == scenario) state.scenarioRestartCount + 1 else 0,
             userId = state.userId
         )
-        return WebAction(askForLocation(questCompleteUrl(scenario, quest)), newState)
+        return WebAction(askForLocation(questCompleteUrl(scenario, quest), quest), newState)
     }
 
     /**
@@ -102,7 +102,7 @@ class Engine(
     ): ViewModel {
         val quest = loader.questFor(scenario, questToComplete, secret)
         return askForLocation(
-            questCompleteUrl(scenario, quest)
+            questCompleteUrl(scenario, quest), quest
         )
     }
 
@@ -122,7 +122,7 @@ class Engine(
             return ScenarioEndViewModel(nextPage)
         } else {
             val nextQuest = loader.questFor(scenario, questOrder + 1)
-            return QuestEndViewModel(nextPage, nextQuest)
+            return QuestEndViewModel(nextPage, nextQuest, quest)
         }
     }
 
@@ -170,8 +170,8 @@ class Engine(
         return "/engine/complete/$scenario/${quest.order}/${quest.secret}"
     }
 
-    private fun askForLocation(questUrl: String) =
-        LocationReadingViewModel(questUrl)
+    private fun askForLocation(questUrl: String, quest: Quest) =
+        LocationReadingViewModel(questUrl,quest?.location?.lat, quest?.location?.lon)
 
     fun toggleLocationVerification(): Boolean {
         verifyLocation = !verifyLocation

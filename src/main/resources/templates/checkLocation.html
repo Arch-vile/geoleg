@@ -5,15 +5,23 @@
 <body class="black">
 
 <h2>Valmistellaan tehtävää, odota...</h2>
+
+
+<h3 th:if="${model.lat}">Kohde:
+  <span th:text="${model.lat}"></span>,
+  <span th:text="${model.lon}"></span>
+   Etäisyys: <span id="distance"></span>
+</h3>
 <div id="status"></div>
 <p id="errorContainer"></p>
 
 <script src="/js/geoApi.js"></script>
 
 <script th:inline="javascript">
-  var targetUrlFromModel = [[${model.target}]];
+  var targetUrlFromModel = [[${model.action}]];
   var readLocation = "" + [[${@environment.getProperty('location.reading.enabled')}]];
-  console.log("VARRRRRRRRRR " + readLocation);
+  var targetLat = [[${model.lat}]];
+  var targetLon = [[${model.lon}]];
 </script>
 <script>
   var startTime = new Date().getTime();
@@ -23,6 +31,7 @@
 
   const status = document.getElementById('status');
   const errorContainer = document.getElementById("errorContainer");
+  const distanceView = document.getElementById("distance");
 
   function processError(message) {
     startTime = 0;
@@ -33,6 +42,8 @@
     var lat = position.coords.latitude.toFixed(5);
     var lon = position.coords.longitude.toFixed(5);
     console.log('Processing location: ' + lat + ',' + lon);
+
+    updateDistance(lat,lon);
 
     latitudeHistory.unshift(lat);
     longitudeHistory.unshift(lon);
@@ -94,6 +105,10 @@
     errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text + '</span>';
   }
 
+  function updateDistance(lat,lon) {
+    const distanceInMeters = distance(lat,lon,targetLat, targetLon);
+    distanceView.innerHTML = distanceInMeters + "m";
+  }
 
 </script>
 

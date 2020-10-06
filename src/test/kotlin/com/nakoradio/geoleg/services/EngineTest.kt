@@ -272,7 +272,7 @@ internal class EngineTest {
             // We want to read the location also although not needed, as this could allow user to
             // catch any technical errors on location reading already at home.
             assertThat(viewModel.view, equalTo("checkLocation"))
-            assertThat((viewModel as LocationReadingViewModel).target, equalTo("/engine/complete/ancient-blood/0/6a5fc6c0f8ec"))
+            assertThat((viewModel as LocationReadingViewModel).action, equalTo("/engine/complete/ancient-blood/0/6a5fc6c0f8ec"))
         }
 
         @Test

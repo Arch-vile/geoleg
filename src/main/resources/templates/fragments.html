@@ -8,7 +8,8 @@
   <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
 </head>
 
-<h1 th:fragment="startNextLink"><a th:href="@{/checkLocation(target='/engine/start/ancient-blood/'+${model.nextQuest.order}+'/'+${model.nextQuest.secret})}">GO!</a></h1>
+<h1 th:fragment="startNextLink">
+  <a th:href="@{/checkLocation(action='/engine/start/ancient-blood/'+${model.nextQuest.order}+'/'+${model.nextQuest.secret},lat=${model.currentQuest?.location?.lat},lon=${model.currentQuest?.location?.lon})}">GO!</a></h1>
 
 
 <div th:fragment="storyBanner">
