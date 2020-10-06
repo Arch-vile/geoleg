@@ -23,7 +23,7 @@ data class ScenarioEndViewModel(
 ) : ViewModel(view)
 
 data class LocationReadingViewModel(
-        val action: String,
-        val lat: Double?,
-        val lon: Double?
+    val action: String,
+    val lat: Double?,
+    val lon: Double?
 ) : ViewModel("checkLocation")

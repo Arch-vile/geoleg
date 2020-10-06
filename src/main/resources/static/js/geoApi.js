@@ -1,7 +1,10 @@
 
 function getLocation(successHandler, errorHandler) {
   if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(successHandler, errorProcessorFactory(errorHandler));
+    navigator.geolocation.watchPosition(successHandler, errorProcessorFactory(errorHandler), {
+      enableHighAccuracy: true,
+      maximumAge: 0
+    });
   } else {
     errorHandler("Geolocation is not supported by this browser.");
   }

@@ -171,7 +171,7 @@ class Engine(
     }
 
     private fun askForLocation(questUrl: String, quest: Quest) =
-        LocationReadingViewModel(questUrl,quest?.location?.lat, quest?.location?.lon)
+        LocationReadingViewModel(questUrl, quest?.location?.lat, quest?.location?.lon)
 
     fun toggleLocationVerification(): Boolean {
         verifyLocation = !verifyLocation
