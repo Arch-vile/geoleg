@@ -18,7 +18,7 @@ data class QuestEndViewModel(
 ) : ViewModel(view)
 
 data class ScenarioEndViewModel(
-        override val view: String
+    override val view: String
 ) : ViewModel(view)
 
 data class LocationReadingViewModel(

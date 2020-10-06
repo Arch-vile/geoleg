@@ -32,6 +32,6 @@ class ScenarioLoader(mapper: ObjectMapper) {
     }
 
     fun isLastQuest(scenario: String, questOrder: Int) =
-       questOrder+1 >= table.scenarios.find { it.name == scenario }
-               ?.quests!!.size
+        questOrder + 1 >= table.scenarios.find { it.name == scenario }
+            ?.quests!!.size
 }

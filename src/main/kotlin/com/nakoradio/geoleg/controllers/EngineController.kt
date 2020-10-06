@@ -66,14 +66,13 @@ class EngineController(
     @GetMapping("/engine/start/{scenario}/{questToStart}/{secret}/{locationString}")
     @ResponseBody
     fun startQuest(
-            @CookieValue(COOKIE_NAME) cookieData: String,
-            @PathVariable scenario: String,
-            @PathVariable questToStart: Int,
-            @PathVariable secret: String,
-            @PathVariable locationString: String,
-            response: HttpServletResponse
+        @CookieValue(COOKIE_NAME) cookieData: String,
+        @PathVariable scenario: String,
+        @PathVariable questToStart: Int,
+        @PathVariable secret: String,
+        @PathVariable locationString: String,
+        response: HttpServletResponse
     ): ModelAndView {
-
         val state = cookieManager.fromWebCookie(cookieData)
         return processAction(response, engine.startQuest(state, scenario, questToStart, secret, locationString))
     }

@@ -60,13 +60,14 @@ class Engine(
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
 
         // Trying to restart the quest
-        if(questToStart.order == state.currentQuest) {
+        if (questToStart.order == state.currentQuest) {
             var countDownView = CountdownViewModel(
-                    state.questStarted.toEpochSecond(),
-                    state.questDeadline?.toEpochSecond(),
-                    questToStart.fictionalCountdown,
-                    questToStart.location!!.lat,
-                    questToStart.location!!.lon)
+                state.questStarted.toEpochSecond(),
+                state.questDeadline?.toEpochSecond(),
+                questToStart.fictionalCountdown,
+                questToStart.location!!.lat,
+                questToStart.location!!.lon
+            )
             return WebAction(countDownView, state)
         }
 
@@ -117,7 +118,7 @@ class Engine(
         checkIsFresh(locationReading)
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
-        if( loader.isLastQuest(scenario, questOrder)) {
+        if (loader.isLastQuest(scenario, questOrder)) {
             return ScenarioEndViewModel(nextPage)
         } else {
             val nextQuest = loader.questFor(scenario, questOrder + 1)
