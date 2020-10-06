@@ -38,6 +38,10 @@ internal class EngineTest {
 
         val scenario = loader.table.scenarios[0]
 
+        /**
+         * We should allow "restarting" a quest, of course not resetting the countdown. This allows
+         * reloading the start quest page without ending up in error.
+         */
         @Test
         fun `Restarting quest by requesting again the start quest url`() {
             // Given: User is currently doing quest 3
@@ -54,11 +58,29 @@ internal class EngineTest {
                     userId = UUID.randomUUID(),
                     scenarioRestartCount = 3
             )
-            val error = assertThrows<TechnicalError> {
-                engine.startQuest(state, scenario.name, currentQuest.order, currentQuest.secret, freshLocation(previousQuest))
-            }
-            assertThat(error.message, equalTo("Not good: Bad cookie quest"))
+
+            // When: Restarting the quest
+            val (viewModel, newState) = engine.startQuest(state, scenario.name, currentQuest.order, currentQuest.secret, freshLocation(previousQuest))
+
+            // Then: State is not changed
+            assertThat(newState, equalTo(state))
+
+            // And: Countdown page shown
+            // Then: Redirected to countdown page
+            assertThat(viewModel as CountdownViewModel, equalTo(
+                    CountdownViewModel(
+                            now =state.questStarted.toEpochSecond() ,
+                            lat =currentQuest.location!!.lat ,
+                            lon=currentQuest.location!!.lon,
+                            expiresAt = state.questDeadline!!.toEpochSecond(),
+                            fictionalCountdown = currentQuest.fictionalCountdown
+                    )
+            ))
+
+
         }
+
+
 
     }
 

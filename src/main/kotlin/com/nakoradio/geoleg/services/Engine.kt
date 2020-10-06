@@ -58,6 +58,18 @@ class Engine(
         val currentQuest = loader.questFor(scenario, questOrderToStart - 1)
 
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
+
+        // Trying to restart the quest
+        if(questToStart.order == state.currentQuest) {
+            var countDownView = CountdownViewModel(
+                    state.questStarted.toEpochSecond(),
+                    state.questDeadline?.toEpochSecond(),
+                    questToStart.fictionalCountdown,
+                    questToStart.location!!.lat,
+                    questToStart.location!!.lon)
+            return WebAction(countDownView, state)
+        }
+
         assertEqual(state.currentQuest, questOrderToStart - 1, "Bad cookie quest")
 
         currentQuest.location?.let {
@@ -66,7 +78,7 @@ class Engine(
             assertProximity(it, locationReading.toCoordinates())
         }
 
-        var updatedCookie = state.copy(
+        var newState = state.copy(
             questStarted = timeProvider.now(),
             currentQuest = questOrderToStart,
             questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) }
@@ -77,7 +89,7 @@ class Engine(
         var now = timeProvider.now().toEpochSecond()
         var countDownView = CountdownViewModel(now, expiresAt, questToStart.fictionalCountdown, questToStart.location!!.lat, questToStart.location!!.lon)
 
-        return WebAction(countDownView, updatedCookie)
+        return WebAction(countDownView, newState)
     }
 
     // This just does the redirection to location granting, which redirects back
