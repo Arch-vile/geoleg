@@ -7,12 +7,16 @@
 <h2>Valmistellaan tehtävää, odota...</h2>
 
 
-<h3 th:if="${model.lat}">Kohde:
+<h3 th:if="${model.lat}">
+  Kohde:
   <span th:text="${model.lat}"></span>,
   <span th:text="${model.lon}"></span>
-   Etäisyys: <span id="distance"></span>
+   Etäisyys:
+  <span id="distance"></span>
 </h3>
+
 <div id="status"></div>
+
 <p id="errorContainer"></p>
 
 <script src="/js/geoApi.js"></script>
@@ -106,8 +110,10 @@
   }
 
   function updateDistance(lat,lon) {
-    const distanceInMeters = distance(lat,lon,targetLat, targetLon);
-    distanceView.innerHTML = distanceInMeters + "m";
+    if(targetLat) {
+      const distanceInMeters = distance(lat, lon, targetLat, targetLon);
+      distanceView.innerHTML = distanceInMeters + "m";
+    }
   }
 
 </script>
