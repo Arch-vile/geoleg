@@ -15,8 +15,8 @@
           "secret": "656a0b0924da",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.283495,
-            "lon": 24.904261
+            "lat": 60.287583,
+            "lon": 24.903278
           },
           "failurePage": "s1q1_failure_shouldNotBeUsed",
           "successPage": "quests/s1q1_success_dd19b04ceeaf"
