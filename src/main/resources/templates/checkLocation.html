@@ -57,6 +57,10 @@
       longitudeHistory.pop();
     }
 
+    if(distance(lat, lon, targetLat, targetLon) < 50) {
+      sendLocation(lat, lon);
+    }
+
     if (latitudeHistory[0] === latitudeHistory[1] && latitudeHistory[1] === latitudeHistory[2] &&
         longitudeHistory[0] === longitudeHistory[1] && longitudeHistory[1]
         === longitudeHistory[2]) {
