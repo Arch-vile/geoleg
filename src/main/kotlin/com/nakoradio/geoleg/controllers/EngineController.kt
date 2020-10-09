@@ -100,7 +100,7 @@ class EngineController(
         response: HttpServletResponse
     ): ModelAndView {
         val state = cookieManager.fromWebCookie(cookieData)
-        return processWebView(
+        return processAction(response,
             engine.complete(state, scenario, questOrder, secret, locationString)
         )
     }

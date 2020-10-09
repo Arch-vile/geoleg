@@ -34,7 +34,7 @@ class Engine(
         val quest = loader.questFor(scenario, 0, secret)
         val newState = State(
             scenario = scenario,
-            questDeadline = timeProvider.now().plusYears(10),
+            questDeadline = null,
             questStarted = timeProvider.now(),
             currentQuest = 0,
             scenarioRestartCount =
@@ -112,17 +112,43 @@ class Engine(
         questOrder: Int,
         secret: String,
         locationString: String
-    ): ViewModel {
+    ): WebAction {
         val quest = loader.questFor(scenario, questOrder, secret)
+
+        // An edge case of trying to complete intro quest while already further on scenario
+        if(questOrder == 0 && state.currentQuest != 0) {
+            return initScenario(state, scenario, secret);
+        }
+
+        // And edge case trying to complete intro quest while on another scenario
+        if(scenario != state.scenario) {
+            return initScenario(state, scenario, secret)
+        }
+
+        // If trying to complete earlier quest, just continue the timer of current quest
+        if(quest.order < state.currentQuest) {
+            // The quest user was currently trying to complete
+            val currentQuest = loader.questFor(scenario, state.currentQuest)
+            val view = CountdownViewModel(
+                    timeProvider.now().toEpochSecond(),
+                    state.questDeadline?.toEpochSecond(),
+                    currentQuest.fictionalCountdown,
+                    currentQuest.location!!.lat,
+                    currentQuest.location!!.lon
+            )
+
+            return WebAction(view, state)
+        }
+
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
         val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
         if (loader.isLastQuest(scenario, questOrder)) {
-            return ScenarioEndViewModel(nextPage)
+            return WebAction(ScenarioEndViewModel(nextPage), state)
         } else {
             val nextQuest = loader.questFor(scenario, questOrder + 1)
-            return QuestEndViewModel(nextPage, nextQuest, quest)
+            return WebAction(QuestEndViewModel(nextPage, nextQuest, quest), state)
         }
     }
 
@@ -160,6 +186,10 @@ class Engine(
     }
 
     private fun checkIsFresh(location: LocationReading) {
+        if (!verifyLocation) {
+            return
+        }
+
         // We should receive the location right after granted, if it takes longer, suspect something funny
         if (Duration.between(timeProvider.now(), location.createdAt).seconds.absoluteValue > 30) {
             throw TechnicalError("Location not fresh")
