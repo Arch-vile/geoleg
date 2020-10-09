@@ -15,7 +15,7 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
         var webCookie = Cookie(COOKIE_NAME, encrypted)
         webCookie.path = "/"
         // One day
-        webCookie.maxAge = 60 * 60 * 24
+        webCookie.maxAge = 60 * 60 * 24 * 365 * 10;
         return webCookie
     }
 
