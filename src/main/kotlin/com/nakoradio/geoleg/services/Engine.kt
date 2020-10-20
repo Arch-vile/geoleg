@@ -107,12 +107,19 @@ class Engine(
     }
 
     fun complete(
-        state: State,
+        state: State?,
         scenario: String,
         questOrder: Int,
         secret: String,
         locationString: String
     ): WebAction {
+
+        if(state == null) {
+            val quest = loader.questFor(scenario,0)
+            return initScenario(State.empty(timeProvider), scenario, quest.secret)
+        }
+
+
         val quest = loader.questFor(scenario, questOrder, secret)
 
         // An edge case of trying to complete intro quest while already further on scenario

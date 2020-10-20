@@ -136,6 +136,55 @@ internal class EngineTest {
         }
     }
 
+    /**
+     * User has not started any scenario or has cleared the cookies.
+     */
+    @Nested
+    inner class `Having an empty state` {
+
+        val scenario = loader.table.scenarios[0]
+
+        /* Trying to complete (i.e. scan the first qr code) the second quest without any state
+         * This could happen when using a desktop browser on home and then scanning the code
+         * on the site with mobile. There are other valid reasons also.
+         */
+        @Test
+        fun `scanning the first on field QR` () {
+
+            // When: Completing the second quest without any state
+            val action = engine.complete(
+                    null,
+                    scenario.name,
+                    1,
+                    scenario.quests[1].secret,
+                    freshLocation(scenario.quests[1]))
+
+            // Then: State is set to scenario initialization
+            assertThat(action.state, equalTo(
+                    State(
+                            scenario=scenario.name,
+                            currentQuest = 0,
+                            questDeadline = null,
+                            questStarted = timeProvider.now(),
+                            userId = action.state.userId,
+                            scenarioRestartCount = 0
+                    )
+            ))
+
+            // And: Redirected to quest complete automatically
+            assertThat(action.modelAndView as LocationReadingViewModel, equalTo(
+                    LocationReadingViewModel(
+                            action= "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
+                            lat = null,
+                            lon = null
+                    )
+            ))
+        }
+
+
+
+    }
+
 
     /**
      * Loading (and reloading) the `/engine/complete/$scenarioName/0/$quest0Secret` action

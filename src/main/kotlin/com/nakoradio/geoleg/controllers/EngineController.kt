@@ -92,14 +92,14 @@ class EngineController(
     @GetMapping("/engine/complete/{scenario}/{questOrder}/{secret}/{locationString}")
     @ResponseBody
     fun complete(
-        @CookieValue(COOKIE_NAME) cookieData: String,
+        @CookieValue(COOKIE_NAME) cookieData: String?,
         @PathVariable scenario: String,
         @PathVariable questOrder: Int,
         @PathVariable secret: String,
         @PathVariable locationString: String,
         response: HttpServletResponse
     ): ModelAndView {
-        val state = cookieManager.fromWebCookie(cookieData)
+        val state = cookieManager.fromWebCookieMaybe(cookieData)
         return processAction(response,
             engine.complete(state, scenario, questOrder, secret, locationString)
         )
