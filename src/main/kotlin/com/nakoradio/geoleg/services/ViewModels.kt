@@ -4,6 +4,8 @@ import com.nakoradio.geoleg.model.Quest
 
 open class ViewModel(open val view: String)
 
+data class OnlyView(override val view: String) : ViewModel(view)
+
 data class CountdownViewModel(
     val now: Long,
     val expiresAt: Long?,

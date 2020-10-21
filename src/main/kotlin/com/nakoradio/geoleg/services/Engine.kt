@@ -114,11 +114,14 @@ class Engine(
         locationString: String
     ): WebAction {
 
-        if(state == null) {
+        if(state == null && questOrder == 1) {
             val quest = loader.questFor(scenario,0)
             return initScenario(State.empty(timeProvider), scenario, quest.secret)
         }
 
+        if(state == null) {
+            return WebAction(OnlyView("missingCookie"),null)
+        }
 
         val quest = loader.questFor(scenario, questOrder, secret)
 

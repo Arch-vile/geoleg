@@ -9,8 +9,12 @@ import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.Time
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -166,7 +170,7 @@ internal class EngineTest {
                             currentQuest = 0,
                             questDeadline = null,
                             questStarted = timeProvider.now(),
-                            userId = action.state.userId,
+                            userId = action.state!!.userId,
                             scenarioRestartCount = 0
                     )
             ))
@@ -181,6 +185,31 @@ internal class EngineTest {
             ))
         }
 
+        /**
+         * Scanning QR code (other then first or second) without having any cookies.
+         * Could happen by accidentally switching browser or clearing cookies.
+         * Or if you just randomly find the QR code without going through previous
+         * quests.
+         *
+         */
+        @Test
+        fun `scanning a random qr code` () {
+            // When: Completing third quest without state
+            val action = engine.complete(
+                    null,
+                    scenario.name,
+                    2,
+                    scenario.quests[2].secret,
+                    freshLocation(scenario.quests[2]))
+
+            // Then: State not set
+            assertThat(action.state, `is`(Matchers.nullValue()) )
+
+            // And: Missing cookie error shown
+            assertThat(action.modelAndView as OnlyView, equalTo(
+                    OnlyView("missingCookie")
+            ))
+        }
 
 
     }
@@ -502,7 +531,7 @@ internal class EngineTest {
                     (viewModel as CountdownViewModel),
                     equalTo(
                             CountdownViewModel(
-                                    newState.questStarted.toEpochSecond(),
+                                    newState!!.questStarted.toEpochSecond(),
                                     null,
                                     null,
                                     questToStart.location!!.lat,
@@ -638,10 +667,10 @@ internal class EngineTest {
                     viewModel as CountdownViewModel,
                     equalTo(
                             CountdownViewModel(
-                                    now = newState.questStarted.toEpochSecond(),
+                                    now = newState!!.questStarted.toEpochSecond(),
                                     lat = questToStart.location!!.lat,
                                     lon = questToStart.location!!.lon,
-                                    expiresAt = newState.questDeadline!!.toEpochSecond(),
+                                    expiresAt = newState!!.questDeadline!!.toEpochSecond(),
                                     fictionalCountdown = questToStart.fictionalCountdown
                             )
                     )

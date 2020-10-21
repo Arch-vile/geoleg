@@ -120,8 +120,13 @@ class EngineController(
         ModelAndView("missingCookie", "msg", "doo")
 
     private fun processAction(response: HttpServletResponse, action: WebAction): ModelAndView {
-        logger.info("Setting cookie [${action.state}] and rendering view ${action.modelAndView.view} with model ${action.modelAndView}")
-        response.addCookie(cookieManager.toWebCookie(action.state))
+        if(action.state == null) {
+            logger.info("Do not set cookies. Rendering view ${action.modelAndView.view} with model ${action.modelAndView}")
+        } else {
+            logger.info("Setting cookie [${action.state}] and rendering view ${action.modelAndView.view} with model ${action.modelAndView}")
+            response.addCookie(cookieManager.toWebCookie(action.state))
+        }
+
         return asModelAndView(action.modelAndView)
     }
 
