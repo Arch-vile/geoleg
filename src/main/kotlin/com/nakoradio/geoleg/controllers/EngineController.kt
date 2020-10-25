@@ -53,10 +53,7 @@ class EngineController(
         @PathVariable secret: String,
         response: HttpServletResponse
     ): ModelAndView {
-        val state =
-            cookieData?.let { cookieManager.fromWebCookie(it) }
-                ?: State.empty(time)
-
+        val state  = cookieManager.fromWebCookieMaybe(cookieData)
         return processAction(response, engine.initScenario(state, scenario, secret))
     }
 

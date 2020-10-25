@@ -14,6 +14,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class Engine(
@@ -26,7 +27,7 @@ class Engine(
     // For scenario init, we will redirect to the complete URL, so that the quest
     // will be automatically completed.
     fun initScenario(
-        state: State,
+        state: State?,
         scenario: String,
         secret: String
     ): WebAction {
@@ -38,8 +39,8 @@ class Engine(
             questStarted = timeProvider.now(),
             currentQuest = 0,
             scenarioRestartCount =
-                if (state.scenario == scenario) state.scenarioRestartCount + 1 else 0,
-            userId = state.userId
+                if (state?.scenario == scenario) state.scenarioRestartCount + 1 else 0,
+            userId = state?.userId ?: UUID.randomUUID()
         )
         return WebAction(askForLocation(questCompleteUrl(scenario, quest), quest), newState)
     }
