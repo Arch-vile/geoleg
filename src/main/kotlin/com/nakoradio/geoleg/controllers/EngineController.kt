@@ -1,6 +1,5 @@
 package com.nakoradio.geoleg.controllers
 
-import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.CountdownViewModel
@@ -53,7 +52,7 @@ class EngineController(
         @PathVariable secret: String,
         response: HttpServletResponse
     ): ModelAndView {
-        val state  = cookieManager.fromWebCookieMaybe(cookieData)
+        val state = cookieManager.fromWebCookieMaybe(cookieData)
         return processAction(response, engine.initScenario(state, scenario, secret))
     }
 
@@ -97,7 +96,8 @@ class EngineController(
         response: HttpServletResponse
     ): ModelAndView {
         val state = cookieManager.fromWebCookieMaybe(cookieData)
-        return processAction(response,
+        return processAction(
+            response,
             engine.complete(state, scenario, questOrder, secret, locationString)
         )
     }
@@ -117,7 +117,7 @@ class EngineController(
         ModelAndView("missingCookie", "msg", "doo")
 
     private fun processAction(response: HttpServletResponse, action: WebAction): ModelAndView {
-        if(action.state == null) {
+        if (action.state == null) {
             logger.info("Do not set cookies. Rendering view ${action.modelAndView.view} with model ${action.modelAndView}")
         } else {
             logger.info("Setting cookie [${action.state}] and rendering view ${action.modelAndView.view} with model ${action.modelAndView}")

@@ -8,39 +8,39 @@ import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.Time
 import com.nakoradio.geoleg.utils.distance
+import java.time.Duration
+import java.util.UUID
+import kotlin.math.absoluteValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.Duration
-import java.util.UUID
-import kotlin.math.absoluteValue
 
 @Service
 class Engine(
-        @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
-        val timeProvider: Time,
-        val loader: ScenarioLoader
+    @Value("\${location.verification.enabled:true}") var verifyLocation: Boolean,
+    val timeProvider: Time,
+    val loader: ScenarioLoader
 ) {
     var logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     // For scenario init, we will redirect to the complete URL, so that the quest
     // will be automatically completed.
     fun initScenario(
-            state: State?,
-            scenario: String,
-            secret: String
+        state: State?,
+        scenario: String,
+        secret: String
     ): WebAction {
         logger.info("Initializing scenario: $scenario")
         val quest = loader.questFor(scenario, 0, secret)
         val newState = State(
-                scenario = scenario,
-                questDeadline = null,
-                questStarted = timeProvider.now(),
-                currentQuest = 0,
-                scenarioRestartCount =
+            scenario = scenario,
+            questDeadline = null,
+            questStarted = timeProvider.now(),
+            currentQuest = 0,
+            scenarioRestartCount =
                 if (state?.scenario == scenario) state.scenarioRestartCount + 1 else 0,
-                userId = state?.userId ?: UUID.randomUUID()
+            userId = state?.userId ?: UUID.randomUUID()
         )
         return WebAction(askForLocation(questCompleteUrl(scenario, quest), quest), newState)
     }
@@ -49,20 +49,19 @@ class Engine(
      * Start next quest. This endpoint is called when clicking "GO" to start the next quest.
      */
     fun startQuest(
-            state: State,
-            scenario: String,
-            questOrderToStart: Int,
-            secret: String,
-            locationString: String
+        state: State,
+        scenario: String,
+        questOrderToStart: Int,
+        secret: String,
+        locationString: String
     ): WebAction {
-
         if (state.currentQuest == 0 && questOrderToStart != 1) {
             val questToComplete = loader.questFor(scenario, 0)
             return WebAction(
-                    askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
-                    state)
+                askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
+                state
+            )
         }
-
 
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
         val currentQuest = loader.questFor(scenario, questOrderToStart - 1)
@@ -72,11 +71,11 @@ class Engine(
         // Trying to restart the quest
         if (questToStart.order == state.currentQuest) {
             var countDownView = CountdownViewModel(
-                    state.questStarted.toEpochSecond(),
-                    state.questDeadline?.toEpochSecond(),
-                    questToStart.fictionalCountdown,
-                    questToStart.location!!.lat,
-                    questToStart.location!!.lon
+                state.questStarted.toEpochSecond(),
+                state.questDeadline?.toEpochSecond(),
+                questToStart.fictionalCountdown,
+                questToStart.location!!.lat,
+                questToStart.location!!.lon
             )
             return WebAction(countDownView, state)
         }
@@ -90,13 +89,13 @@ class Engine(
         }
 
         var newState = state.copy(
-                questStarted = timeProvider.now(),
-                currentQuest = questOrderToStart,
-                questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) }
+            questStarted = timeProvider.now(),
+            currentQuest = questOrderToStart,
+            questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) }
         )
 
         var expiresAt =
-                questToStart.countdown?.let { timeProvider.now().plusSeconds(it).toEpochSecond() }
+            questToStart.countdown?.let { timeProvider.now().plusSeconds(it).toEpochSecond() }
         var now = timeProvider.now().toEpochSecond()
         var countDownView = CountdownViewModel(now, expiresAt, questToStart.fictionalCountdown, questToStart.location!!.lat, questToStart.location!!.lon)
 
@@ -106,24 +105,23 @@ class Engine(
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
     fun initComplete(
-            scenario: String,
-            questToComplete: Int,
-            secret: String
+        scenario: String,
+        questToComplete: Int,
+        secret: String
     ): ViewModel {
         val quest = loader.questFor(scenario, questToComplete, secret)
         return askForLocation(
-                questCompleteUrl(scenario, quest), quest
+            questCompleteUrl(scenario, quest), quest
         )
     }
 
     fun complete(
-            state: State?,
-            scenario: String,
-            questOrder: Int,
-            secret: String,
-            locationString: String
+        state: State?,
+        scenario: String,
+        questOrder: Int,
+        secret: String,
+        locationString: String
     ): WebAction {
-
         if (state == null && questOrder == 1) {
             val quest = loader.questFor(scenario, 0)
             return initScenario(State.empty(timeProvider), scenario, quest.secret)
@@ -137,7 +135,7 @@ class Engine(
 
         // An edge case of trying to complete intro quest while already further on scenario
         if (questOrder == 0 && state.currentQuest != 0) {
-            return initScenario(state, scenario, secret);
+            return initScenario(state, scenario, secret)
         }
 
         // And edge case trying to complete intro quest while on another scenario
@@ -150,11 +148,11 @@ class Engine(
             // The quest user was currently trying to complete
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val view = CountdownViewModel(
-                    timeProvider.now().toEpochSecond(),
-                    state.questDeadline?.toEpochSecond(),
-                    currentQuest.fictionalCountdown,
-                    currentQuest.location!!.lat,
-                    currentQuest.location!!.lon
+                timeProvider.now().toEpochSecond(),
+                state.questDeadline?.toEpochSecond(),
+                currentQuest.fictionalCountdown,
+                currentQuest.location!!.lat,
+                currentQuest.location!!.lon
             )
 
             return WebAction(view, state)
@@ -221,7 +219,7 @@ class Engine(
     }
 
     private fun askForLocation(questUrl: String, quest: Quest) =
-            LocationReadingViewModel(questUrl, quest?.location?.lat, quest?.location?.lon)
+        LocationReadingViewModel(questUrl, quest?.location?.lat, quest?.location?.lon)
 
     fun toggleLocationVerification(): Boolean {
         verifyLocation = !verifyLocation

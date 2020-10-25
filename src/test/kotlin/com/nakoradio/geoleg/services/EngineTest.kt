@@ -253,17 +253,48 @@ internal class EngineTest {
          */
         @Test
         fun `Trying to start some other quest`() {
-
-            // TODO: Test quest 0 start also
-
-
             // When: Trying to start out of order quest
-            val questToStart = 2
+            assertProperHandlingOfStartingOurOfOrder(0)
+            assertProperHandlingOfStartingOurOfOrder(2)
+        }
+
+        /**
+         * User scanning the first on field QR without starting the first quest. This is
+         * possible for example once going through the flow but then restarting the scenario
+         * but never starting the quest 1. They know the coordinates already so they just go
+         * the the first on field QR code.
+         */
+        @Test
+        fun `Scanning the first on field QR without yet running the second quest`() {
+
+            failing test, need to fix the code
+
+            val questToComplete = scenario.quests[1]
             val (viewModel, state) =
-            engine.startQuest(currentState,scenario.name,questToStart,scenario.quests[questToStart].secret,locationString)
+                    engine.complete(
+                            currentState,
+                            scenario.name,
+                            1,
+                            questToComplete.secret,
+                            freshLocation(questToComplete))
 
             // Then: State is not changed
-            assertThat(state, equalTo(currentState) )
+            assertThat(state, equalTo(currentState))
+
+            // And: Quest 0 success is shown
+            assertThat(viewModel as LocationReadingViewModel,
+                    equalTo(
+                            LocationReadingViewModel(
+                                    "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
+                                    null, null)))
+        }
+
+        private fun assertProperHandlingOfStartingOurOfOrder(questToStart: Int) {
+            val (viewModel, state) =
+                    engine.startQuest(currentState, scenario.name, questToStart, scenario.quests[questToStart].secret, locationString)
+
+            // Then: State is not changed
+            assertThat(state, equalTo(currentState))
 
             // And: Quest 0 success is shown
             assertThat(viewModel as LocationReadingViewModel,

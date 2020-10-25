@@ -15,12 +15,12 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
         var webCookie = Cookie(COOKIE_NAME, encrypted)
         webCookie.path = "/"
         // One day
-        webCookie.maxAge = 60 * 60 * 24 * 365 * 10;
+        webCookie.maxAge = 60 * 60 * 24 * 365 * 10
         return webCookie
     }
 
     fun fromWebCookieMaybe(cookieData: String?): State? =
-            if(cookieData == null) null else fromWebCookie(cookieData)
+        if (cookieData == null) null else fromWebCookie(cookieData)
 
     fun fromWebCookie(cookieData: String): State =
         jsonMapper.readValue(cryptor.aesDecrypt(cookieData), State::class.java)
