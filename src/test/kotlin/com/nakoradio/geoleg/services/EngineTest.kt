@@ -39,18 +39,19 @@ internal class EngineTest {
     )
 
     /**
-     * User does not have a state cookie
+     * User does not have a state cookie. They have never started any scenario, have cleared
+     * the cookies or are using a different browser.
      */
     @Nested
-    inner class `Empty state success scenarios` {
+    inner class `User does not have state cookie` {
 
         val scenario = loader.table.scenarios[0]
 
         /**
-         * Starting the scenario
+         * Starting the scenario by scanning the QR code on the Geocaching.com website.
          */
         @Test
-        fun `Scanning the first QR code should start the scenario`() {
+        fun `Starting the scenario`() {
 
             // When: Initiating scenario without a state
             val action = engine.initScenario(null,scenario.name, scenario.quests[0].secret)
@@ -75,7 +76,8 @@ internal class EngineTest {
 
 
         /**
-         * Trying to complete (i.e. scan the first qr code) the second quest without any state
+         * Trying to complete (i.e. scan the first on field qr code)
+         * the second quest without any state
          * This could happen when using a desktop browser on home and then scanning the code
          * on the site with mobile. There are other valid reasons also.
          */
@@ -111,16 +113,6 @@ internal class EngineTest {
                     )
             ))
         }
-    }
-
-
-    /**
-     * User does not have a state cookie
-     */
-    @Nested
-    inner class `Empty state failure scenarios` {
-
-        val scenario = loader.table.scenarios[0]
 
         /**
          * Scanning QR code (other then first or second) without having any cookies.
@@ -130,7 +122,7 @@ internal class EngineTest {
          *
          */
         @Test
-        fun `scanning a random qr code` () {
+        fun `Scanning a random qr code` () {
             // When: Completing third quest without state
             val action = engine.complete(
                     null,
@@ -148,19 +140,30 @@ internal class EngineTest {
             ))
         }
 
+        /**
+         * Calling a start action for any quest. Start action is called when clicking
+         * the "Go" on the web page to start the next quest. It is hard to come up with
+         * a scenario where user would call start without any state. Technically possible
+         * of course by clearing cookies and navigating browser history.
+         */
+        @Test
+        fun `Starting a quest without a state` () {
+            // Not possible as controller does not accept request without cookie
+        }
     }
+
+
 
     /**
      * User has scanned the QR code on website (init scenario action) and
-     * state was set for quest 0.
+     * state was set for quest 0. Location reading view is shown and after
+     * successful read user is redirected to the complete-action.
      *
-     * Calling the complete for this quest will happen automatically as next step
-     * and the success page for quest 0 is shown. Clicking "Go" will then start
-     * the quest 1.
-     *
+     * User sees the intro quest's success page and go-button to start the
+     * next quest.
      */
     @Nested
-    inner class `State is set for scenario's intro quest` {
+    inner class `User has state cookie for the scenario's intro quest` {
 
         val scenario = loader.table.scenarios[0]
 
@@ -172,7 +175,7 @@ internal class EngineTest {
                 .asString()
 
         // State set for intro quest running
-        val state = State(
+        val currentState = State(
            scenario =  scenario.name,
                 currentQuest = 0,
                 questDeadline = null,
@@ -186,15 +189,15 @@ internal class EngineTest {
          * the intro after location read.
          */
         @Test
-        fun `complete the intro quest`() {
+        fun `Complete the intro quest`() {
             // When: Intro quest is completed
-            val action = engine.complete(state, scenario.name, 0, scenario.quests[0].secret, locationString)
+            val action = engine.complete(currentState, scenario.name, 0, scenario.quests[0].secret, locationString)
 
             // Then: Redirected to success page
             assertThat(action.modelAndView.view, equalTo(scenario.quests[0].successPage))
 
             // And: State is not changed
-            assertThat(action.state, equalTo(state))
+            assertThat(action.state, equalTo(currentState))
         }
 
 
@@ -202,11 +205,11 @@ internal class EngineTest {
          * Start the next quest
          */
         @Test
-        fun `quest successfully started`() {
+        fun `Start next quest`() {
             // When: Starting the second quest
             val questToStart = scenario.quests[1]
             val (viewModel, newState) = engine.startQuest(
-                    state,
+                    currentState,
                     scenario.name,
                     1,
                     questToStart.secret,
@@ -232,7 +235,7 @@ internal class EngineTest {
             assertThat(
                     newState,
                     equalTo(
-                            state.copy(
+                            currentState.copy(
                                     // And: New state has no deadline set
                                     questDeadline = null,
                                     // Ans: questStarted timestamp updated
@@ -242,6 +245,32 @@ internal class EngineTest {
                             )
                     )
             )
+        }
+
+        /**
+         * User calling start-action for some other quest than 1. Not expected to happen
+         * but technically possible. Let's just try to complete the quest 0 again.
+         */
+        @Test
+        fun `Trying to start some other quest`() {
+
+            // TODO: Test quest 0 start also
+
+
+            // When: Trying to start out of order quest
+            val questToStart = 2
+            val (viewModel, state) =
+            engine.startQuest(currentState,scenario.name,questToStart,scenario.quests[questToStart].secret,locationString)
+
+            // Then: State is not changed
+            assertThat(state, equalTo(currentState) )
+
+            // And: Quest 0 success is shown
+            assertThat(viewModel as LocationReadingViewModel,
+                    equalTo(
+                            LocationReadingViewModel(
+                                    "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
+                                    null, null)))
         }
 
     }
