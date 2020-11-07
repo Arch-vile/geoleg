@@ -55,12 +55,10 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
+        // Special handling when the intro quest is active?
         if (state.currentQuest == 0 && questOrderToStart != 1) {
             val questToComplete = loader.questFor(scenario, 0)
-            return WebAction(
-                askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
-                state
-            )
+            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
         }
 
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
@@ -102,6 +100,7 @@ class Engine(
         return WebAction(countDownView, newState)
     }
 
+
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
     fun initComplete(
@@ -129,6 +128,13 @@ class Engine(
 
         if (state == null) {
             return WebAction(OnlyView("missingCookie"), null)
+        }
+
+        // Special handling for trying to complete second quest without ever starting it.
+        // Let's redirect the user to try to complete the first quest
+        if ( state.currentQuest == 0 && questOrder == 1) {
+            val questToComplete = loader.questFor(scenario, 0)
+            return redirectToQuestCompleteThroughLocationReading(scenario,questToComplete,state);
         }
 
         val quest = loader.questFor(scenario, questOrder, secret)
@@ -168,6 +174,13 @@ class Engine(
             val nextQuest = loader.questFor(scenario, questOrder + 1)
             return WebAction(QuestEndViewModel(nextPage, nextQuest, quest), state)
         }
+    }
+
+    private fun redirectToQuestCompleteThroughLocationReading(scenario: String, questToComplete: Quest, state: State): WebAction {
+        return WebAction(
+                askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
+                state
+        )
     }
 
     private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {

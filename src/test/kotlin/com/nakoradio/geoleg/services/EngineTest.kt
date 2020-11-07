@@ -259,16 +259,17 @@ internal class EngineTest {
         }
 
         /**
-         * User scanning the first on field QR without starting the first quest. This is
+         * User scanning the first on field QR (complete quest 1) without starting the quest 1.
+         * (still having quest 0 as active). This is
          * possible for example once going through the flow but then restarting the scenario
          * but never starting the quest 1. They know the coordinates already so they just go
          * the the first on field QR code.
+         *
+         * In this case, lets show the quest 0 complete and let them start again the quest 1 and
+         * then complete it on the spot.
          */
         @Test
         fun `Scanning the first on field QR without yet running the second quest`() {
-
-            failing test, need to fix the code
-
             val questToComplete = scenario.quests[1]
             val (viewModel, state) =
                     engine.complete(
@@ -281,7 +282,29 @@ internal class EngineTest {
             // Then: State is not changed
             assertThat(state, equalTo(currentState))
 
-            // And: Quest 0 success is shown
+            // And: Redirect to quest 0 complete
+            assertThat(viewModel as LocationReadingViewModel,
+                    equalTo(
+                            LocationReadingViewModel(
+                                    "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
+                                    null, null)))
+        }
+
+        @Test
+        fun `Calling start for for anything else then quest 1`() {
+            val questToStart = scenario.quests[2]
+            val (viewModel, state) =
+                    engine.startQuest(
+                            currentState,
+                            scenario.name,
+                            questToStart.order,
+                            questToStart.secret,
+                            freshLocation(questToStart))
+
+            // Then: State is not changed
+            assertThat(state, equalTo(currentState))
+
+            // And: Redirect to quest 0 complete
             assertThat(viewModel as LocationReadingViewModel,
                     equalTo(
                             LocationReadingViewModel(
