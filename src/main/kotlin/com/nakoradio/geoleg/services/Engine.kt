@@ -55,6 +55,8 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
+        assertEqual(state.scenario, scenario, "Bad cookie scenario")
+
         // Special handling when the intro quest is active?
         if (state.currentQuest == 0 && questOrderToStart != 1) {
             val questToComplete = loader.questFor(scenario, 0)
@@ -63,8 +65,6 @@ class Engine(
 
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
         val currentQuest = loader.questFor(scenario, questOrderToStart - 1)
-
-        assertEqual(state.scenario, scenario, "Bad cookie scenario")
 
         // Trying to restart the quest
         if (questToStart.order == state.currentQuest) {
@@ -121,6 +121,7 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
+
         if (state == null && questOrder == 1) {
             val quest = loader.questFor(scenario, 0)
             return initScenario(State.empty(timeProvider), scenario, quest.secret)
@@ -128,6 +129,11 @@ class Engine(
 
         if (state == null) {
             return WebAction(OnlyView("missingCookie"), null)
+        }
+
+        // And edge case trying to complete intro quest while on another scenario
+        if (scenario != state.scenario) {
+            return initScenario(state, scenario, secret)
         }
 
         // Special handling for trying to complete second quest without ever starting it.
@@ -144,10 +150,6 @@ class Engine(
             return initScenario(state, scenario, secret)
         }
 
-        // And edge case trying to complete intro quest while on another scenario
-        if (scenario != state.scenario) {
-            return initScenario(state, scenario, secret)
-        }
 
         // If trying to complete earlier quest, just continue the timer of current quest
         if (quest.order < state.currentQuest) {

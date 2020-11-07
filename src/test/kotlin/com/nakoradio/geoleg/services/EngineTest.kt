@@ -171,7 +171,7 @@ internal class EngineTest {
         val locationString = LocationReading(
                 37.156027,
                 145.379261,
-                timeProvider.now().minusDays(10))
+                timeProvider.now())
                 .asString()
 
         // State set for intro quest running
