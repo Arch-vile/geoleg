@@ -100,7 +100,6 @@ class Engine(
         return WebAction(countDownView, newState)
     }
 
-
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
     fun initComplete(
@@ -121,7 +120,6 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
-
         if (state == null && questOrder == 1) {
             val quest = loader.questFor(scenario, 0)
             return initScenario(State.empty(timeProvider), scenario, quest.secret)
@@ -138,9 +136,9 @@ class Engine(
 
         // Special handling for trying to complete second quest without ever starting it.
         // Let's redirect the user to try to complete the first quest
-        if ( state.currentQuest == 0 && questOrder == 1) {
+        if (state.currentQuest == 0 && questOrder == 1) {
             val questToComplete = loader.questFor(scenario, 0)
-            return redirectToQuestCompleteThroughLocationReading(scenario,questToComplete,state);
+            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
         }
 
         val quest = loader.questFor(scenario, questOrder, secret)
@@ -149,7 +147,6 @@ class Engine(
         if (questOrder == 0 && state.currentQuest != 0) {
             return initScenario(state, scenario, secret)
         }
-
 
         // If trying to complete earlier quest, just continue the timer of current quest
         if (quest.order < state.currentQuest) {
@@ -180,8 +177,8 @@ class Engine(
 
     private fun redirectToQuestCompleteThroughLocationReading(scenario: String, questToComplete: Quest, state: State): WebAction {
         return WebAction(
-                askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
-                state
+            askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
+            state
         )
     }
 
