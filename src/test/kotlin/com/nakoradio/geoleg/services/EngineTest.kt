@@ -54,7 +54,6 @@ internal class EngineTest {
         fun `Starting the scenario`() {
             // When: Initiating scenario without a state
             val action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
-
             // Then: State set to scenario start
             assertThat(
                 action.state,
