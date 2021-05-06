@@ -35,7 +35,7 @@ class Engine(
         val quest = loader.questFor(scenario, 0, secret)
         val newState = State(
             scenario = scenario,
-            questDeadline = null,
+            questDeadline = timeProvider.now().plusYears(10),
             questStarted = timeProvider.now(),
             currentQuest = 0,
             scenarioRestartCount =

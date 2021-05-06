@@ -52,16 +52,16 @@ internal class EngineTest {
          */
         @Test
         fun `Starting the scenario`() {
-
             // When: Initiating scenario without a state
-            val action = engine.initScenario(null,scenario.name, scenario.quests[0].secret)
+            val action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
+
             // Then: State set to scenario start
             assertThat(action.state, equalTo(
                     State(
                             scenario = scenario.name,
                             currentQuest = 0,
                             questStarted = timeProvider.now(),
-                            questDeadline = null,
+                            questDeadline = timeProvider.now().plusYears(10),
                             userId = action.state!!.userId,
                             scenarioRestartCount = 0
                     )
@@ -82,9 +82,9 @@ internal class EngineTest {
          * on the site with mobile. There are other valid reasons also.
          */
         @Test
-        fun `Scanning the first on field QR should restart the scenario` () {
+        fun `Scanning the first on field QR should restart the scenario`() {
 
-            // When: Completing the second quest without any state
+            // When: Completing the first on field quest without any state
             val action = engine.complete(
                     null,
                     scenario.name,
@@ -95,9 +95,9 @@ internal class EngineTest {
             // Then: State is set to scenario initialization
             assertThat(action.state, equalTo(
                     State(
-                            scenario=scenario.name,
+                            scenario = scenario.name,
                             currentQuest = 0,
-                            questDeadline = null,
+                            questDeadline = timeProvider.now().plusYears(10),
                             questStarted = timeProvider.now(),
                             userId = action.state!!.userId,
                             scenarioRestartCount = 0
@@ -107,7 +107,7 @@ internal class EngineTest {
             // And: Redirected to quest complete automatically
             assertThat(action.modelAndView as LocationReadingViewModel, equalTo(
                     LocationReadingViewModel(
-                            action= "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
+                            action = "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
                             lat = null,
                             lon = null
                     )
@@ -122,7 +122,7 @@ internal class EngineTest {
          *
          */
         @Test
-        fun `Scanning a random qr code` () {
+        fun `Scanning a random qr code`() {
             // When: Completing third quest without state
             val action = engine.complete(
                     null,
@@ -132,7 +132,7 @@ internal class EngineTest {
                     freshLocation(scenario.quests[2]))
 
             // Then: State not set
-            assertThat(action.state, `is`(Matchers.nullValue()) )
+            assertThat(action.state, `is`(Matchers.nullValue()))
 
             // And: Missing cookie error shown
             assertThat(action.modelAndView as OnlyView, equalTo(
@@ -147,11 +147,10 @@ internal class EngineTest {
          * of course by clearing cookies and navigating browser history.
          */
         @Test
-        fun `Starting a quest without a state` () {
+        fun `Starting a quest without a state`() {
             // Not possible as controller does not accept request without cookie
         }
     }
-
 
 
     /**
@@ -176,7 +175,7 @@ internal class EngineTest {
 
         // State set for intro quest running
         val currentState = State(
-           scenario =  scenario.name,
+                scenario = scenario.name,
                 currentQuest = 0,
                 questDeadline = null,
                 questStarted = timeProvider.now(),
@@ -256,6 +255,23 @@ internal class EngineTest {
             // When: Trying to start out of order quest
             assertProperHandlingOfStartingOurOfOrder(0)
             assertProperHandlingOfStartingOurOfOrder(2)
+        }
+
+
+        @Test
+        fun `Trying to complete a further quest`() {
+            // When: Completing a further quest
+            var questToComplete = scenario.quests[2]
+
+            // Then: Fails with error
+            assertThrows<TechnicalError> {
+                engine.complete(
+                        currentState,
+                        scenario.name,
+                        questToComplete.order,
+                        questToComplete.secret,
+                        freshLocation(questToComplete))
+            }
         }
 
         /**
@@ -431,9 +447,6 @@ internal class EngineTest {
     }
 
 
-
-
-
     /**
      * Loading (and reloading) the `/engine/complete/$scenarioName/0/$quest0Secret` action
      */
@@ -457,7 +470,6 @@ internal class EngineTest {
         )
 
 
-
         /**
          * User cannot end up here by scanning QR code (because the intro quest QR code points to
          * init scenario action instead of complete) but can access this e.g. by using browser
@@ -472,7 +484,7 @@ internal class EngineTest {
             val action = engine.complete(stateForFurtherQuest, scenario.name, 0, scenario.quests[0].secret, locationString)
 
             // Then: Intro quest is successfully restarted
-            assertScenarioRestartAction(state,scenario,action)
+            assertScenarioRestartAction(state, scenario, action)
         }
 
 
@@ -485,7 +497,7 @@ internal class EngineTest {
             val action = engine.complete(stateForAnotherScenario, scenario.name, 0, scenario.quests[0].secret, locationString)
 
             // Then: Intro quest is successfully restarted
-            assertScenarioRestartAction(stateForAnotherScenario,scenario,action)
+            assertScenarioRestartAction(stateForAnotherScenario, scenario, action)
         }
 
         @Test
@@ -506,7 +518,7 @@ internal class EngineTest {
             val action = engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
 
             // Then: Intro quest is successfully restarted
-            assertScenarioRestartAction(badState,scenario,action)
+            assertScenarioRestartAction(badState, scenario, action)
         }
 
         @Test
@@ -636,7 +648,13 @@ internal class EngineTest {
             // Then: Redirected to quest complete
             // We want to read the location also although not needed, as this could allow user to
             // catch any technical errors on location reading already at home.
-            assertThat((viewModel as LocationReadingViewModel).action, equalTo("/engine/complete/ancient-blood/0/6a5fc6c0f8ec do object comparison here"))
+            assertThat(
+                (viewModel as LocationReadingViewModel),
+                equalTo(LocationReadingViewModel(
+                    "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
+                    null,null
+                ))
+            )
         }
 
         @Test
@@ -912,6 +930,7 @@ internal class EngineTest {
             val error = assertThrows<TechnicalError> {
                 engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
             }
+
             assertThat(error.message, equalTo("Not good: scenario completion"))
         }
 
@@ -1121,7 +1140,7 @@ internal class EngineTest {
         assertThat(action.state, equalTo(State(
                 scenario = scenario.name,
                 currentQuest = 0,
-                questDeadline = null,
+                questDeadline = timeProvider.now().plusYears(10),
                 questStarted = timeProvider.now(),
                 userId = existingState.userId,
                 scenarioRestartCount =
