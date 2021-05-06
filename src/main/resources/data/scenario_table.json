@@ -52,8 +52,8 @@
           "secret": "6021c7d15c44",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.291530,
-            "lon": 24.915110
+            "lat": 60.291336,
+            "lon": 24.912291
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -104,8 +104,8 @@
           "secret": "e359dec5aa1c",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.291530,
-            "lon": 24.915110
+            "lat": 60.291336,
+            "lon": 24.912291
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
