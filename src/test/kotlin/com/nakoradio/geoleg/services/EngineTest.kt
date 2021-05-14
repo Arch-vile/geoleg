@@ -543,16 +543,6 @@ internal class EngineTest {
             assertScenarioRestartAction(badState, scenario, action)
         }
 
-        @Test
-        fun `xxxxxxxxxxxxxxxxxxxx trying to complete intro while on unknown scenario`() {
-            // Given: State has unknown scenario (should not technically be possible)
-            val badState = state.copy(scenario = "other scenario")
-
-            // When: Intro quest is completed, error is thrown due to mismatch in scenario
-            assertThrows<TechnicalError> {
-                engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
-            }
-        }
 
         @Test
         fun `trying to complete another intro with this scenario's secret`() {
@@ -1085,6 +1075,36 @@ internal class EngineTest {
             }
             assertThat(error.message, equalTo("Not good: quest matching"))
         }
+
+        // 60.291667, 24.924222
+        /**
+         * Regression: So I was in the middle of quest #5 started many days ago, then I
+         * scanned the QR of the quest #2.
+         *
+         * Expected: To see a failure as I have run out of time for quest #5
+         *
+         * Observed: Quest #5 coordinates without a timer.
+         *
+         */
+        @Test
+        fun `Fail when scanning code of earlier quest if run out of time for current quest`() {
+
+          // Given: Current quest has expired
+            val state = validStateToComplete().copy(questDeadline = timeProvider.now.minusDays(20))
+
+
+           // When: Scanning code of earlier quest (
+            fail("not tested")
+        }
+
+        @Test
+        fun `Scanning code of earlier quest will show countdown to current quest if time is still remaining`() {
+
+            fail("not tested")
+        }
+
+
+
 
         @Test
         fun `success`() {
