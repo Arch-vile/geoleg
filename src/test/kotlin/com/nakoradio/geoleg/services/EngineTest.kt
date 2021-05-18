@@ -177,6 +177,7 @@ internal class EngineTest {
     inner class `User has state cookie for the scenario's intro quest` {
 
         val scenario = loader.table.scenarios[0]
+        val currentQuest = scenario.quests[0]
 
         // Given: Location far away from quest location. (intro quest does not check location)
         val locationString = LocationReading(
@@ -203,13 +204,20 @@ internal class EngineTest {
         @Test
         fun `Complete the intro quest`() {
             // When: Intro quest is completed
-            val action = engine.complete(currentState, scenario.name, 0, scenario.quests[0].secret, locationString)
+            val action = engine.complete(currentState, scenario.name, 0, currentQuest.secret, locationString)
 
-            // Then: Redirected to success page
-            assertThat(action.modelAndView.view, equalTo(scenario.quests[0].successPage))
-
-            // And: State is not changed
-            assertThat(action.state, equalTo(currentState))
+            // Then: Redirected to success page and state is unchanged
+            assertThat(
+                action, equalTo(
+                    WebAction(
+                        QuestEndViewModel(
+                            currentQuest.successPage,
+                            scenario.nextQuest(currentQuest),
+                            currentQuest
+                        ), currentState
+                    )
+                )
+            )
         }
 
         /**
@@ -812,7 +820,9 @@ internal class EngineTest {
         }
 
         /**
-         * This prevents user from restarting a quest by returning to previous point
+         * If we try to restart current quest again, we should just keep on running it without
+         * changing anything. This could happen by going back in browser history.
+         *
          */
         @Test
         fun `fail if quest in state is not the previous one`() {
@@ -821,10 +831,18 @@ internal class EngineTest {
                 .copy(scenario = scenario.name, currentQuest = questToStart.order)
 
             // When: Starting the quest
-            val error = assertThrows<TechnicalError> {
-                engine.startQuest(state, scenario.name, 2, questToStart.secret, freshLocation(questToStart))
-            }
-            assertThat(error.message, equalTo("Not good: Bad cookie quest"))
+            val foo = engine.startQuest(state, scenario.name, 2, questToStart.secret, freshLocation(questToStart))
+
+            // Then: State is not changed
+            assertThat(foo.state, equalTo(state))
+
+            // And: Countdown page is shown
+            assertThat(foo.modelAndView as CountdownViewModel, equalTo(CountdownViewModel(timeProvider.now.toEpochSecond(), state.questDeadline!!.toEpochSecond(), questToStart.fictionalCountdown, questToStart.location!!.lat, questToStart.location!!.lon)))
+        }
+
+        @Test
+        fun `what if starting an earlier quest`() {
+           fail("not tested")
         }
 
         @Test
@@ -938,13 +956,13 @@ internal class EngineTest {
             // Given: State has bad scenario
             val state = validStateToComplete().copy(scenario = "not correct")
 
-            // When: Starting the quest
+            // When: Completing the quest
             // Then: Error about bad scenario
             val error = assertThrows<TechnicalError> {
                 engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
             }
 
-            assertThat(error.message, equalTo("Not good: scenario completion"))
+            assertThat(error.message, equalTo("No such quest secret for you my friend"))
         }
 
         @Test
@@ -961,17 +979,15 @@ internal class EngineTest {
         }
 
         @Test
-        fun `success`() {
+        fun success() {
             // Given: Valid state to complete this quest
             val state = validStateToComplete()
 
-            // When: Starting the quest
+            // When: Completing the quest
             val viewModel = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Success page is shown
-            assertThat(viewModel.modelAndView.view, equalTo("quests/testing_1_success"))
-
-            fail("Should check the whole webaction")
+            assertThat(viewModel.modelAndView as QuestEndViewModel, equalTo(QuestEndViewModel("quests/testing_1_success", scenario.nextQuest(questToComplete), questToComplete)))
         }
 
         private fun validStateToComplete(): State {
@@ -992,7 +1008,7 @@ internal class EngineTest {
     inner class `Completing the Nth quest` {
 
         val scenario = loader.table.scenarios[1]
-        val questToComplete = scenario.quests[4]
+        val questToComplete = scenario.quests[3]
 
         @Test
         fun `Fail if not completed in time`() {
@@ -1003,10 +1019,19 @@ internal class EngineTest {
             // When: Starting the quest
             val viewModel = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-            // Then: Failure page is shown
+            // Then: Failure page is shown, state not changed
+//            print(viewModel)
             assertThat(viewModel.modelAndView.view, equalTo(questToComplete.failurePage))
+            assertThat(
+                viewModel, equalTo(
+                    WebAction(
+//                QuestEndViewModel( "quests/testing_3_fail", null, questToComplete ),
+                        OnlyView("quests/testing_3_fail"),
+                        state
+                    )
+                )
+            )
 
-            fail("Should check the whole webaction")
         }
 
         @Test
@@ -1059,7 +1084,7 @@ internal class EngineTest {
             val error = assertThrows<TechnicalError> {
                 engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
             }
-            assertThat(error.message, equalTo("Not good: scenario completion"))
+            assertThat(error.message, equalTo("No such quest secret for you my friend"))
         }
 
         // Scanning QR code of some upcoming future quest
@@ -1104,20 +1129,28 @@ internal class EngineTest {
         }
 
 
-
-
         @Test
-        fun `success`() {
+        fun success() {
             // Given: Valid state to complete this quest
             val state = validStateToComplete()
 
             // When: Completing the quest
             val viewModel = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-            // Then: Success page is shown
-            assertThat(viewModel.modelAndView.view, equalTo(questToComplete.successPage))
-
-            fail("Should check the whole webaction")
+            // Then: Success page is shown, state is not changed
+            assertThat(
+                viewModel,
+                equalTo(
+                    WebAction(
+                        QuestEndViewModel(
+                            questToComplete.successPage,
+                            scenario.nextQuest(questToComplete),
+                            questToComplete
+                        ),
+                        state
+                    )
+                )
+            )
         }
 
         private fun validStateToComplete(): State {
@@ -1133,6 +1166,7 @@ internal class EngineTest {
             )
         }
     }
+
 
     @Nested
     inner class `Completing the last quest` {

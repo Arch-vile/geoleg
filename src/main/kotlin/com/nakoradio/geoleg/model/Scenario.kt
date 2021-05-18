@@ -1,6 +1,10 @@
 package com.nakoradio.geoleg.model
 
-data class Scenario(val name: String, val quests: List<Quest>)
+data class Scenario(val name: String, val quests: List<Quest>) {
+    fun nextQuest(currentQuest: Quest): Quest {
+        return quests[currentQuest.order+1]
+    }
+}
 
 data class Quest(
     val order: Int,
