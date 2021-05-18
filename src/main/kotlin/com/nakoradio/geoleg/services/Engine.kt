@@ -166,13 +166,7 @@ class Engine(
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
-        val nextPage = checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state)
-        if (loader.isLastQuest(scenario, questOrder)) {
-            return WebAction(ScenarioEndViewModel(nextPage), state)
-        } else {
-            val nextQuest = loader.questFor(scenario, questOrder + 1)
-            return WebAction(QuestEndViewModel(nextPage, nextQuest, quest), state)
-        }
+        return WebAction(checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state), state)
     }
 
     private fun redirectToQuestCompleteThroughLocationReading(scenario: String, questToComplete: Quest, state: State): WebAction {
@@ -182,18 +176,22 @@ class Engine(
         )
     }
 
-    private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): String {
+    private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): ViewModel {
         assertEqual(scenario, state.scenario, "scenario completion")
         assertEqual(quest.order, state.currentQuest, "quest matching")
-
         quest.location?.let { assertProximity(it, location) }
 
         return if (quest.countdown != null && timeProvider.now().isAfter(state.questDeadline)) {
             logger.info("Quest failed due to time running out")
-            quest.failurePage
+            OnlyView(quest.failurePage)
         } else {
-            logger.info("Quest success!")
-            quest.successPage
+            logger.info("Quest completed successfully")
+            if (loader.isLastQuest(scenario, quest.order)) {
+                ScenarioEndViewModel(quest.successPage)
+            } else {
+                val nextQuest = loader.questFor(scenario, quest.order + 1)
+                QuestEndViewModel(quest.successPage, nextQuest, quest)
+            }
         }
     }
 

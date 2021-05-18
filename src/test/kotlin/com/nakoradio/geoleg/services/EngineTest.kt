@@ -1020,18 +1020,12 @@ internal class EngineTest {
             val viewModel = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Failure page is shown, state not changed
-//            print(viewModel)
             assertThat(viewModel.modelAndView.view, equalTo(questToComplete.failurePage))
             assertThat(
                 viewModel, equalTo(
-                    WebAction(
-//                QuestEndViewModel( "quests/testing_3_fail", null, questToComplete ),
-                        OnlyView("quests/testing_3_fail"),
-                        state
-                    )
+                    WebAction( OnlyView("quests/testing_3_fail"), state )
                 )
             )
-
         }
 
         @Test
