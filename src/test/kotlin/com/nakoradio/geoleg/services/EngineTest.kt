@@ -901,9 +901,15 @@ internal class EngineTest {
     }
 
     /**
+     * Second quest: the first quest on the field
+     *
      * Completing the second quest is a special case. Because the second quest is started
      * at home (this is the first quest that gives coordinates to the field), it does not
      * check for the deadline.
+     *
+     * Also second quest should act as a reset switch for the scenario. For example if user tries
+     * to complete the scenario but fails and wants to restart, it makes sense for them to
+     * go and scan again the second QR.
      */
     @Nested
     inner class `Completing the second quest` {
@@ -965,17 +971,54 @@ internal class EngineTest {
             assertThat(error.message, equalTo("No such quest secret for you my friend"))
         }
 
+        /**
+         * User has scanned the online qr and completed the first quest (#0) (it completes automatically)
+         * but has not clicked to start next quest on mobile. Active quest is still 0.
+         *
+         * He could have received the coordinates for the second quest (#1) by other means or from
+         * someone else. Now that he scans the second quest code, we can just restart the scenario.
+         * We could just complete the second quest, but maybe safer to just restart the scenario.
+         */
         @Test
-        fun `Fail if state's quest is smaller then params`() {
-            // Given: State has different quest
-            val state = validStateToComplete().copy(currentQuest = questToComplete.order - 1)
+        fun `Should restart the scenario if user has not started second quest`() {
+            // Given: User is doing first quest
+            val state = validStateToComplete().copy(currentQuest = 0)
 
-            // When: Starting the quest
-            // Then: Error about bad scenario
-            val error = assertThrows<TechnicalError> {
-                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
-            }
-            assertThat(error.message, equalTo("Not good: quest matching"))
+            // When: Trying to complete second quest
+                val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Go to scenario init
+            assertThat(result, equalTo(
+                WebAction(
+                    LocationReadingViewModel("/engine/complete/testing-dummy/0/c8f101246f60", null,null),
+               // And state is reset
+                    State(state.scenario, 0, timeProvider.now().plusYears(10),timeProvider.now(),
+                        state.userId,state.scenarioRestartCount+1))
+            ))
+        }
+
+        /**
+         * One could just go to second quest's location without starting the first quest (for example
+         * using laptop on the first quest and mobile phone on the location). Or just random guy
+         * scanning the code.
+         *
+         * User would not have state at all. We should start the scenario from the start and start
+         * the first quest.
+          */
+        @Test
+        fun `Should start first quest if user has no state`() {
+            fail("not tested")
+        }
+
+        @Test
+        fun `Should start first quest if user has wrong scanario`() {
+            fail("not tested")
+        }
+
+        @Test
+        fun `Should start first quest if user has run out of time on later quest`() {
+            // Given: State for later quest with DL already passed
+            fail("not tested")
         }
 
         @Test

@@ -3,18 +3,21 @@ package com.nakoradio.geoleg.controllers
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.Engine
+import com.nakoradio.geoleg.services.ScenarioLoader
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.ModelAndView
 
 @RestController
 @RequestMapping("/admin")
 class AdminController(
     val cookieManager: CookieManager,
-    val engine: Engine
+    val engine: Engine,
+    val loader: ScenarioLoader
 ) {
 
     @GetMapping("/yummy")
@@ -30,6 +33,11 @@ class AdminController(
     @GetMapping("/toggleLocationVerify")
     fun toggleLocationVerify(): Boolean {
         return engine.toggleLocationVerification()
+    }
+
+    @GetMapping("/qrLinks")
+    fun qrLinks(): ModelAndView {
+        return ModelAndView("admin/qrLinks","model", loader.table.scenarios[0] )
     }
 }
 

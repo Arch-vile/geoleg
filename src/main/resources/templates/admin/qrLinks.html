@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>QR links for easier testing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
+</head>
+<body class="black">
+
+[[${model.name}]]
+
+<table>
+<tr th:each="quest: ${model.quests}">
+  <td th:text="${quest.order}"/>
+  <td >
+    <a th:href="|/engine/complete/${model.name}/${quest.order}/${quest.secret}|">Link</a>
+  </td>
+</tr>
+</table>
+</body>
+</html>

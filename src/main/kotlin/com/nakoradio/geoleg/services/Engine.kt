@@ -134,12 +134,21 @@ class Engine(
             return initScenario(state, scenario, secret)
         }
 
-        // Special handling for trying to complete second quest without ever starting it.
-        // Let's redirect the user to try to complete the first quest
+        // Special handling for trying to complete second quest (#1) without ever starting it.
+        // This could happen when you arrive to the spot with group and only some have scanned
+        // the first quest code and clicked to start the next.
         if (state.currentQuest == 0 && questOrder == 1) {
-            val questToComplete = loader.questFor(scenario, 0)
-            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
+            logger.info("Restarting scenario")
+//            return WebAction(OnlyView(loader.questFor(scenario,0).successPage),
+//            State(scenario,0,null,timeProvider.now(),state.userId,state.scenarioRestartCount+1)
+//                )
+            return initScenario(state,scenario,loader.questFor(scenario,0).secret)
         }
+        // Let's redirect the user to try to complete the first quest
+//        if (state.currentQuest == 0 && questOrder == 1) {
+//            val questToComplete = loader.questFor(scenario, 0)
+//            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
+//        }
 
         val quest = loader.questFor(scenario, questOrder, secret)
 
