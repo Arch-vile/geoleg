@@ -129,6 +129,8 @@ internal class EngineTest {
          * Or if you just randomly find the QR code without going through previous
          * quests.
          *
+         * MissingCookie page has instructions for the user.
+         *
          */
         @Test
         fun `Scanning a random qr code`() {
@@ -141,15 +143,11 @@ internal class EngineTest {
                 freshLocation(scenario.quests[2])
             )
 
-            // Then: State not set
-            assertThat(action.state, `is`(Matchers.nullValue()))
-
-            // And: Missing cookie error shown
-            assertThat(
-                action.modelAndView as OnlyView,
-                equalTo(
-                    OnlyView("missingCookie")
-                )
+            assertThat(action, equalTo(
+                // And: Missing cookie error shown
+                WebAction(OnlyView("missingCookie"),
+                   // And: State not set
+                    null))
             )
         }
 
@@ -958,20 +956,6 @@ internal class EngineTest {
             assertThat(error.message, equalTo("Bad gps accuracy"))
         }
 
-        @Test
-        fun `Fail if state's scenario does not match params`() {
-            // Given: State has bad scenario
-            val state = validStateToComplete().copy(scenario = "not correct")
-
-            // When: Completing the quest
-            // Then: Error about bad scenario
-            val error = assertThrows<TechnicalError> {
-                engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
-            }
-
-            assertThat(error.message, equalTo("No such quest secret for you my friend"))
-        }
-
         /**
          * User has scanned the online qr and completed the first quest (#0) (it completes automatically)
          * but has not clicked to start next quest on mobile. Active quest is still 0.
@@ -1015,7 +999,7 @@ internal class EngineTest {
         @Test
         fun `Should restart the scenario if user has wrong scanario`() {
             // Given: User has the wrong scenario
-            val state = State("someother", 1, timeProvider.now().plusYears(1), timeProvider.now(), UUID.randomUUID(), 1)
+            val state = validStateToComplete().copy(scenario = "not correct")
 
             // When: Trying to complete second quest
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))

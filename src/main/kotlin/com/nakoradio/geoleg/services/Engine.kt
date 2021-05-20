@@ -15,6 +15,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import kotlin.math.log
 
 @Service
 class Engine(
@@ -121,18 +122,30 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
-        if (state == null && questOrder == 1) {
-            val quest = loader.questFor(scenario, 0)
-            return initScenario(State.empty(timeProvider), scenario, quest.secret)
+        if (state == null) {
+            return WebAction(OnlyView("missingCookie"), null)
         }
 
-        if(state?.scenario !== scenario) {
+      // DEAD CODE  state is not null
+//        if (state == null && questOrder == 1) {
+//            logger.info("Restarting scenario due to state being null on second quest's complete")
+//            val quest = loader.questFor(scenario, 0)
+//            return initScenario(State.empty(timeProvider), scenario, quest.secret)
+//        }
+
+        if(state.scenario !== scenario) {
+            logger.info("Restarting scenario due to state having different scenario: ${state.scenario}")
             val quest = loader.questFor(scenario, 0)
             return initScenario(state, scenario, quest.secret)
         }
 
-        if (state == null) {
-            return WebAction(OnlyView("missingCookie"), null)
+
+        // Trying to complete earlier quest while passed DL on later quest. User fails to complete
+        // quest in given time and then goes back to previous quest and scan it.
+        if(state.currentQuest > questOrder && hasQuestDLPassed(state)) {
+            logger.info("Restarting scenario due to later quest DL passed: ${state.currentQuest}")
+            val quest = loader.questFor(scenario, 0)
+            return initScenario(state, scenario, quest.secret)
         }
 
         // And edge case trying to complete intro quest while on another scenario
@@ -196,7 +209,8 @@ class Engine(
         assertEqual(quest.order, state.currentQuest, "quest matching")
         quest.location?.let { assertProximity(it, location) }
 
-        return if (quest.countdown != null && timeProvider.now().isAfter(state.questDeadline)) {
+        // TODO: Why do we need to check if quest has countdown, why is not enough to check state DL?
+        return if (quest.countdown != null && hasQuestDLPassed(state)) {
             logger.info("Quest failed due to time running out")
             OnlyView(quest.failurePage)
         } else {
@@ -209,6 +223,9 @@ class Engine(
             }
         }
     }
+
+    private fun hasQuestDLPassed(state: State) =
+        timeProvider.now().isAfter(state.questDeadline)
 
     private fun assertProximity(target: Coordinates, location: Coordinates) {
         if (!verifyLocation) {
