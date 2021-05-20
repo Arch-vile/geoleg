@@ -136,7 +136,7 @@ class Engine(
         if(state.scenario != scenario) {
             logger.info("Restarting scenario due to state having different scenario: ${state.scenario}")
             val quest = loader.questFor(scenario, 0)
-            return initScenario(state, scenario, quest.secret)
+            return initScenario(state, state.scenario, quest.secret)
         }
 
 
@@ -145,9 +145,10 @@ class Engine(
         if(state.currentQuest > questOrder && hasQuestDLPassed(state)) {
             logger.info("Restarting scenario due to later quest DL passed: ${state.currentQuest}")
             val quest = loader.questFor(scenario, 0)
-            return initScenario(state, scenario, quest.secret)
+            return initScenario(state, state.scenario, quest.secret)
         }
 
+        // TODO: This is overlapping with one check above
         // And edge case trying to complete intro quest while on another scenario
         if (scenario != state.scenario) {
             return initScenario(state, scenario, secret)

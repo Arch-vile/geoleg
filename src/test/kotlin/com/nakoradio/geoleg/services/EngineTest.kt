@@ -78,50 +78,7 @@ internal class EngineTest {
             )
         }
 
-        /**
-         * Trying to complete (i.e. scan the first on field qr code)
-         * the second quest without any state
-         * This could happen when using a desktop browser on home and then scanning the code
-         * on the site with mobile. There are other valid reasons also.
-         */
-        @Test
-        fun `Scanning the first on field QR should restart the scenario`() {
-            // When: Completing the first on field quest without any state
-            val action = engine.complete(
-                null,
-                scenario.name,
-                1,
-                scenario.quests[1].secret,
-                freshLocation(scenario.quests[1])
-            )
 
-            // Then: State is set to scenario initialization
-            assertThat(
-                action.state,
-                equalTo(
-                    State(
-                        scenario = scenario.name,
-                        currentQuest = 0,
-                        questDeadline = timeProvider.now().plusYears(10),
-                        questStarted = timeProvider.now(),
-                        userId = action.state!!.userId,
-                        scenarioRestartCount = 0
-                    )
-                )
-            )
-
-            // And: Redirected to quest complete automatically
-            assertThat(
-                action.modelAndView as LocationReadingViewModel,
-                equalTo(
-                    LocationReadingViewModel(
-                        action = "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
-                        lat = null,
-                        lon = null
-                    )
-                )
-            )
-        }
 
         /**
          * Scanning QR code (other then first or second) without having any cookies.
@@ -143,12 +100,8 @@ internal class EngineTest {
                 freshLocation(scenario.quests[2])
             )
 
-            assertThat(action, equalTo(
-                // And: Missing cookie error shown
-                WebAction(OnlyView("missingCookie"),
-                   // And: State not set
-                    null))
-            )
+            // Then: Missing cookie page shown
+            assertMissingCookieErrorShown(action)
         }
 
         /**
@@ -161,6 +114,19 @@ internal class EngineTest {
         fun `Starting a quest without a state`() {
             // Not possible as controller does not accept request without cookie
         }
+    }
+
+    private fun assertMissingCookieErrorShown(action: WebAction) {
+        assertThat(
+            action, equalTo(
+                // And: Missing cookie error shown
+                WebAction(
+                    OnlyView("missingCookie"),
+                    // And: State not set
+                    null
+                )
+            )
+        )
     }
 
     /**
@@ -295,42 +261,7 @@ internal class EngineTest {
             }
         }
 
-        /**
-         * User scanning the first on field QR (complete quest 1) without starting the quest 1.
-         * (still having quest 0 as active). This is
-         * possible for example once going through the flow but then restarting the scenario
-         * but never starting the quest 1. They know the coordinates already so they just go
-         * the the first on field QR code.
-         *
-         * In this case, lets show the quest 0 complete and let them start again the quest 1 and
-         * then complete it on the spot.
-         */
-        @Test
-        fun `Scanning the first on field QR without yet running the second quest`() {
-            val questToComplete = scenario.quests[1]
-            val (viewModel, state) =
-                engine.complete(
-                    currentState,
-                    scenario.name,
-                    1,
-                    questToComplete.secret,
-                    freshLocation(questToComplete)
-                )
 
-            // Then: State is not changed
-            assertThat(state, equalTo(currentState))
-
-            // And: Redirect to quest 0 complete
-            assertThat(
-                viewModel as LocationReadingViewModel,
-                equalTo(
-                    LocationReadingViewModel(
-                        "/engine/complete/ancient-blood/0/6a5fc6c0f8ec",
-                        null, null
-                    )
-                )
-            )
-        }
 
         @Test
         fun `Calling start for for anything else then quest 1`() {
@@ -544,20 +475,24 @@ internal class EngineTest {
             // Given: State has unknown scenario (only possible if scenarios renamed or removed)
             val badState = state.copy(scenario = "other scenario")
 
-            // When: Executing the intro's `complete` action
-            val action = engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
-
-            // Then: Intro quest is successfully restarted
-            assertScenarioRestartAction(badState, scenario, action)
+            var error = assertThrows<TechnicalError>{
+                // When: Executing the intro's `complete` action
+                 engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
+            }
+            // Then: Error of wrong secret
+            assertThat(error.message, equalTo("No such scenario for you my friend"))
         }
 
         @Test
-        fun `trying to complete another intro with this scenario's secret`() {
+        fun `trying to complete another scenario's intro with this scenario's secret`() {
             // Given: User has state set for completing the intro quest
-            // When: Trying to complete a different scenario with this scenario's secret
-            assertThrows<TechnicalError> {
-                engine.complete(state, loader.table.scenarios[1].name, 0, scenario.quests[0].secret, locationString)
+            // When: Trying to complete quest of another scenario
+            val scenarioNameOfAnotherExistingScenario = loader.table.scenarios[1].name
+            var error = assertThrows<TechnicalError>{
+                engine.complete(state, scenarioNameOfAnotherExistingScenario, 0, scenario.quests[0].secret, locationString)
             }
+            // Then: Error of wrong secret
+            assertThat(error.message, equalTo("No such quest secret for you my friend"))
         }
 
         @Test
@@ -981,11 +916,11 @@ internal class EngineTest {
          * using laptop on the first quest and mobile phone on the location). Or just random guy
          * scanning the code.
          *
-         * User would not have state at all. We should start the scenario from the start and start
-         * the first quest.
+         * User would not have state at all. We should show the missing cookie page that also
+         * has instructions for the user to restart the scenario.
          */
         @Test
-        fun `Should restart the scenario if user has no state`() {
+        fun `Should show missing cookie page if user has no state`() {
             // Given: User has no state
             val state = null
 
@@ -993,7 +928,7 @@ internal class EngineTest {
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Restart the scenario
-            assertScenarioRestartAction(state,scenario,result)
+            assertMissingCookieErrorShown(result)
         }
 
         @Test
