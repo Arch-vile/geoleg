@@ -121,9 +121,14 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
-        if ((state == null && questOrder == 1) || state?.scenario !== scenario) {
+        if (state == null && questOrder == 1) {
             val quest = loader.questFor(scenario, 0)
             return initScenario(State.empty(timeProvider), scenario, quest.secret)
+        }
+
+        if(state?.scenario !== scenario) {
+            val quest = loader.questFor(scenario, 0)
+            return initScenario(state, scenario, quest.secret)
         }
 
         if (state == null) {
@@ -138,7 +143,7 @@ class Engine(
         // Special handling for trying to complete second quest (#1) without ever starting it.
         // This could happen when you arrive to the spot with group and only some have scanned
         // the first quest code and clicked to start the next.
-        if (state.currentQuest == 0 && questOrder == 1) {
+        if ((state.currentQuest == 0 && questOrder == 1)) {
             logger.info("Restarting scenario")
 //            return WebAction(OnlyView(loader.questFor(scenario,0).successPage),
 //            State(scenario,0,null,timeProvider.now(),state.userId,state.scenarioRestartCount+1)

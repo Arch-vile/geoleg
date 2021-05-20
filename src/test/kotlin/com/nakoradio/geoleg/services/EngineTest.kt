@@ -988,20 +988,8 @@ internal class EngineTest {
             // When: Trying to complete second quest
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-            // Then: Go to complete the first quest
-            assertThat(
-                result,
-                equalTo(
-                    WebAction(
-                        LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
-                        // And state is reset
-                        State(
-                            scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(),
-                            state.userId, state.scenarioRestartCount + 1
-                        )
-                    )
-                )
-            )
+            // Then: Restart the scenario
+            assertScenarioRestartAction(state,scenario,result)
         }
 
         /**
@@ -1020,20 +1008,8 @@ internal class EngineTest {
             // When: Trying to complete second quest
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-            // Then: Go to complete the first quest
-            assertThat(
-                result,
-                equalTo(
-                    WebAction(
-                        LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
-                        // And: state is reset
-                        State(
-                            scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(),
-                            result.state!!.userId, 0
-                        )
-                    )
-                )
-            )
+            // Then: Restart the scenario
+            assertScenarioRestartAction(state,scenario,result)
         }
 
         @Test
@@ -1044,26 +1020,24 @@ internal class EngineTest {
             // When: Trying to complete second quest
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-            // Then: Go to complete the first quest
-            assertThat(
-                result,
-                equalTo(
-                    WebAction(
-                        LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
-                        // And: state is reset
-                        State(
-                            scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(),
-                            result.state!!.userId, 0
-                        )
-                    )
-                )
-            )
+            // Then: Restart the scenario
+            assertScenarioRestartAction(state,scenario,result)
         }
 
+        /**
+         * Very likely scenario. User has failed to complete later quest due to DL, now they come
+         * back to the starting position to scan the first QR code on the field again.
+         */
         @Test
-        fun `Should restart the scenario  if user has run out of time on later quest`() {
+        fun `Should restart the scenario if user has run out of time on later quest`() {
             // Given: State for later quest with DL already passed
-            fail("not tested")
+            val state = validStateToComplete().copy(currentQuest = 3, questDeadline = timeProvider.now.minusDays(20))
+
+            // When: Trying to complete second quest
+            val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Restart the scenario
+            assertScenarioRestartAction(state,scenario,result)
         }
 
         @Test
@@ -1232,6 +1206,18 @@ internal class EngineTest {
             )
         }
 
+        @Test
+        fun `Should restart the scenario if user has run out of time on later quest`() {
+            // Given: State for later quest with DL already passed
+            val state = validStateToComplete().copy(currentQuest = 3, questDeadline = timeProvider.now.minusDays(20))
+
+            // When: Trying to complete second quest
+            val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Restart the scenario
+            assertScenarioRestartAction(state,scenario,result)
+        }
+
         private fun validStateToComplete(): State {
             return State(
                 scenario = scenario.name,
@@ -1289,31 +1275,27 @@ internal class EngineTest {
             timeProvider.now()
         ).asString()
 
-    fun assertScenarioRestartAction(existingState: State, scenario: Scenario, action: WebAction) {
-        // Then: State is reset to the intro quest
+    fun assertScenarioRestartAction(existingState: State?, scenario: Scenario, action: WebAction) {
         assertThat(
-            action.state,
+            action,
             equalTo(
+                WebAction(
+                    // Then: Go through location reading back to complete first quest
+                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
+                    // Then: State is reset to the intro quest
                 State(
                     scenario = scenario.name,
                     currentQuest = 0,
                     questDeadline = timeProvider.now().plusYears(10),
                     questStarted = timeProvider.now(),
-                    userId = existingState.userId,
+                    userId = existingState?.userId ?: action.state!!.userId,
                     scenarioRestartCount =
-                        if (existingState.scenario == scenario.name)
+                        if (existingState?.scenario == scenario.name)
                             existingState.scenarioRestartCount + 1
                         else 0
                 )
             )
         )
-
-        // And: Go through location reading back to complete, now with proper state
-        assertThat(
-            action.modelAndView as LocationReadingViewModel,
-            equalTo(
-                LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null)
-            )
         )
     }
 }
