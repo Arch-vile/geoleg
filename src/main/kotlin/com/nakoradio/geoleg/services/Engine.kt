@@ -133,7 +133,7 @@ class Engine(
 //            return initScenario(State.empty(timeProvider), scenario, quest.secret)
 //        }
 
-        if(state.scenario !== scenario) {
+        if(state.scenario != scenario) {
             logger.info("Restarting scenario due to state having different scenario: ${state.scenario}")
             val quest = loader.questFor(scenario, 0)
             return initScenario(state, scenario, quest.secret)
