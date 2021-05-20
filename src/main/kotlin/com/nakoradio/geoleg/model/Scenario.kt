@@ -2,7 +2,7 @@ package com.nakoradio.geoleg.model
 
 data class Scenario(val name: String, val quests: List<Quest>) {
     fun nextQuest(currentQuest: Quest): Quest {
-        return quests[currentQuest.order+1]
+        return quests[currentQuest.order + 1]
     }
 }
 

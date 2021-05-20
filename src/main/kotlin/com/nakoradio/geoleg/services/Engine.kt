@@ -143,7 +143,7 @@ class Engine(
 //            return WebAction(OnlyView(loader.questFor(scenario,0).successPage),
 //            State(scenario,0,null,timeProvider.now(),state.userId,state.scenarioRestartCount+1)
 //                )
-            return initScenario(state,scenario,loader.questFor(scenario,0).secret)
+            return initScenario(state, scenario, loader.questFor(scenario, 0).secret)
         }
         // Let's redirect the user to try to complete the first quest
 //        if (state.currentQuest == 0 && questOrder == 1) {

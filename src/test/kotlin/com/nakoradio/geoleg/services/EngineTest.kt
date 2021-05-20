@@ -208,13 +208,15 @@ internal class EngineTest {
 
             // Then: Redirected to success page and state is unchanged
             assertThat(
-                action, equalTo(
+                action,
+                equalTo(
                     WebAction(
                         QuestEndViewModel(
                             currentQuest.successPage,
                             scenario.nextQuest(currentQuest),
                             currentQuest
-                        ), currentState
+                        ),
+                        currentState
                     )
                 )
             )
@@ -551,7 +553,6 @@ internal class EngineTest {
             assertScenarioRestartAction(badState, scenario, action)
         }
 
-
         @Test
         fun `trying to complete another intro with this scenario's secret`() {
             // Given: User has state set for completing the intro quest
@@ -842,7 +843,7 @@ internal class EngineTest {
 
         @Test
         fun `what if starting an earlier quest`() {
-           fail("not tested")
+            fail("not tested")
         }
 
         @Test
@@ -988,13 +989,19 @@ internal class EngineTest {
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Go to complete the first quest
-            assertThat(result, equalTo(
-                WebAction(
-                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null,null),
-            // And state is reset
-                    State(scenario.name, 0, timeProvider.now().plusYears(10),timeProvider.now(),
-                        state.userId,state.scenarioRestartCount+1))
-            ))
+            assertThat(
+                result,
+                equalTo(
+                    WebAction(
+                        LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
+                        // And state is reset
+                        State(
+                            scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(),
+                            state.userId, state.scenarioRestartCount + 1
+                        )
+                    )
+                )
+            )
         }
 
         /**
@@ -1004,7 +1011,7 @@ internal class EngineTest {
          *
          * User would not have state at all. We should start the scenario from the start and start
          * the first quest.
-          */
+         */
         @Test
         fun `Should restart the scenario if user has no state`() {
             // Given: User has no state
@@ -1014,31 +1021,44 @@ internal class EngineTest {
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Go to complete the first quest
-            assertThat(result, equalTo(
-                WebAction(
-                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null,null),
-                    // And: state is reset
-                    State(scenario.name, 0, timeProvider.now().plusYears(10),timeProvider.now(),
-                        result.state!!.userId,0))
-            ))
+            assertThat(
+                result,
+                equalTo(
+                    WebAction(
+                        LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
+                        // And: state is reset
+                        State(
+                            scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(),
+                            result.state!!.userId, 0
+                        )
+                    )
+                )
+            )
         }
 
         @Test
         fun `Should restart the scenario if user has wrong scanario`() {
             // Given: User has the wrong scenario
-            val state = State("someother",1,timeProvider.now().plusYears(1),timeProvider.now(), UUID.randomUUID(), 1)
+            val state = State("someother", 1, timeProvider.now().plusYears(1), timeProvider.now(), UUID.randomUUID(), 1)
 
             // When: Trying to complete second quest
             val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
             // Then: Go to complete the first quest
-            assertThat(result, equalTo(
-                WebAction(
-                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null,null),
-                    // And: state is reset
-                    State(scenario.name, 0, timeProvider.now().plusYears(10),timeProvider.now(),
-                        result.state!!.userId,0))
-            ))        }
+            assertThat(
+                result,
+                equalTo(
+                    WebAction(
+                        LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
+                        // And: state is reset
+                        State(
+                            scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(),
+                            result.state!!.userId, 0
+                        )
+                    )
+                )
+            )
+        }
 
         @Test
         fun `Should restart the scenario  if user has run out of time on later quest`() {
@@ -1090,8 +1110,9 @@ internal class EngineTest {
             // Then: Failure page is shown, state not changed
             assertThat(viewModel.modelAndView.view, equalTo(questToComplete.failurePage))
             assertThat(
-                viewModel, equalTo(
-                    WebAction( OnlyView("quests/testing_3_fail"), state )
+                viewModel,
+                equalTo(
+                    WebAction(OnlyView("quests/testing_3_fail"), state)
                 )
             )
         }
@@ -1175,21 +1196,17 @@ internal class EngineTest {
          */
         @Test
         fun `Fail when scanning code of earlier quest if run out of time for current quest`() {
-
-          // Given: Current quest has expired
+            // Given: Current quest has expired
             val state = validStateToComplete().copy(questDeadline = timeProvider.now.minusDays(20))
 
-
-           // When: Scanning code of earlier quest (
+            // When: Scanning code of earlier quest (
             fail("not tested")
         }
 
         @Test
         fun `Scanning code of earlier quest will show countdown to current quest if time is still remaining`() {
-
             fail("not tested")
         }
-
 
         @Test
         fun success() {
@@ -1228,7 +1245,6 @@ internal class EngineTest {
             )
         }
     }
-
 
     @Nested
     inner class `Completing the last quest` {
