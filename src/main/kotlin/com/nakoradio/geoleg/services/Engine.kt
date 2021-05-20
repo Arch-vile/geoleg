@@ -114,13 +114,14 @@ class Engine(
     }
 
     fun complete(
+        // todo: Should make checks for null states before calling this
         state: State?,
         scenario: String,
         questOrder: Int,
         secret: String,
         locationString: String
     ): WebAction {
-        if (state == null && questOrder == 1) {
+        if ((state == null && questOrder == 1) || state?.scenario !== scenario) {
             val quest = loader.questFor(scenario, 0)
             return initScenario(State.empty(timeProvider), scenario, quest.secret)
         }

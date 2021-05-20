@@ -985,14 +985,14 @@ internal class EngineTest {
             val state = validStateToComplete().copy(currentQuest = 0)
 
             // When: Trying to complete second quest
-                val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+            val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
 
-            // Then: Go to scenario init
+            // Then: Go to complete the first quest
             assertThat(result, equalTo(
                 WebAction(
-                    LocationReadingViewModel("/engine/complete/testing-dummy/0/c8f101246f60", null,null),
-               // And state is reset
-                    State(state.scenario, 0, timeProvider.now().plusYears(10),timeProvider.now(),
+                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null,null),
+            // And state is reset
+                    State(scenario.name, 0, timeProvider.now().plusYears(10),timeProvider.now(),
                         state.userId,state.scenarioRestartCount+1))
             ))
         }
@@ -1006,17 +1006,42 @@ internal class EngineTest {
          * the first quest.
           */
         @Test
-        fun `Should start first quest if user has no state`() {
-            fail("not tested")
+        fun `Should restart the scenario if user has no state`() {
+            // Given: User has no state
+            val state = null
+
+            // When: Trying to complete second quest
+            val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Go to complete the first quest
+            assertThat(result, equalTo(
+                WebAction(
+                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null,null),
+                    // And: state is reset
+                    State(scenario.name, 0, timeProvider.now().plusYears(10),timeProvider.now(),
+                        result.state!!.userId,0))
+            ))
         }
 
         @Test
-        fun `Should start first quest if user has wrong scanario`() {
-            fail("not tested")
-        }
+        fun `Should restart the scenario if user has wrong scanario`() {
+            // Given: User has the wrong scenario
+            val state = State("someother",1,timeProvider.now().plusYears(1),timeProvider.now(), UUID.randomUUID(), 1)
+
+            // When: Trying to complete second quest
+            val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
+
+            // Then: Go to complete the first quest
+            assertThat(result, equalTo(
+                WebAction(
+                    LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null,null),
+                    // And: state is reset
+                    State(scenario.name, 0, timeProvider.now().plusYears(10),timeProvider.now(),
+                        result.state!!.userId,0))
+            ))        }
 
         @Test
-        fun `Should start first quest if user has run out of time on later quest`() {
+        fun `Should restart the scenario  if user has run out of time on later quest`() {
             // Given: State for later quest with DL already passed
             fail("not tested")
         }
