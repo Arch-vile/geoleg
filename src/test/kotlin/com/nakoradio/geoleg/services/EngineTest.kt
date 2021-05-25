@@ -11,9 +11,7 @@ import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.Time
 import java.time.OffsetDateTime
 import java.util.UUID
-import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -475,24 +473,23 @@ internal class EngineTest {
             // Given: State has unknown scenario (only possible if scenarios renamed or removed)
             val badState = state.copy(scenario = "other scenario")
 
-            var error = assertThrows<TechnicalError>{
-                // When: Executing the intro's `complete` action
-                 engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
-            }
-            // Then: Error of wrong secret
-            assertThat(error.message, equalTo("No such scenario for you my friend"))
+            // When: Executing the intro's `complete` action
+            val action = engine.complete(badState, scenario.name, 0, scenario.quests[0].secret, locationString)
+
+            // Then: Scenario restarted
+            assertScenarioRestartAction(badState, scenario, action)
         }
 
         @Test
         fun `trying to complete another scenario's intro with this scenario's secret`() {
             // Given: User has state set for completing the intro quest
-            // When: Trying to complete quest of another scenario
-            val scenarioNameOfAnotherExistingScenario = loader.table.scenarios[1].name
-            var error = assertThrows<TechnicalError>{
-                engine.complete(state, scenarioNameOfAnotherExistingScenario, 0, scenario.quests[0].secret, locationString)
-            }
-            // Then: Error of wrong secret
-            assertThat(error.message, equalTo("No such quest secret for you my friend"))
+            // When: Trying to complete a different scenario with this scenario's secret
+            val anotherScenario = loader.table.scenarios[1]
+            val scenarioNameOfAnotherExistingScenario = anotherScenario.name
+              val result = engine.complete(state, scenarioNameOfAnotherExistingScenario, 0, scenario.quests[0].secret, locationString)
+
+            // Then: Restarting scenario
+            assertScenarioRestartAction(state,anotherScenario,result)
         }
 
         @Test
@@ -646,6 +643,40 @@ internal class EngineTest {
         val scenario = loader.table.scenarios[1]
         val questToStart = scenario.quests[1]
 
+        val currentState = State(
+            scenario.name,
+            0,
+            null,
+            timeProvider.now().minusDays(1),
+            UUID.randomUUID(),
+            5
+        )
+
+        @Test
+        fun `Successfully starting second quest`() {
+            // When: Starting second quest
+            val outcome = engine.startQuest(
+                currentState,
+                scenario.name,
+                1,
+                questToStart.secret,
+                freshLocation(questToStart)
+            )
+
+            assertThat(outcome, equalTo(
+                WebAction(
+                    // Then: Show countdown view. Second quest has no DL.
+                CountdownViewModel(timeProvider.now().toEpochSecond(), null, null, questToStart.location!!.lat, questToStart.location!!.lon),
+                    // And: State is updated for the quest to start
+                    currentState.copy(
+                        currentQuest = 1,
+                        questStarted = timeProvider.now(),
+                   questDeadline = null
+                        ))
+            ))
+
+        }
+
         @Test
         fun `fail if state's scenario is different from param`() {
             // Given: State that has wrong scenario
@@ -666,25 +697,39 @@ internal class EngineTest {
             assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
         }
 
+        /**
+         * Restarting
+         */
         @Test
-        fun `fail if quest in state is not the previous one`() {
-            // Given: State that has wrong previous quest
-            val state = State(
-                scenario.name,
-                // CurrentQuest is not the previous one
-                1,
-                timeProvider.now().plusDays(10),
-                timeProvider.now(),
-                UUID.randomUUID(),
-                5
-            )
+        fun `Restarting current quest just keeps on running the current one`() {
 
-            // When: Starting quest
-            // Then: Error on quest
-            val error = assertThrows<TechnicalError> {
-                engine.startQuest(state, scenario.name, 1, questToStart.secret, freshLocation(questToStart))
-            }
-            assertThat(error.message, equalTo("Not good: Bad cookie quest"))
+            // Given: Quest is already started
+            val state = engine.startQuest(currentState,scenario.name,1,
+                questToStart.secret,
+                freshLocation(questToStart)).state
+
+           // When: Restarting the quest
+            val outcome = engine.startQuest(currentState,scenario.name,1,
+                questToStart.secret,
+                freshLocation(questToStart))
+
+            assertThat(outcome, equalTo(
+                WebAction(
+                    // Then: Back to countdown view
+                    CountdownViewModel(timeProvider.now().toEpochSecond(), null, null, questToStart.location!!.lat, questToStart.location!!.lon),
+                    // And: State is not changed
+                    state)
+            ))
+        }
+
+        @Test
+        fun `Starting later quest just keeps on running the current one`() {
+            fail("not tested")
+        }
+
+        @Test
+        fun `Location is not checked`() {
+            fail("not tested")
         }
     }
 
@@ -754,12 +799,12 @@ internal class EngineTest {
         }
 
         /**
-         * If we try to restart current quest again, we should just keep on running it without
+         * If we try to start current quest again, we should just keep on running it without
          * changing anything. This could happen by going back in browser history.
          *
          */
         @Test
-        fun `fail if quest in state is not the previous one`() {
+        fun `Trying to start quest again keeps it running`() {
             // And: State with current quest being the quest you try to start
             val state = State.empty(timeProvider)
                 .copy(scenario = scenario.name, currentQuest = questToStart.order)
@@ -775,7 +820,17 @@ internal class EngineTest {
         }
 
         @Test
-        fun `what if starting an earlier quest`() {
+        fun `Restarting current quest just keeps on running the current one`() {
+            fail("not tested")
+        }
+
+        @Test
+        fun `Starting earlier quest just keeps on running the current one`() {
+            fail("not tested")
+        }
+
+        @Test
+        fun `Starting later quest just keeps on running the current one`() {
             fail("not tested")
         }
 
