@@ -626,6 +626,88 @@ internal class EngineTest {
         }
     }
 
+    /**
+     * First quest is the one started and automatically completed by scanning the QR code on the
+     * geocaching.com site.
+     *
+     * These tests are for the case where user has completed first quest (completing quest still
+     * keeps it as the active quest) and is reading the success page of the quest.
+     *
+     * Next step for the user is to click "Go" and start the second quest.
+     */
+    @Nested
+    inner class `Running the first quest` {
+
+        val scenario = loader.table.scenarios[1]
+        val currentQuest = scenario.quests[0]
+        val currentState = State(
+            scenario.name,
+            currentQuest.order,
+            currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) } ,
+            timeProvider.now().minusMinutes(1),
+            UUID.randomUUID(),
+            5
+        )
+
+        /**
+         * Second quest (target location is the first QR on the field) can be started anywhere,
+         * as the "Go" button is shown after the autocompleting first quest. Most likely second
+         * quest is started at home.
+          */
+        @Test
+        fun `Starting second quest does not require valid location`() {
+            // When: Starting the second quest with random location
+            val nextQuestOrder = currentQuest.order + 1
+            val outcome = engine.startQuest(currentState, scenario.name,
+                nextQuestOrder, scenario.quests[nextQuestOrder].secret,
+               // Any location will do
+                LocationReading(2.0, 3.0, timeProvider.now()).asString())
+
+            // Then: Second quest successfully started
+            assertThat(outcome, equalTo(
+                WebAction(
+                    // Then: Show countdown view. Second quest has no DL.
+                    CountdownViewModel(timeProvider.now().toEpochSecond(), null, null, scenario.quests[nextQuestOrder].location!!.lat, scenario.quests[nextQuestOrder].location!!.lon),
+                    // And: State is updated for the quest to start
+                    currentState.copy(
+                        currentQuest = nextQuestOrder,
+                        questStarted = timeProvider.now(),
+                        questDeadline = scenario.quests[nextQuestOrder].countdown?.let { timeProvider.now().plusSeconds(it) }
+                    ))
+            ))
+        }
+
+        @Test
+        fun `Start for the first quest should never be called`() {
+
+        }
+
+        @Test
+        fun `Restarting the quest`() {
+
+           // When: Starting the quest again (any location will do for first quest)
+            val outcome = engine.startQuest(currentState,scenario.name,currentQuest.order,currentQuest.secret,
+                LocationReading(2.0, 3.0, timeProvider.now()).asString())
+
+            // Then:
+            fail("foo")
+        }
+
+        // TODO: initializing scenario
+        // Starting some other quest
+        // Completing other quest
+        // Todo: start for the first quest should never be called?
+
+    }
+
+    @Nested
+    inner class `Running the third quest` {
+
+        // todo: expires while reading the success story
+
+
+    }
+
     @Nested
     inner class `Starting the second quest` {
         /**
@@ -702,7 +784,6 @@ internal class EngineTest {
          */
         @Test
         fun `Restarting current quest just keeps on running the current one`() {
-
             // Given: Quest is already started
             val state = engine.startQuest(currentState,scenario.name,1,
                 questToStart.secret,
@@ -723,7 +804,19 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Starting later quest just keeps on running the current one`() {
+        fun `Starting later quest (with proper location) just keeps on running the current one`() {
+            // When: Starting a later out of order quest
+            val laterQuest = loader.questFor(scenario.name, 3)
+            val outcome = engine.startQuest(currentState,scenario.name,laterQuest.order,
+                laterQuest.secret,
+                freshLocation(laterQuest))
+
+            // Then:
+        }
+
+        @Test
+        fun `Starting later quest (with bad location) then something `() {
+
             fail("not tested")
         }
 
@@ -1254,7 +1347,7 @@ internal class EngineTest {
             action,
             equalTo(
                 WebAction(
-                    // Then: Go through location reading back to complete first quest
+                    // Then: Go through location reading back to completing the first quest
                     LocationReadingViewModel("/engine/complete/${scenario.name}/0/${scenario.quests[0].secret}", null, null),
                     // Then: State is reset to the intro quest
                 State(
