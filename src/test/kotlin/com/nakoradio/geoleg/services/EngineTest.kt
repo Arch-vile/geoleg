@@ -362,6 +362,11 @@ internal class EngineTest {
             )
         }
 
+        @Test
+        fun `Start for the first quest should never be called`() {
+            fail("foo")
+        }
+
         /**
          * Re-scanning the qr code after starting the quest. So the scenario would be:
          * 1. User arrives at the quest end location
@@ -631,9 +636,12 @@ internal class EngineTest {
      * geocaching.com site.
      *
      * These tests are for the case where user has completed first quest (completing quest still
-     * keeps it as the active quest) and is reading the success page of the quest.
+     * keeps it as the active quest) and is reading the success page of the quest (the background
+     * story for the scenario).
      *
      * Next step for the user is to click "Go" and start the second quest.
+     *
+     * User is currently on page: `/engine/complete/:scenario/0/:secret/:location`
      */
     @Nested
     inner class `Running the first quest` {
@@ -664,33 +672,31 @@ internal class EngineTest {
                 LocationReading(2.0, 3.0, timeProvider.now()).asString())
 
             // Then: Second quest successfully started
-            assertThat(outcome, equalTo(
-                WebAction(
-                    // Then: Show countdown view. Second quest has no DL.
-                    CountdownViewModel(timeProvider.now().toEpochSecond(), null, null, scenario.quests[nextQuestOrder].location!!.lat, scenario.quests[nextQuestOrder].location!!.lon),
-                    // And: State is updated for the quest to start
-                    currentState.copy(
-                        currentQuest = nextQuestOrder,
-                        questStarted = timeProvider.now(),
-                        questDeadline = scenario.quests[nextQuestOrder].countdown?.let { timeProvider.now().plusSeconds(it) }
-                    ))
-            ))
+            assertQuestStarted(outcome, currentState, scenario.quests[nextQuestOrder])
         }
 
         @Test
-        fun `Start for the first quest should never be called`() {
+        fun `Rescanning the QR code will reinitialize the scenario`() {
+            // When: Scanning the QR code again, i.e. calling the scenario init
+            val outcome =  engine.initScenario(currentState, scenario.name, currentQuest.secret)
 
+            // Then: Scenario is restarted
+            assertScenarioRestartAction(currentState, scenario, outcome)
         }
 
+        /**
+         * User is currently on the first quest complete page (as it was automatically
+         * completed). Reloading page should complete the quest again.
+         */
         @Test
-        fun `Restarting the quest`() {
-
-           // When: Starting the quest again (any location will do for first quest)
-            val outcome = engine.startQuest(currentState,scenario.name,currentQuest.order,currentQuest.secret,
+        fun `Trying to complete current quest again`() {
+           // When: Completing current quest again
+            val outcome = engine.complete(currentState, scenario.name, currentQuest.order, currentQuest.secret,
+                // Any location will do
                 LocationReading(2.0, 3.0, timeProvider.now()).asString())
 
-            // Then:
-            fail("foo")
+            // Then: Quest completed again
+            assertQuestCompleted(outcome,currentState,currentQuest,scenario)
         }
 
         // TODO: initializing scenario
@@ -1364,5 +1370,33 @@ internal class EngineTest {
             )
         )
         )
+    }
+
+
+    fun assertQuestCompleted(outcome: WebAction, currentState: State, questToComplete: Quest, scenario: Scenario) {
+        assertThat(outcome, equalTo(
+            WebAction(
+                // Then: Show quest success view
+               QuestEndViewModel(questToComplete.successPage, scenario.nextQuest(questToComplete),questToComplete),
+                // And: State is not changing
+                currentState)
+        ))
+    }
+    fun assertQuestStarted(outcome: WebAction, currentState: State, questToStart: Quest) {
+        assertThat(outcome, equalTo(
+            WebAction(
+                // Then: Show countdown view. Second quest has no DL.
+                CountdownViewModel(
+                    timeProvider.now().toEpochSecond(),
+                    null,
+                    null,
+                    questToStart.location!!.lat, questToStart.location!!.lon),
+                // And: State is updated for the quest to start
+                currentState.copy(
+                    currentQuest = questToStart.order,
+                    questStarted = timeProvider.now(),
+                    questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) }
+                ))
+        ))
     }
 }
