@@ -25,7 +25,7 @@ class ScenarioLoader(mapper: ObjectMapper) {
     fun questFor(scenario: String, questOrder: Int): Quest {
         return findScenario(scenario)
             .quests.find { it.order == questOrder }
-            ?: throw TechnicalError("No such quest for you my friend")
+            ?: throw TechnicalError("No such quest order for you my friend")
     }
 
     fun questFor(scenario: String, questOrder: Int, secret: String): Quest {

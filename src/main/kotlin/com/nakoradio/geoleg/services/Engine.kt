@@ -59,10 +59,10 @@ class Engine(
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
 
         // Special handling when the intro quest is active?
-        if (state.currentQuest == 0 && questOrderToStart != 1) {
-            val questToComplete = loader.questFor(scenario, 0)
-            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
-        }
+//        if (state.currentQuest == 0 && questOrderToStart != 1) {
+//            val questToComplete = loader.questFor(scenario, 0)
+//            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
+//        }
 
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
         val currentQuest = loader.questFor(scenario, questOrderToStart - 1)

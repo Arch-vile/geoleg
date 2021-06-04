@@ -36,6 +36,145 @@ internal class EngineTest {
         loader
     )
 
+
+    /**
+     * First quest is the one started and automatically completed by scanning the QR code on the
+     * geocaching.com site so this is a bit different from your normal `running a quest` state.
+     *
+     * These tests are for the case where user has completed first quest (completing quest still
+     * keeps it as the active quest) and is reading the success page of the quest (the background
+     * story for the scenario).
+     *
+     * Next step for the user is to click "Go" and start the second quest.
+     *
+     * User is currently on page: `/engine/complete/:scenario/0/:secret/:location`
+     */
+    @Nested
+    inner class `Running the first quest` {
+
+        val scenario = loader.table.scenarios[1]
+        val currentQuest = scenario.quests[0]
+        val currentState = State(
+            scenario.name,
+            currentQuest.order,
+            currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) } ,
+            timeProvider.now().minusMinutes(1),
+            UUID.randomUUID(),
+            5
+        )
+
+        /**
+         * Second quest (target location is the first QR on the field) can be started anywhere,
+         * as the "Go" button is shown after the autocompleting first quest. Most likely second
+         * quest is started at home.
+         */
+        @Test
+        fun `Starting second quest does not require valid location`() {
+            // When: Starting the second quest with random location
+            val nextQuestOrder = currentQuest.order + 1
+            val outcome = engine.startQuest(currentState, scenario.name,
+                nextQuestOrder, scenario.quests[nextQuestOrder].secret,
+                // Any location will do
+                LocationReading(2.0, 3.0, timeProvider.now()).asString())
+
+            // Then: Second quest successfully started
+            assertQuestStarted(outcome, currentState, scenario.quests[nextQuestOrder])
+        }
+
+        @Test
+        fun `Rescanning the QR code will reinitialize the scenario`() {
+            // When: Scanning the QR code again, i.e. calling the scenario init
+            val outcome =  engine.initScenario(currentState, scenario.name, currentQuest.secret)
+
+            // Then: Scenario is restarted
+            assertScenarioRestartAction(currentState, scenario, outcome)
+        }
+
+        /**
+         * User is currently on the first quest complete page (as it was automatically
+         * completed). Reloading page should complete the quest again.
+         */
+        @Test
+        fun `Trying to complete current quest again`() {
+            // When: Completing current quest again
+            val outcome = engine.complete(currentState, scenario.name, currentQuest.order, currentQuest.secret,
+                // Any location will do
+                LocationReading(2.0, 3.0, timeProvider.now()).asString())
+
+            // Then: Quest completed again
+            assertQuestCompleted(outcome,currentState,currentQuest,scenario)
+        }
+
+        /**
+         * A special case for first-second quest.
+         *
+         * User has scanned the online qr and completed the first quest (#0) (it completes automatically)
+         * but has not clicked to start the next quest. Active quest is still 0.
+         *
+         * He could have received the coordinates for the second quest (#1) by other means or from
+         * someone else. Now that he scans the second quest code, we can just restart the scenario.
+         * We could just complete the second quest, but maybe safer to just restart the scenario.
+         */
+        @Test
+        fun `Completing second quest should restart the scenario`() {
+            // When: Trying to complete second quest
+            val result = engine.complete(currentState, scenario.name, 1, scenario.quests[1].secret, freshLocation(scenario.quests[1]))
+
+            // Then: Restart the scenario
+            assertScenarioRestartAction(currentState,scenario,result)
+        }
+
+        /**
+         * Trying to complete any other later quest than second one should fail with error.
+         *
+         * User is scanning the QR code of a later quest.
+         */
+       @Test
+       fun `Completing a later quest should fail with error`() {
+           // When: Completing later quest
+            // Then: Error is given
+            assertThrows<TechnicalError> {
+                engine.complete(currentState, scenario.name, 2, scenario.quests[2].secret, freshLocation(scenario.quests[2]))
+            }
+       }
+
+        /**
+         * Start url action for first quest is never called. It fail fail because the logic
+         * relies on previous quest, which does not exists for the first one.
+         *
+         * Should never happen so is ok to just fail.
+         */
+        @Test
+        fun `Trying to start previous quest will give error`() {
+            assertThrows<TechnicalError> {
+                engine.startQuest(
+                    currentState,
+                    scenario.name,
+                    0,
+                    scenario.quests[0].secret,
+                    LocationReading(2.2, 1.1, timeProvider.now()).asString()
+                )
+            }
+        }
+
+        /**
+         * Starting a later quest should never happen
+         */
+        @Test
+        fun `Starting a later quest should fail`() {
+            assertThrows<TechnicalError> {
+                engine.startQuest(
+                    currentState,
+                    scenario.name,
+                    3,
+                    scenario.quests[3].secret,
+                   freshLocation(scenario.quests[3])
+                )
+            }
+        }
+
+    }
+
     /**
      * User does not have a state cookie. They have never started any scenario, have cleared
      * the cookies or are using a different browser.
@@ -84,7 +223,8 @@ internal class EngineTest {
          * Or if you just randomly find the QR code without going through previous
          * quests.
          *
-         * MissingCookie page has instructions for the user.
+         * MissingCookie page has instructions for the user about the Geocache and how to get
+         * started.
          *
          */
         @Test
@@ -112,6 +252,7 @@ internal class EngineTest {
         fun `Starting a quest without a state`() {
             // Not possible as controller does not accept request without cookie
         }
+
     }
 
     private fun assertMissingCookieErrorShown(action: WebAction) {
@@ -631,81 +772,6 @@ internal class EngineTest {
         }
     }
 
-    /**
-     * First quest is the one started and automatically completed by scanning the QR code on the
-     * geocaching.com site.
-     *
-     * These tests are for the case where user has completed first quest (completing quest still
-     * keeps it as the active quest) and is reading the success page of the quest (the background
-     * story for the scenario).
-     *
-     * Next step for the user is to click "Go" and start the second quest.
-     *
-     * User is currently on page: `/engine/complete/:scenario/0/:secret/:location`
-     */
-    @Nested
-    inner class `Running the first quest` {
-
-        val scenario = loader.table.scenarios[1]
-        val currentQuest = scenario.quests[0]
-        val currentState = State(
-            scenario.name,
-            currentQuest.order,
-            currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) } ,
-            timeProvider.now().minusMinutes(1),
-            UUID.randomUUID(),
-            5
-        )
-
-        /**
-         * Second quest (target location is the first QR on the field) can be started anywhere,
-         * as the "Go" button is shown after the autocompleting first quest. Most likely second
-         * quest is started at home.
-          */
-        @Test
-        fun `Starting second quest does not require valid location`() {
-            // When: Starting the second quest with random location
-            val nextQuestOrder = currentQuest.order + 1
-            val outcome = engine.startQuest(currentState, scenario.name,
-                nextQuestOrder, scenario.quests[nextQuestOrder].secret,
-               // Any location will do
-                LocationReading(2.0, 3.0, timeProvider.now()).asString())
-
-            // Then: Second quest successfully started
-            assertQuestStarted(outcome, currentState, scenario.quests[nextQuestOrder])
-        }
-
-        @Test
-        fun `Rescanning the QR code will reinitialize the scenario`() {
-            // When: Scanning the QR code again, i.e. calling the scenario init
-            val outcome =  engine.initScenario(currentState, scenario.name, currentQuest.secret)
-
-            // Then: Scenario is restarted
-            assertScenarioRestartAction(currentState, scenario, outcome)
-        }
-
-        /**
-         * User is currently on the first quest complete page (as it was automatically
-         * completed). Reloading page should complete the quest again.
-         */
-        @Test
-        fun `Trying to complete current quest again`() {
-           // When: Completing current quest again
-            val outcome = engine.complete(currentState, scenario.name, currentQuest.order, currentQuest.secret,
-                // Any location will do
-                LocationReading(2.0, 3.0, timeProvider.now()).asString())
-
-            // Then: Quest completed again
-            assertQuestCompleted(outcome,currentState,currentQuest,scenario)
-        }
-
-        // TODO: initializing scenario
-        // Starting some other quest
-        // Completing other quest
-        // Todo: start for the first quest should never be called?
-
-    }
-
     @Nested
     inner class `Running the third quest` {
 
@@ -1045,25 +1111,6 @@ internal class EngineTest {
             assertThat(error.message, equalTo("Bad gps accuracy"))
         }
 
-        /**
-         * User has scanned the online qr and completed the first quest (#0) (it completes automatically)
-         * but has not clicked to start next quest on mobile. Active quest is still 0.
-         *
-         * He could have received the coordinates for the second quest (#1) by other means or from
-         * someone else. Now that he scans the second quest code, we can just restart the scenario.
-         * We could just complete the second quest, but maybe safer to just restart the scenario.
-         */
-        @Test
-        fun `Should restart the scenario if user has not started second quest`() {
-            // Given: User is doing first quest
-            val state = validStateToComplete().copy(currentQuest = 0)
-
-            // When: Trying to complete second quest
-            val result = engine.complete(state, scenario.name, questToComplete.order, questToComplete.secret, freshLocation(questToComplete))
-
-            // Then: Restart the scenario
-            assertScenarioRestartAction(state,scenario,result)
-        }
 
         /**
          * One could just go to second quest's location without starting the first quest (for example
