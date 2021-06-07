@@ -57,14 +57,14 @@ class Engine(
     ): WebAction {
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
 
-        // Special handling when the intro quest is active?
-//        if (state.currentQuest == 0 && questOrderToStart != 1) {
-//            val questToComplete = loader.questFor(scenario, 0)
-//            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
-//        }
+        // While running first quest, start should never be called, just restart the scenario
+        if(state.currentQuest == 0) {
+            return initScenario(state, scenario, loader.questFor(scenario, 0).secret)
+        }
 
         // Trying to start a later, yet not reachable quest. Keep on running current one
         if(questOrderToStart !== state.currentQuest+1) {
+            logger.info("Trying to start upcoming quest, show countdown of current");
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val countDownView = CountdownViewModel(
                 state.questStarted.toEpochSecond(),

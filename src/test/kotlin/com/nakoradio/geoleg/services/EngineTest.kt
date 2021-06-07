@@ -69,7 +69,7 @@ internal class EngineTest {
          * quest is started at home.
          */
         @Test
-        fun `Starting second quest does not require valid location`() {
+        fun `Clicking GO to start second quest does not require valid location`() {
             // When: Starting the second quest with random location
             val nextQuestOrder = currentQuest.order + 1
             val outcome = engine.startQuest(currentState, scenario.name,
@@ -95,7 +95,7 @@ internal class EngineTest {
          * completed). Reloading page should complete the quest again.
          */
         @Test
-        fun `Trying to complete current quest again`() {
+        fun `Reloading page completes current quest again`() {
             // When: Completing current quest again
             val outcome = engine.complete(currentState, scenario.name, currentQuest.order, currentQuest.secret,
                 // Any location will do
@@ -116,7 +116,7 @@ internal class EngineTest {
          * We could just complete the second quest, but maybe safer to just restart the scenario.
          */
         @Test
-        fun `Completing second quest should restart the scenario`() {
+        fun `Scanning QR of next quest should restart the scenario`() {
             // When: Trying to complete second quest
             val result = engine.complete(currentState, scenario.name, 1, scenario.quests[1].secret, freshLocation(scenario.quests[1]))
 
@@ -130,7 +130,7 @@ internal class EngineTest {
          * User is scanning the QR code of a later quest.
          */
        @Test
-       fun `Completing a later quest should fail with error`() {
+       fun `Scanning QR of a later quest should fail with error`() {
            // When: Completing later quest
              val outcome =   engine.complete(currentState, scenario.name, 2, scenario.quests[2].secret, freshLocation(scenario.quests[2]))
 
@@ -138,16 +138,12 @@ internal class EngineTest {
             assertScenarioRestartAction(currentState, scenario, outcome)
        }
 
-        // TODO: If DL has passed and trying to complete later quest, we should show the quest failed error
 
         /**
-         * Start url action for first quest is never called. It fail fail because the logic
-         * relies on previous quest, which does not exists for the first one.
-         *
-         * Should never happen so is ok to just fail.
+         * Start url action for first quest is never called. Should never happen so is ok to just fail.
          */
         @Test
-        fun `Trying to start previous quest will give error`() {
+        fun `Calling start URL of first quest will give error`() {
             assertThrows<TechnicalError> {
                 engine.startQuest(
                     currentState,
@@ -160,22 +156,23 @@ internal class EngineTest {
         }
 
         /**
-         * Starting a later quest should never happen
+         * Starting a later quest should never happen.
+         *
+         * Let's just restart the scenario
          */
         @Test
-        fun `Starting a later quest should fail`() {
-
-            // This is failing because quest 0 does not have lat/lon.
+        fun `Calling start URL of a later quest should restart the scenario`() {
+            // Trying to start a later quest
             val outcome = engine.startQuest(
-                    currentState,
-                    scenario.name,
-                    3,
-                    scenario.quests[3].secret,
-                   freshLocation(scenario.quests[3])
-                )
+                currentState,
+                scenario.name,
+                3,
+                scenario.quests[3].secret,
+                freshLocation(scenario.quests[3]))
+
+            // Then: Scenario is restarted
+            assertScenarioRestartAction(currentState, scenario, outcome)
         }
-
-
 
     }
 
@@ -781,6 +778,7 @@ internal class EngineTest {
 
         // todo: expires while reading the success story
 
+        // TODO: If DL has passed and trying to complete later quest, we should show the quest failed error
 
     }
 
