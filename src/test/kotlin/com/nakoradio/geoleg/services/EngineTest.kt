@@ -144,7 +144,7 @@ internal class EngineTest {
          */
         @Test
         fun `Calling start URL of first quest will give error`() {
-            assertThrows<TechnicalError> {
+            assertThrows<KotlinNullPointerException> {
                 engine.startQuest(
                     currentState,
                     scenario.name,
@@ -156,22 +156,19 @@ internal class EngineTest {
         }
 
         /**
-         * Starting a later quest should never happen.
-         *
-         * Let's just restart the scenario
+         * Starting a later quest should never happen. OK to fail.
          */
         @Test
         fun `Calling start URL of a later quest should restart the scenario`() {
+            assertThrows<KotlinNullPointerException> {
             // Trying to start a later quest
-            val outcome = engine.startQuest(
+            engine.startQuest(
                 currentState,
                 scenario.name,
                 3,
                 scenario.quests[3].secret,
                 freshLocation(scenario.quests[3]))
-
-            // Then: Scenario is restarted
-            assertScenarioRestartAction(currentState, scenario, outcome)
+            }
         }
 
     }
