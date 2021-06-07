@@ -62,7 +62,7 @@ class Engine(
             logger.info("Trying to start upcoming quest, show countdown of current");
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val countDownView = CountdownViewModel(
-                state.questStarted.toEpochSecond(),
+                timeProvider.now().toEpochSecond(),
                 state.questDeadline?.toEpochSecond(),
                 currentQuest.fictionalCountdown,
                 currentQuest.location!!.lat,
@@ -77,7 +77,7 @@ class Engine(
         // Trying to restart the quest
         if (questToStart.order == state.currentQuest) {
             var countDownView = CountdownViewModel(
-                state.questStarted.toEpochSecond(),
+                timeProvider.now().toEpochSecond(),
                 state.questDeadline?.toEpochSecond(),
                 questToStart.fictionalCountdown,
                 questToStart.location!!.lat,

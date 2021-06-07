@@ -52,16 +52,9 @@ internal class EngineTest {
     @Nested
     inner class `Running the first quest` {
 
-        val scenario = loader.table.scenarios[1]
-        val currentQuest = scenario.quests[0]
-        val currentState = State(
-            scenario.name,
-            currentQuest.order,
-            currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) } ,
-            timeProvider.now().minusMinutes(1),
-            UUID.randomUUID(),
-            5
-        )
+        private val scenario = loader.table.scenarios[1]
+        private val currentQuest = scenario.quests[0]
+        private val currentState = state(scenario, currentQuest)
 
         /**
          * Second quest (target location is the first QR on the field) can be started anywhere,
@@ -80,6 +73,7 @@ internal class EngineTest {
             // Then: Second quest successfully started
             assertQuestStarted(outcome, currentState, scenario.quests[nextQuestOrder])
         }
+
 
         @Test
         fun `Rescanning the QR code will reinitialize the scenario`() {
@@ -159,7 +153,7 @@ internal class EngineTest {
          * Starting a later quest should never happen. OK to fail.
          */
         @Test
-        fun `Calling start URL of a later quest should restart the scenario`() {
+        fun `Calling start URL of a later quest fail`() {
             assertThrows<KotlinNullPointerException> {
             // Trying to start a later quest
             engine.startQuest(
@@ -172,6 +166,57 @@ internal class EngineTest {
         }
 
     }
+
+
+
+    /**
+     * There is some speciality to the second quest also. Because the first quest is completed
+     * at home, the second quest is also started from home. Usually quest need to be started
+     * at the same location as the previous one was completed, but this does not apply
+     * for the second quest.
+     *
+     * First quest is the introduction quest that is automatically instantly completed. Second
+     * quest is thus also started right away at home. This has the following implications
+     * for the second quest processing logic:
+     * - Second quest can be started anywhere (not in the end point of previous one, as others)
+     * - Second quest has unlimited time to complete
+     *
+     * For these tests, user has just clicked the "GO" to start second quest and is on the
+     * countdown page (`/engine/start/:scenario/1/:secret/:location`)
+     */
+    @Nested
+    inner class `Running second quest` {
+
+        private val scenario = loader.table.scenarios[1]
+        private val currentQuest = scenario.quests[1]
+        private val currentState = state(scenario, currentQuest)
+
+        @Test
+        fun `Reloading page just continues countdown`() {
+            // When: Reloading page
+            val outcome = engine.startQuest(currentState,scenario.name,currentQuest.order,
+                currentQuest.secret,
+                freshLocation(currentQuest))
+
+            assertThat(outcome, equalTo(
+                WebAction(
+                    // Then: Countdown continues
+                    CountdownViewModel(
+                        timeProvider.now().toEpochSecond(),
+                        null,
+                        currentQuest.fictionalCountdown,
+                        currentQuest.location!!.lat,
+                        currentQuest.location!!.lon
+                    ),
+                    // And: State is not changed
+                    currentState
+                )
+            ))
+        }
+
+
+    }
+
 
     /**
      * User does not have a state cookie. They have never started any scenario, have cleared
@@ -452,6 +497,8 @@ internal class EngineTest {
 
         val scenario = loader.table.scenarios[0]
 
+        // TODO: Reloading countdown page
+
         /**
          * We should allow "restarting" a quest, of course not resetting the countdown. This allows
          * reloading the start quest page (the countdown view) without ending up in error.
@@ -500,6 +547,28 @@ internal class EngineTest {
                 )
             )
         }
+
+        @Test
+        fun `Calling start URL with scenario different from params`() {
+            // Given: State that has different scenario
+            val state = State(
+                "this is not correct scenario",
+                1,
+                timeProvider.now().plusDays(10),
+                timeProvider.now(),
+                UUID.randomUUID(),
+                5
+            )
+
+            // When: Starting quest
+            // Then: Error on quest
+            val error = assertThrows<TechnicalError> {
+                val questToStart = scenario.quests[2]
+                engine.startQuest(state, scenario.name, 2, questToStart.secret, freshLocation(questToStart))
+            }
+            assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
+        }
+
 
         @Test
         fun `Start for the first quest should never be called`() {
@@ -781,18 +850,7 @@ internal class EngineTest {
 
     @Nested
     inner class `Starting the second quest` {
-        /**
-         * There is some speciality to the second quest also. Because the first quest is completed
-         * at home, the second quest is also started from home. Usually quest need to be started
-         * at the same location as the previous one was completed, but this does not apply
-         * for the second quest.
-         *
-         * First quest is the introduction quest that is automatically instantly completed. Second
-         * quest is thus also started right away at home. This has the following implications
-         * for the second quest processing logic:
-         * - Second quest can be started anywhere (not in the end point of previous one, as others)
-         * - Second quest has unlimited time to complete
-         */
+
         val scenario = loader.table.scenarios[1]
         val questToStart = scenario.quests[1]
 
@@ -806,53 +864,6 @@ internal class EngineTest {
         )
 
 
-
-        @Test
-        fun `fail if state's scenario is different from param`() {
-            // Given: State that has wrong scenario
-            val state = State(
-                "this is not correct scenario",
-                1,
-                timeProvider.now().plusDays(10),
-                timeProvider.now(),
-                UUID.randomUUID(),
-                5
-            )
-
-            // When: Starting quest
-            // Then: Error on quest
-            val error = assertThrows<TechnicalError> {
-                engine.startQuest(state, scenario.name, 1, questToStart.secret, freshLocation(questToStart))
-            }
-            assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
-        }
-
-        /**
-         * Restarting
-         */
-        @Test
-        fun `Restarting current quest just keeps on running the current one`() {
-            // Given: Quest is already started
-            val state = engine.startQuest(currentState,scenario.name,1,
-                questToStart.secret,
-                freshLocation(questToStart)).state
-
-           // When: Restarting the quest
-            val outcome = engine.startQuest(currentState,scenario.name,1,
-                questToStart.secret,
-                freshLocation(questToStart))
-
-            assertThat(outcome, equalTo(
-                WebAction(
-                    // Then: Back to countdown view
-                    CountdownViewModel(timeProvider.now().toEpochSecond(), null, null, questToStart.location!!.lat, questToStart.location!!.lon),
-                    // And: State is not changed
-                    state)
-            ))
-        }
-
-
-
         @Test
         fun `Starting later quest (with bad location) then something `() {
 
@@ -863,6 +874,14 @@ internal class EngineTest {
         fun `Location is not checked`() {
             fail("not tested")
         }
+    }
+
+    @Nested
+    inner class `Runnning Nth quest` {
+
+
+        // TODO: Restarting quest with timeout expired
+
     }
 
     @Nested
@@ -1413,4 +1432,14 @@ internal class EngineTest {
                 ))
         ))
     }
+
+
+    private fun state(scenario: Scenario, currentQuest: Quest) = State(
+        scenario.name,
+        currentQuest.order,
+        currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
+        timeProvider.now().minusMinutes(1),
+        UUID.randomUUID(),
+        5
+    )
 }
