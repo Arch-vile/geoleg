@@ -15,7 +15,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import kotlin.math.log
 
 @Service
 class Engine(
@@ -64,6 +63,19 @@ class Engine(
 //            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
 //        }
 
+        // Trying to start a later, yet not reachable quest. Keep on running current one
+        if(questOrderToStart !== state.currentQuest+1) {
+            val currentQuest = loader.questFor(scenario, state.currentQuest)
+            val countDownView = CountdownViewModel(
+                state.questStarted.toEpochSecond(),
+                state.questDeadline?.toEpochSecond(),
+                currentQuest.fictionalCountdown,
+                currentQuest.location!!.lat,
+                currentQuest.location!!.lon
+            )
+            return WebAction(countDownView, state)
+        }
+
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
         val currentQuest = loader.questFor(scenario, questOrderToStart - 1)
 
@@ -78,8 +90,6 @@ class Engine(
             )
             return WebAction(countDownView, state)
         }
-
-        assertEqual(state.currentQuest, questOrderToStart - 1, "Bad cookie quest")
 
         currentQuest.location?.let {
             val locationReading = LocationReading.fromString(locationString)
@@ -147,10 +157,13 @@ class Engine(
             return initScenario(state, scenario, secret)
         }
 
-        // Special handling for trying to complete second quest (#1) without ever starting it.
+        // Special handling when running first quest. Trying to complete any later quest.
         // This could happen when you arrive to the spot with group and only some have scanned
-        // the first quest code and clicked to start the next.
-        if ((state.currentQuest == 0 && questOrder == 1)) {
+        // the first quest code and clicked to start the second. If use have not, then
+        // they try to complete seconds quest without ever starting it.
+        //
+        // Let's also restart if user is trying to complete any later quest.
+        if ((state.currentQuest == 0 && questOrder != 0)) {
             logger.info("Restarting scenario")
 //            return WebAction(OnlyView(loader.questFor(scenario,0).successPage),
 //            State(scenario,0,null,timeProvider.now(),state.userId,state.scenarioRestartCount+1)
@@ -163,15 +176,15 @@ class Engine(
 //            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
 //        }
 
-        val quest = loader.questFor(scenario, questOrder, secret)
+        val questToComplete = loader.questFor(scenario, questOrder, secret)
 
         // An edge case of trying to complete intro quest while already further on scenario
         if (questOrder == 0 && state.currentQuest != 0) {
             return initScenario(state, scenario, secret)
         }
 
-        // If trying to complete earlier quest, just continue the timer of current quest
-        if (quest.order < state.currentQuest) {
+        // If trying to complete out of order quest, just continue the timer of current quest
+        if (questToComplete.order !== state.currentQuest) {
             // The quest user was currently trying to complete
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val view = CountdownViewModel(
@@ -188,7 +201,7 @@ class Engine(
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
-        return WebAction(checkQuestCompletion(scenario, quest, locationReading.toCoordinates(), state), state)
+        return WebAction(checkQuestCompletion(scenario, questToComplete, locationReading.toCoordinates(), state), state)
     }
 
     private fun redirectToQuestCompleteThroughLocationReading(scenario: String, questToComplete: Quest, state: State): WebAction {

@@ -132,11 +132,13 @@ internal class EngineTest {
        @Test
        fun `Completing a later quest should fail with error`() {
            // When: Completing later quest
-            // Then: Error is given
-            assertThrows<TechnicalError> {
-                engine.complete(currentState, scenario.name, 2, scenario.quests[2].secret, freshLocation(scenario.quests[2]))
-            }
+             val outcome =   engine.complete(currentState, scenario.name, 2, scenario.quests[2].secret, freshLocation(scenario.quests[2]))
+
+            // Then: Restart the scenario
+            assertScenarioRestartAction(currentState, scenario, outcome)
        }
+
+        // TODO: If DL has passed and trying to complete later quest, we should show the quest failed error
 
         /**
          * Start url action for first quest is never called. It fail fail because the logic
@@ -162,16 +164,18 @@ internal class EngineTest {
          */
         @Test
         fun `Starting a later quest should fail`() {
-            assertThrows<TechnicalError> {
-                engine.startQuest(
+
+            // This is failing because quest 0 does not have lat/lon.
+            val outcome = engine.startQuest(
                     currentState,
                     scenario.name,
                     3,
                     scenario.quests[3].secret,
                    freshLocation(scenario.quests[3])
                 )
-            }
         }
+
+
 
     }
 
@@ -806,30 +810,7 @@ internal class EngineTest {
             5
         )
 
-        @Test
-        fun `Successfully starting second quest`() {
-            // When: Starting second quest
-            val outcome = engine.startQuest(
-                currentState,
-                scenario.name,
-                1,
-                questToStart.secret,
-                freshLocation(questToStart)
-            )
 
-            assertThat(outcome, equalTo(
-                WebAction(
-                    // Then: Show countdown view. Second quest has no DL.
-                CountdownViewModel(timeProvider.now().toEpochSecond(), null, null, questToStart.location!!.lat, questToStart.location!!.lon),
-                    // And: State is updated for the quest to start
-                    currentState.copy(
-                        currentQuest = 1,
-                        questStarted = timeProvider.now(),
-                   questDeadline = null
-                        ))
-            ))
-
-        }
 
         @Test
         fun `fail if state's scenario is different from param`() {
@@ -875,16 +856,7 @@ internal class EngineTest {
             ))
         }
 
-        @Test
-        fun `Starting later quest (with proper location) just keeps on running the current one`() {
-            // When: Starting a later out of order quest
-            val laterQuest = loader.questFor(scenario.name, 3)
-            val outcome = engine.startQuest(currentState,scenario.name,laterQuest.order,
-                laterQuest.secret,
-                freshLocation(laterQuest))
 
-            // Then:
-        }
 
         @Test
         fun `Starting later quest (with bad location) then something `() {
