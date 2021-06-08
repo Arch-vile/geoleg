@@ -58,8 +58,8 @@ class Engine(
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
 
         // Trying to start a later, yet not reachable quest. Keep on running current one
-        if(questOrderToStart !== state.currentQuest+1) {
-            logger.info("Trying to start upcoming quest, show countdown of current");
+        if (questOrderToStart !== state.currentQuest + 1) {
+            logger.info("Trying to start upcoming quest, show countdown of current")
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val countDownView = CountdownViewModel(
                 timeProvider.now().toEpochSecond(),
@@ -131,16 +131,15 @@ class Engine(
             return WebAction(OnlyView("missingCookie"), null)
         }
 
-        if(state.scenario != scenario) {
+        if (state.scenario != scenario) {
             logger.info("Restarting scenario due to state having different scenario: ${state.scenario}")
             val quest = loader.questFor(scenario, 0)
             return initScenario(state, scenario, quest.secret)
         }
 
-
         // Trying to complete earlier quest while passed DL on later quest. User fails to complete
         // quest in given time and then goes back to previous quest and scan it.
-        if(state.currentQuest > questOrder && hasQuestDLPassed(state)) {
+        if (state.currentQuest > questOrder && hasQuestDLPassed(state)) {
             logger.info("Restarting scenario due to later quest DL passed: ${state.currentQuest}")
             val quest = loader.questFor(scenario, 0)
             return initScenario(state, state.scenario, quest.secret)
@@ -181,7 +180,8 @@ class Engine(
         // If trying to complete out of order quest, just continue the timer of current quest
         // Unless current quest has shared QR with the one we try to complete
         if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
-            questToComplete.order !== state.currentQuest) {
+            questToComplete.order !== state.currentQuest
+        ) {
             // The quest user was currently trying to complete
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val view = CountdownViewModel(
@@ -213,8 +213,8 @@ class Engine(
 
     private fun checkQuestCompletion(scenario: String, questToComplete: Quest, location: Coordinates, state: State): ViewModel {
         var quest = questToComplete
-        if(loader.questFor(scenario,state.currentQuest).sharedQrWithQuest == quest.order) {
-           quest = loader.questFor(scenario, state.currentQuest)
+        if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest == quest.order) {
+            quest = loader.questFor(scenario, state.currentQuest)
         }
 
         assertEqual(scenario, state.scenario, "scenario completion")
