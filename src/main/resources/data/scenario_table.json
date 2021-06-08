@@ -176,16 +176,30 @@
         },
         {
           "order": 4,
+          "sharedQrWithQuest": 2,
           "secret": "65baf0aaaa4a",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.292966,
-            "lon": 25.037099
+            "lat": 0.0,
+            "lon": 0.0
           },
           "countdown": 120,
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_4_fail",
           "successPage": "quests/testing_4_success"
+        },
+        {
+          "order": 5,
+          "secret": "abbddbbccv",
+          "fictionalClock": "091725ZSEP20",
+          "location": {
+            "lat": 60.392966,
+            "lon": 26.037099
+          },
+          "countdown": 120,
+          "fictionalCountdown": 300,
+          "failurePage": "quests/testing_5_fail",
+          "successPage": "quests/testing_5_success"
         }
       ]
     }

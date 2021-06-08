@@ -179,7 +179,9 @@ class Engine(
         }
 
         // If trying to complete out of order quest, just continue the timer of current quest
-        if (questToComplete.order !== state.currentQuest) {
+        // Unless current quest has shared QR with the one we try to complete
+        if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
+            questToComplete.order !== state.currentQuest) {
             // The quest user was currently trying to complete
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val view = CountdownViewModel(
@@ -193,9 +195,12 @@ class Engine(
             return WebAction(view, state)
         }
 
+        return complete(scenario, questToComplete, locationString, state)
+    }
+
+    private fun complete(scenario: String, questToComplete: Quest, locationString: String, state: State): WebAction {
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
-
         return WebAction(checkQuestCompletion(scenario, questToComplete, locationReading.toCoordinates(), state), state)
     }
 
@@ -206,13 +211,19 @@ class Engine(
         )
     }
 
-    private fun checkQuestCompletion(scenario: String, quest: Quest, location: Coordinates, state: State): ViewModel {
+    private fun checkQuestCompletion(scenario: String, questToComplete: Quest, location: Coordinates, state: State): ViewModel {
+        var quest = questToComplete
+        if(loader.questFor(scenario,state.currentQuest).sharedQrWithQuest == quest.order) {
+           quest = loader.questFor(scenario, state.currentQuest)
+        }
+
         assertEqual(scenario, state.scenario, "scenario completion")
         assertEqual(quest.order, state.currentQuest, "quest matching")
-        quest.location?.let { assertProximity(it, location) }
 
-        // TODO: Why do we need to check if quest has countdown, why is not enough to check state DL?
-        return if (quest.countdown != null && hasQuestDLPassed(state)) {
+        // Let's use the location of the shared quest if applicable
+        questToComplete.location?.let { assertProximity(it, location) }
+
+        return if (hasQuestDLPassed(state)) {
             logger.info("Quest failed due to time running out")
             OnlyView(quest.failurePage)
         } else {
@@ -227,7 +238,7 @@ class Engine(
     }
 
     private fun hasQuestDLPassed(state: State) =
-        timeProvider.now().isAfter(state.questDeadline)
+        state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false
 
     private fun assertProximity(target: Coordinates, location: Coordinates) {
         if (!verifyLocation) {
