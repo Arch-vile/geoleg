@@ -17,5 +17,7 @@ Here is a typical request-response flow of the application:
 1. Arriving at the on site QR-code, scanning it takes to complete the second quest (`/engine/complete/:scenario/1/:secret`)
 1. Returns the location reading page that after location is read opens the actual complete URL (`/engine/complete/:scenario/:questOrder/:secret/:locationString`)
 
+TODO: documenting the fact that complete url is not necassary to call technically, as only the start url will actualy change state, unless this is fixed by the check for quest DL passing while reading the complete text
+
 ## Admin pages
 TODO: Document
