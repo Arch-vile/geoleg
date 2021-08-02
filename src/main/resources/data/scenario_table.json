@@ -108,7 +108,8 @@
         },
         {
           "order": 8,
-          "name": "Huippu",
+          "sharedQrWithQuest": 4,
+          "name": "Huippu 2",
           "secret": "e359dec5aa1c",
           "fictionalClock": "091725ZSEP20",
           "location": {
