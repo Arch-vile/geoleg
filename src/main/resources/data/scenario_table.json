@@ -12,17 +12,19 @@
         },
         {
           "order": 1,
+          "name": "Kyltti",
           "secret": "656a0b0924da",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.287583,
-            "lon": 24.903278
+            "lat": 60.287580,
+            "lon": 24.903290
           },
           "failurePage": "s1q1_failure_shouldNotBeUsed",
           "successPage": "quests/s1q1_success_dd19b04ceeaf"
         },
         {
           "order": 2,
+          "name": "Silta",
           "secret": "138d0d22b893",
           "fictionalClock": "091725ZSEP20",
           "location": {
@@ -36,11 +38,12 @@
         },
         {
           "order": 3,
+          "name": "Kuusi",
           "secret": "a41e1e8068c3",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.292972,
-            "lon": 24.897889
+            "lat": 60.292950,
+            "lon": 24.898010
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -49,11 +52,12 @@
         },
         {
           "order": 4,
+          "name": "Huippu",
           "secret": "6021c7d15c44",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.291336,
-            "lon": 24.912291
+            "lat": 60.291330,
+            "lon": 24.912280
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -62,11 +66,12 @@
         },
         {
           "order": 5,
+          "name": "Kelo",
           "secret": "365abfc7bd8b",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.291667,
-            "lon": 24.924222
+            "lat": 60.291610,
+            "lon": 24.924240
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -75,11 +80,12 @@
         },
         {
           "order": 6,
+          "name": "Sahkotolppa",
           "secret": "284e23571ac2",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.289861,
-            "lon": 24.931806
+            "lat": 60.289810,
+            "lon": 24.931740
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -88,11 +94,12 @@
         },
         {
           "order": 7,
+          "name": "Helikopteri",
           "secret": "37cbeadad9d4",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.287617,
-            "lon": 24.918461
+            "lat": 60.287470,
+            "lon": 24.918140
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -101,11 +108,12 @@
         },
         {
           "order": 8,
+          "name": "Huippu",
           "secret": "e359dec5aa1c",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.291336,
-            "lon": 24.912291
+            "lat": 60.291330,
+            "lon": 24.912280
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
@@ -114,11 +122,12 @@
         },
         {
           "order": 9,
+          "name": "Siilo",
           "secret": "198aabd6d865",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 60.287961,
-            "lon": 24.898408
+            "lat": 60.287900,
+            "lon": 24.898810
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,

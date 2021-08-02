@@ -38,14 +38,23 @@ class QRController(
     // Codes are random strings to avoid guessing and for flexible replacing
     private val QR_CODE_MAPPING = mapOf(
         "6ecp98eu" to "/engine/init/$scenarioName/$quest0Secret",
+        // Kyltti
         "snwxfqgj" to "/engine/complete/$scenarioName/1/$quest1Secret",
+        // Silta
         "4c8czet6" to "/engine/complete/$scenarioName/2/$quest2Secret",
+        // Kuusi
         "6frvz9m6" to "/engine/complete/$scenarioName/3/$quest3Secret",
+        // Kallio
         "2djzavs8" to "/engine/complete/$scenarioName/4/$quest4Secret",
+        // Kelo
         "9xs4tu3v" to "/engine/complete/$scenarioName/5/$quest5Secret",
+        // Sähkötolppa
         "b94gz2hy" to "/engine/complete/$scenarioName/6/$quest6Secret",
+        // Helikopteri
         "kv96gnwe" to "/engine/complete/$scenarioName/7/$quest7Secret",
+        // Kallio
         "48nemd5w" to "/engine/complete/$scenarioName/8/$quest8Secret",
+        // Siilo
         "u6xuv5rv" to "/engine/complete/$scenarioName/9/$quest9Secret",
         "1767c3c0e11b500c" to "/engine/x/",
         "d6ae79f3091b4586" to "/engine/x/",
