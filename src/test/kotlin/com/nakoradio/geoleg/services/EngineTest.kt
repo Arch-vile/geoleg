@@ -9,6 +9,8 @@ import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.Time
+import java.time.OffsetDateTime
+import java.util.UUID
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -17,8 +19,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
-import java.time.OffsetDateTime
-import java.util.*
 
 internal class EngineTest {
 
@@ -1315,9 +1315,9 @@ internal class EngineTest {
                         questStarted = timeProvider.now(),
                         userId = existingState?.userId ?: action.state!!.userId,
                         scenarioRestartCount =
-                        if (existingState?.scenario == scenario.name)
-                            existingState.scenarioRestartCount + 1
-                        else 0
+                            if (existingState?.scenario == scenario.name)
+                                existingState.scenarioRestartCount + 1
+                            else 0
                     )
                 )
             )
