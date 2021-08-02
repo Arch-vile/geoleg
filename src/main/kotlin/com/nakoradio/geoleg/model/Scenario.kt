@@ -17,7 +17,7 @@ data class Quest(
     // Quest end location, can be omitted to indicate no location check.
     val location: Coordinates?,
 
-    // Time in seconds to complete the quest. Can be omitted to indicate no time limit.
+    // Time in seconds to complete this quest (reach this location). Can be omitted to indicate no time limit.
     val countdown: Long?,
 
     // Fictional time in seconds to complete the quest, can be omitted.
