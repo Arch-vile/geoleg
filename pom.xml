@@ -97,6 +97,58 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>ktlint</id>
+						<phase>verify</phase>
+						<configuration>
+							<target name="ktlint">
+								<java taskname="ktlint" dir="${basedir}" fork="true" failonerror="true"
+									classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
+									<arg value="src/**/*.kt"/>
+									<!-- to generate report in checkstyle format prepend following args: -->
+									<!--
+                  <arg value="- -reporter=plain"/>
+                  <arg value="- -reporter=checkstyle,output=${project.build.directory}/ktlint.xml"/>
+                  -->
+									<!-- see https://github.com/pinterest/ktlint#usage for more -->
+								</java>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>ktlint-format</id>
+						<configuration>
+							<target name="ktlint">
+								<java taskname="ktlint" dir="${basedir}" fork="true" failonerror="true"
+									classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
+									<arg value="-F"/>
+									<arg value="src/**/*.kt"/>
+									<arg value="--experimental"/>
+								</java>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.pinterest</groupId>
+						<artifactId>ktlint</artifactId>
+						<version>0.36.0</version>
+					</dependency>
+					<!-- additional 3rd party ruleset(s) can be specified here -->
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
 
