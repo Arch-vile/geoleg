@@ -3,9 +3,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments :: headPart (title = 'Laskuri')"></head>
 <body class="black">
+<div th:replace="fragments :: debugInfo"></div>
 
 <h2 id="timer" class="clock"></h2>
 <h2 id="destination"></h2>
+
 
 <script th:inline="javascript">
   // Let's keep the start timestamp so that we know how much time has passed. With this

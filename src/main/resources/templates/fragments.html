@@ -11,6 +11,11 @@
 <h1 th:fragment="startNextLink">
   <a th:href="@{/checkLocation(action='/engine/start/ancient-blood/'+${model.nextQuest.order}+'/'+${model.nextQuest.secret},lat=${model.currentQuest?.location?.lat},lon=${model.currentQuest?.location?.lon})}">GO!</a></h1>
 
+<div th:fragment="debugInfo">
+  Model <div><pre th:text="${model}"></pre></div>
+  State <div><pre th:text="${state}"></pre></div>
+</div>
+
 
 <div th:fragment="storyBanner">
   <h1  class="clock" th:text="${model.nextQuest.fictionalClock}"></h1>

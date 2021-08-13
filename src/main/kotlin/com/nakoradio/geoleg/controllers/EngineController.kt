@@ -124,14 +124,18 @@ class EngineController(
             response.addCookie(cookieManager.toWebCookie(action.state))
         }
 
-        return asModelAndView(action.modelAndView)
+        return asModelAndView(action)
     }
 
     private fun processWebView(webView: ViewModel): ModelAndView {
+        // TODO: is the model here really needed?
         logger.info("Rendering view [${webView.view}] with model [$webView]")
-        return asModelAndView(webView)
+        return ModelAndView(webView.view, "model", webView)
     }
 
-    private fun asModelAndView(modelView: ViewModel) =
-        ModelAndView(modelView.view, "model", modelView)
+    private fun asModelAndView(action: WebAction): ModelAndView {
+        val modelAndView = ModelAndView(action.modelAndView.view, "model", action.modelAndView)
+        modelAndView.addObject("state", action.state)
+        return modelAndView
+    }
 }
