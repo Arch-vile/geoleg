@@ -134,8 +134,14 @@ class Engine(
 
         if (state.scenario != scenario) {
             logger.info("Restarting scenario due to state having different scenario: ${state.scenario}")
-            val quest = loader.questFor(scenario, 0)
-            return initScenario(state, scenario, quest.secret)
+            return restartScenario(scenario,state)
+        }
+
+        // Second QR (first on field qr) should always init the scenario. This allows users to
+        // always start from the beginning even if still having time to complete current quest.
+        if( questOrder == 1 && state.currentQuest > 1) {
+            logger.info("Restarting scenario as second QR was scanned")
+            return restartScenario(scenario,state)
         }
 
         // Trying to complete earlier quest while passed DL on later quest.
@@ -220,6 +226,11 @@ class Engine(
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
         return WebAction(checkQuestCompletion(scenario, questToComplete, locationReading.toCoordinates(), state), state)
+    }
+
+    private fun restartScenario(scenario: String, state: State): WebAction {
+        val quest = loader.questFor(scenario, 0)
+        return initScenario(state, scenario, quest.secret)
     }
 
     private fun redirectToQuestCompleteThroughLocationReading(scenario: String, questToComplete: Quest, state: State): WebAction {

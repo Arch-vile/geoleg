@@ -485,7 +485,18 @@ internal class EngineTest {
             assertScenarioRestartAction(state, scenario, result)
         }
 
-        // TODO: Scanning the second quest's QR should restart scenario to allow restarting if user wants to retry
+        /**
+         * Allows restarting the scenario no matter what.
+          */
+        @Test
+        fun `Scanning second quest QR, should restart the scenario even if still time on current quest`() {
+            // When: Scanning second (first on field) quest's QR
+            val secondQuest = scenario.quests[1]
+            val result = scanQR(currentState, scenario, secondQuest)
+
+            // Then: Restart the scenario
+            assertScenarioRestartAction(currentState, scenario, result)
+        }
 
         // TODO: all tests from running 2nd quest
         // todo: expires while reading the success story
