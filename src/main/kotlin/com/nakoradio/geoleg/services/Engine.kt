@@ -188,8 +188,17 @@ class Engine(
 
             // If DL for current quest has passed, show failure page
                 if(hasQuestDLPassed(state)) {
+                    // If DL has passed but scanning the online or first on field QR. We should restart the scenario
+                    // instead of show the quest failure, as this would allow user to restart easily.
+                        if(questToComplete.order <= 1){
+                            logger.info("Restarting scenario due to quest DL passed: ${state.currentQuest}")
+            val quest = loader.questFor(scenario, 0)
+            return initScenario(state, state.scenario, quest.secret)
+                        }
+
                     return WebAction(questFailedView(loader.currentQuest(state)),state)
                 }
+
 
             // The quest user was currently trying to complete
             val currentQuest = loader.currentQuest(state)

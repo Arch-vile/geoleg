@@ -379,7 +379,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Scanning later quest's QR code should continue countdown`() {
+        fun `Scanning future QR code should continue countdown`() {
             // When: Scanning QR code of later quest
             val outcome = scanQR(currentState, scenario, scenario.quests[5])
 
@@ -388,8 +388,12 @@ internal class EngineTest {
         }
 
         @Test
-        fun `After quest has expired scanning the first on field qr`() {
-           fail("booo")
+        fun `Scanning earlier QR code should continue countdown`() {
+            // When: Scanning QR code of earlier quest
+            val outcome = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
+
+            // Then: Countdown continues
+            assertCountdownReloaded(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -404,21 +408,7 @@ internal class EngineTest {
             assertQuestFailed(action,state,currentQuest);
         }
 
-        @Test
-        fun `Scanning second quest QR when expired current quest`() {
-            // Given: Current quest has expired
-            val state = currentState.copy(questDeadline = timeProvider.now().minusYears(1))
 
-            // When: Scanning code of earlier quest
-
-            fail("second QR always works as restart")
-            scanQR(state, scenario, previousQuest(scenario, currentQuest))
-        }
-
-        @Test
-        fun `Scanning code of earlier quest will show countdown to current quest if time is still remaining`() {
-            fail("not tested")
-        }
 
         @Test
         fun `Fail if not completed in time`() {
@@ -487,7 +477,7 @@ internal class EngineTest {
             // Given: State for later quest with DL already passed
             val state = currentState.copy(questDeadline = timeProvider.now().minusYears(1))
 
-            // When: Scanning first second quest's QR
+            // When: Scanning second (first on field) quest's QR
             val secondQuest = scenario.quests[1]
             val result = scanQR(state, scenario, secondQuest)
 
@@ -504,6 +494,8 @@ internal class EngineTest {
         // TODO: Restarting quest with timeout expired
 
         // TODO: Starting earlier quest
+        // TODO: after completeting the last quest, going back to start
+        // TODO: do a scenario walkthrough test
     }
 
     @Nested
