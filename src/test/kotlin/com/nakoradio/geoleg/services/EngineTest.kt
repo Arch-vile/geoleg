@@ -525,10 +525,17 @@ internal class EngineTest {
             assertScenarioRestartAction(currentState, scenario, result)
         }
 
+        /**
+         * With browser back button
+          */
+        fun `Continue countdown when restarting this quest`() {
+
+            clickGO(currentState, scenario, currentQuest, currentQuest)
+        }
+
         // TODO: all tests from running 2nd quest
         // todo: expires while reading the success story
 
-        // TODO: If DL has passed and trying to complete later quest, we should show the quest failed error
         // TODO: Restarting quest with timeout expired
 
         // TODO: Starting earlier quest
