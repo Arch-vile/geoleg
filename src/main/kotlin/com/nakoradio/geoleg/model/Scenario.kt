@@ -9,6 +9,9 @@ data class Scenario(val name: String, val quests: List<Quest>) {
 data class Quest(
     val order: Int,
 
+    // Just a name for helping config and debugging
+    val name: String,
+
     // If this quest can be completed with the QR of another one. You would only use this if you want to share a physical QR code.
     val sharedQrWithQuest: Int?,
 

@@ -276,15 +276,6 @@ internal class EngineTest {
             assertCountdownReloaded(outcome, currentState, currentQuest)
         }
 
-        /**
-         * User has scanned the QR code on website (init scenario action) and
-         * state was set for quest 0. Location reading view is shown and after
-         * successful read user is redirected to the complete-action.
-         *
-         * User sees the intro quest's success page and go-button to start the
-         * next quest.
-         */
-
         @Test
         fun `Scanning later quest's QR code should continue countdown`() {
             // When: Scanning QR code of later quest
@@ -361,7 +352,7 @@ internal class EngineTest {
     }
 
     @Nested
-    inner class `Runnning Nth quest` {
+    inner class `Running Nth quest` {
 
         private val scenario = loader.table.scenarios[1]
         private val currentQuest = scenario.quests[4]
@@ -388,36 +379,29 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Scanning QR of upcoming quest`() {
-            // When: Scanning QR of upcoming quest
-            // Then: Error about bad scenario
-            val error = assertThrows<TechnicalError> {
-                scanQR(currentState, scenario, scenario.quests[5])
-            }
-            assertThat(error.message, equalTo("Not good: quest matching"))
+        fun `Scanning later quest's QR code should continue countdown`() {
+            // When: Scanning QR code of later quest
+            val outcome = scanQR(currentState, scenario, scenario.quests[5])
+
+            // Then: Countdown continues
+            assertCountdownReloaded(outcome, currentState, currentQuest)
         }
 
-        // 60.291667, 24.924222
-        /**
-         * Regression: So I was in the middle of quest #5 started many days ago, then I
-         * scanned the QR of the quest #2.
-         *
-         * Expected: To see a failure as I have run out of time for quest #5. Or should the countdown just continue? Need to check what the clock shows if already expired
-         *
-         * Observed: Quest #5 coordinates without a timer.
-         *
-         */
         @Test
-        fun `Fail when scanning code of earlier quest if run out of time for current quest`() {
+        fun `After quest has expired scanning the first on field qr`() {
+           fail("booo")
+        }
+
+        @Test
+        fun `Quest failed if DL expired and scanning a previous quest`() {
             // Given: Current quest has expired
             val state = currentState.copy(questDeadline = timeProvider.now().minusYears(1))
 
-            fail("Tähän jäätiin!! ")
-
             // When: Scanning code of earlier quest
+            val action = scanQR(state, scenario, previousQuest(scenario, currentQuest))
 
-            fail("expect error below? ")
-            scanQR(state, scenario, previousQuest(scenario, currentQuest))
+            // Then: Quest should fail
+            assertQuestFailed(action,state,currentQuest);
         }
 
         @Test
@@ -1326,6 +1310,23 @@ internal class EngineTest {
         )
     }
 
+    fun assertQuestFailed(
+        outcome: WebAction,
+        currentState: State,
+        questToComplete: Quest
+    ) {
+        assertThat(
+            outcome,
+            equalTo(
+                WebAction(
+                    // Then: Show quest failure view
+                    OnlyView( questToComplete.failurePage ),
+                    // And: State is not changing
+                    currentState
+                )
+            )
+        )
+    }
     fun assertQuestSuccessPageShown(
         outcome: WebAction,
         currentState: State,

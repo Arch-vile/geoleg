@@ -137,13 +137,15 @@ class Engine(
             return initScenario(state, scenario, quest.secret)
         }
 
-        // Trying to complete earlier quest while passed DL on later quest. User fails to complete
-        // quest in given time and then goes back to previous quest and scan it.
-        if (state.currentQuest > questOrder && hasQuestDLPassed(state)) {
-            logger.info("Restarting scenario due to later quest DL passed: ${state.currentQuest}")
-            val quest = loader.questFor(scenario, 0)
-            return initScenario(state, state.scenario, quest.secret)
-        }
+        // Trying to complete earlier quest while passed DL on later quest.
+        // One use case is that user fails to complete quest in given time and
+        // then goes back to previous quest and scans it.
+        // This logic not needed, as we decided to show the failure page on this case.
+//        if (state.currentQuest > questOrder && hasQuestDLPassed(state)) {
+//            logger.info("Restarting scenario due to later quest DL passed: ${state.currentQuest}")
+//            val quest = loader.questFor(scenario, 0)
+//            return initScenario(state, state.scenario, quest.secret)
+//        }
 
         // TODO: This is overlapping with one check above
         // And edge case trying to complete intro quest while on another scenario
@@ -182,8 +184,14 @@ class Engine(
         if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
             questToComplete.order !== state.currentQuest
         ) {
+
+            // If DL for current quest has passed, show failure page
+                if(hasQuestDLPassed(state)) {
+                    return WebAction(questFailedView(loader.currentQuest(state)),state)
+                }
+
             // The quest user was currently trying to complete
-            val currentQuest = loader.questFor(scenario, state.currentQuest)
+            val currentQuest = loader.currentQuest(state)
             val view = CountdownViewModel(
                 timeProvider.now().toEpochSecond(),
                 state.questDeadline?.toEpochSecond(),
@@ -225,7 +233,7 @@ class Engine(
 
         return if (hasQuestDLPassed(state)) {
             logger.info("Quest failed due to time running out")
-            OnlyView(quest.failurePage)
+            questFailedView(quest)
         } else {
             logger.info("Quest completed successfully")
             if (loader.isLastQuest(scenario, quest.order)) {
@@ -236,6 +244,8 @@ class Engine(
             }
         }
     }
+
+    private fun questFailedView(quest: Quest) = OnlyView(quest.failurePage)
 
     private fun hasQuestDLPassed(state: State) =
         state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false

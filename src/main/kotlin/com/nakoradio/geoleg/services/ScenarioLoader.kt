@@ -3,6 +3,7 @@ package com.nakoradio.geoleg.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.ScenarioTable
+import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
@@ -33,6 +34,8 @@ class ScenarioLoader(mapper: ObjectMapper) {
             .takeIf { it.secret == secret }
             ?: throw TechnicalError("No such quest secret for you my friend")
     }
+
+    fun currentQuest(state: State): Quest = questFor(state.scenario, state.currentQuest)
 
     fun isLastQuest(scenario: String, questOrder: Int) =
         questOrder + 1 >= table.scenarios.find { it.name == scenario }
