@@ -36,28 +36,18 @@ class QRController(
     val quest9Secret = scenario.quests[9].secret
 
     // Codes are random strings to avoid guessing and for flexible replacing
-    private val QR_CODE_MAPPING = mapOf(
-        // Scenario start/reset
-        "gtf92jgf" to "/engine/init/$scenarioName/$quest0Secret",
-        // Kyltti
-        "9xs4tu3v" to "/engine/complete/$scenarioName/1/$quest1Secret",
-        // Silta
-        "4c8czet6xxxxxxxxxx" to "/engine/complete/$scenarioName/2/$quest2Secret",
-        // Kuusi
-        "6frvz9m6xxxxxxx" to "/engine/complete/$scenarioName/3/$quest3Secret",
-        // Kallio
-        "kv96gnwe" to "/engine/complete/$scenarioName/4/$quest4Secret",
-        // Kelo
-        "6ecp98eu" to "/engine/complete/$scenarioName/5/$quest5Secret",
-        // Sähkötolppa
-        "vyrusmvm" to "/engine/complete/$scenarioName/6/$quest6Secret",
-        // Helikopteri
-        "2djzavs8" to "/engine/complete/$scenarioName/7/$quest7Secret",
-        // Kallio
-        "kv96gnwe" to "/engine/complete/$scenarioName/8/$quest8Secret",
-        // Siilo
-        "hj7hujue" to "/engine/complete/$scenarioName/9/$quest9Secret",
-        "xxxxx" to "/compatibility/qr?qr=ok"
+    public val QR_CODE_MAPPING = mapOf(
+        "gtf92jgf" to Pair("init","/engine/init/$scenarioName/$quest0Secret"),
+        "9xs4tu3v" to Pair("kyltti","/engine/complete/$scenarioName/1/$quest1Secret"),
+        "snwxfqgj" to Pair("silta","/engine/complete/$scenarioName/2/$quest2Secret"),
+        "4c8czet6" to Pair("kuusi","/engine/complete/$scenarioName/3/$quest3Secret"),
+        "kv96gnwe" to Pair("kallio","/engine/complete/$scenarioName/4/$quest4Secret"),
+        "6ecp98eu" to Pair("kelo","/engine/complete/$scenarioName/5/$quest5Secret"),
+        "vyrusmvm" to Pair("masto","/engine/complete/$scenarioName/6/$quest6Secret"),
+        "2djzavs8" to Pair("helikopteri","/engine/complete/$scenarioName/7/$quest7Secret"),
+        "kv96gnwe" to Pair("kallio","/engine/complete/$scenarioName/8/$quest8Secret"),
+        "hj7hujue" to Pair("Siilo","/engine/complete/$scenarioName/9/$quest9Secret"),
+        "44b6bscn" to Pair("compatibility","/compatibility/qr?qr=ok")
     )
 
     @GetMapping("/manualqr")
@@ -72,7 +62,7 @@ class QRController(
     ) {
         QR_CODE_MAPPING[qrCode]?.run {
             logger.info("QR code $qrCode redirecting to $this")
-            response.sendRedirect(this)
+            response.sendRedirect(this.second)
         } ?: run {
             throw TechnicalError("Unknown QR code $qrCode")
         }

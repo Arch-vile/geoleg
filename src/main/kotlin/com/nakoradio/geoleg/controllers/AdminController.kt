@@ -15,6 +15,7 @@ import org.springframework.web.servlet.ModelAndView
 @RestController
 @RequestMapping("/admin")
 class AdminController(
+    val qrController: QRController,
     val cookieManager: CookieManager,
     val engine: Engine,
     val loader: ScenarioLoader
@@ -37,7 +38,9 @@ class AdminController(
 
     @GetMapping("/qrLinks")
     fun qrLinks(): ModelAndView {
-        return ModelAndView("admin/qrLinks", "model", loader.table.scenarios[0])
+        return ModelAndView("admin/qrLinks", "model",
+            qrController.QR_CODE_MAPPING.entries
+        )
     }
 }
 

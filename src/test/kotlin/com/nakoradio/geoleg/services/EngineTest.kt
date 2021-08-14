@@ -526,11 +526,29 @@ internal class EngineTest {
         }
 
         /**
-         * With browser back button
+         * With reloading browser window
           */
-        fun `Continue countdown when restarting this quest`() {
+        @Test
+        fun `Continue countdown when restarting this quest near current QR`() {
+            // When: Restarting this quest
+            val action = clickGO(currentState, scenario, currentQuest, currentQuest)
 
-            clickGO(currentState, scenario, currentQuest, currentQuest)
+            // Then: Countdown continues
+            assertCountdownReloaded(action, currentState, currentQuest)
+        }
+
+        /**
+         * User reloads browser window while already proceeded on current quest
+         * outside the accepted range of the QR. Important for the user not to
+         * loose the target coordinates.
+         */
+        @Test
+        fun `Continue countdown when restarting this quest away from current QR`() {
+            // When: Restarting this quest
+            val action = clickGO(currentState, scenario,  currentQuest, locationFor(nextQuest(scenario, currentQuest)))
+
+            // Then: Countdown continues
+            assertCountdownReloaded(action, currentState, currentQuest)
         }
 
         // TODO: all tests from running 2nd quest

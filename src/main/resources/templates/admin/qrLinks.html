@@ -8,14 +8,13 @@
 </head>
 <body class="black">
 
-[[${model.name}]]
-
 <table>
-<tr th:each="quest: ${model.quests}">
-  <td th:text="${quest.order}"/>
+<tr th:each="qr: ${model}">
+  <td th:text="${qr.key}"/>
   <td >
-    <a th:href="|/engine/complete/${model.name}/${quest.order}/${quest.secret}|">Link</a>
+    <a th:href="|/qr/${qr.key}|">Link</a>
   </td>
+  <td th:text="${qr.value.first}"></td>
 </tr>
 </table>
 </body>
