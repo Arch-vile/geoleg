@@ -358,8 +358,79 @@ internal class EngineTest {
         private val currentQuest = scenario.quests[4]
         private val currentState = state(scenario, currentQuest)
 
+        @Nested
+        inner class `Quest DL has expired` {
+
+            // Quest DL has expired
+            private val currentState = this@`Running Nth quest`.currentState
+                .copy(questDeadline = timeProvider.now().minusYears(1))
+
+            @Test
+            fun `Fail when scanning earlier QR`() {
+                // When: Scanning code of earlier quest
+                val action = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
+
+                // Then: Quest should fail
+                assertQuestFailed(action,currentState,currentQuest);
+            }
+
+            @Test
+            fun `Restart scenario when scanning first QR`() {
+                // When: Executing the intro's `complete` action
+                val action =
+                    engine.complete(
+                        currentState,
+                        scenario.name,
+                        0,
+                        scenario.quests[0].secret,
+                        locationSomewhere().asString()
+                    )
+
+                // Then: Scenario is restarted
+                assertScenarioRestartAction(currentState, scenario, action)
+            }
+
+            @Test
+            fun `Fail when scanning later QR`() {
+                // When: Scanning code of upcoming quest
+                val action = scanQR(currentState, scenario, nextQuest(scenario, currentQuest))
+
+                // Then: Quest should fail
+                assertQuestFailed(action,currentState,currentQuest);
+            }
+
+
+            /**
+             * Very likely scenario. User has failed to complete this quest due to DL, now they come
+             * back to the starting position to scan the first QR code on the field again.
+             */
+            @Test
+            fun `Restart scenario when scanning second QR`() {
+                // When: Scanning second (first on field) quest's QR
+                val secondQuest = scenario.quests[1]
+                val result = scanQR(currentState, scenario, secondQuest)
+
+                // Then: Restart the scenario
+                assertScenarioRestartAction(currentState, scenario, result)
+            }
+
+            @Test
+            fun `Fail when scanning current QR`() {
+                // When: Scanning the QR
+                val viewModel = scanQR(currentState, scenario, currentQuest)
+
+                // Then: Failure page is shown, state not changed
+                assertThat(
+                    viewModel,
+                    equalTo(
+                        WebAction(OnlyView("quests/testing_4_fail"), currentState)
+                    )
+                )
+            }
+        }
+
         @Test
-        fun `Scanning this QR shows success`() {
+        fun `Success when scanning this QR`() {
             // When: Completing the quest
             val viewModel = scanQR(currentState, scenario, currentQuest)
 
@@ -368,7 +439,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Scanning this QR should fail if location is not close to quest location`() {
+        fun `Fail when scanning current QR if location is not close to quest location`() {
             // And: Location not close to target
             // When: Completing quest
             // Then: Error about not being close to target location
@@ -381,7 +452,7 @@ internal class EngineTest {
 
 
         @Test
-        fun `Scanning earlier QR should continue countdown`() {
+        fun `Continue countdown when scanning earlier QR`() {
             // When: Scanning QR code of earlier quest
             val outcome = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
 
@@ -390,7 +461,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Scanning later QR should continue countdown`() {
+        fun `Continue countdown when scanning later QR`() {
             // When: Scanning QR code of later quest
             val outcome = scanQR(currentState, scenario, scenario.quests[5])
 
@@ -399,49 +470,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Scanning earlier QR should fail if DL expired`() {
-            // Given: Current quest has expired
-            val state = currentState.copy(questDeadline = timeProvider.now().minusYears(1))
-
-            // When: Scanning code of earlier quest
-            val action = scanQR(state, scenario, previousQuest(scenario, currentQuest))
-
-            // Then: Quest should fail
-            assertQuestFailed(action,state,currentQuest);
-        }
-
-        @Test
-        fun `Scanning later QR should fail if DL expired`() {
-            // Given: Current quest has expired
-            val state = currentState.copy(questDeadline = timeProvider.now().minusYears(1))
-
-            // When: Scanning code of upcoming quest
-            val action = scanQR(state, scenario, nextQuest(scenario, currentQuest))
-
-            // Then: Quest should fail
-            assertQuestFailed(action,state,currentQuest);
-        }
-
-        @Test
-        fun `Scanning this QR should fail if DL expired`() {
-            // Given: Deadline has expired
-            val state = currentState
-                .copy(questDeadline = timeProvider.now().minusMinutes(1))
-
-            // When: Scanning the QR
-            val viewModel = scanQR(state, scenario, currentQuest)
-
-            // Then: Failure page is shown, state not changed
-            assertThat(
-                viewModel,
-                equalTo(
-                    WebAction(OnlyView("quests/testing_4_fail"), state)
-                )
-            )
-        }
-
-        @Test
-        fun `Scanning this QR should fail if location is not fresh`() {
+        fun `Fail when scanning current QR if location is not fresh`() {
             // And: Old location reading
             val oldLocation = LocationReading(
                 currentQuest.location!!.lat,
@@ -468,7 +497,7 @@ internal class EngineTest {
          * Let's just keep running current quest.
          */
         @Test
-        fun `Scanning first QR should restart scenario`() {
+        fun `Restart scenario when scanning first QR`() {
             // When: Executing the intro's `complete` action
             val action =
                 engine.complete(
@@ -481,49 +510,13 @@ internal class EngineTest {
 
             // Then: Scenario is restarted
             assertScenarioRestartAction(currentState, scenario, action)
-        }
-
-        @Test
-        fun `Scanning first QR should restart scenario if DL expired`() {
-            // Given: Current quest expired
-            val state = currentState.copy(questDeadline = timeProvider.now().minusDays(1))
-
-            // When: Executing the intro's `complete` action
-            val action =
-                engine.complete(
-                    currentState,
-                    scenario.name,
-                    0,
-                    scenario.quests[0].secret,
-                    locationSomewhere().asString()
-                )
-
-            // Then: Scenario is restarted
-            assertScenarioRestartAction(currentState, scenario, action)
-        }
-
-        /**
-         * Very likely scenario. User has failed to complete this quest due to DL, now they come
-         * back to the starting position to scan the first QR code on the field again.
-         */
-        @Test
-        fun `Scanning second QR should restart the scenario if DL expired`() {
-            // Given: State for later quest with DL already passed
-            val state = currentState.copy(questDeadline = timeProvider.now().minusYears(1))
-
-            // When: Scanning second (first on field) quest's QR
-            val secondQuest = scenario.quests[1]
-            val result = scanQR(state, scenario, secondQuest)
-
-            // Then: Restart the scenario
-            assertScenarioRestartAction(state, scenario, result)
         }
 
         /**
          * Allows restarting the scenario no matter what.
           */
         @Test
-        fun `Scanning second QR should restart the scenario`() {
+        fun `Restart scenario when scanning second QR`() {
             // When: Scanning second (first on field) quest's QR
             val secondQuest = scenario.quests[1]
             val result = scanQR(currentState, scenario, secondQuest)
