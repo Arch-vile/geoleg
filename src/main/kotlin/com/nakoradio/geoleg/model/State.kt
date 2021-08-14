@@ -13,9 +13,19 @@ data class State(
 
     val questStarted: OffsetDateTime,
     val userId: UUID,
-    val scenarioRestartCount: Int
+    val scenarioRestartCount: Int,
+
+    // For tracking whole scenario completion time
+    val scenarioStarted: OffsetDateTime
 ) {
     companion object Factory {
-        fun empty(time: Time) = State("", 0, time.now().minusDays(100), time.now(), UUID.randomUUID(), 0)
+        fun empty(time: Time) = State(
+            "",
+            0,
+            time.now().minusDays(100),
+            time.now(),
+            UUID.randomUUID(),
+            0,
+        time.now())
     }
 }

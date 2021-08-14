@@ -551,7 +551,8 @@ internal class EngineTest {
                         questStarted = timeProvider.now(),
                         questDeadline = timeProvider.now().plusYears(10),
                         userId = action.state!!.userId,
-                        scenarioRestartCount = 0
+                        scenarioRestartCount = 0,
+                        scenarioStarted = timeProvider.now()
                     )
                 )
             )
@@ -639,15 +640,7 @@ internal class EngineTest {
             val previousQuest = scenario.quests[2]
 
             // Given: State is set for running quest 3
-            val state = State(
-                scenario = scenario.name,
-                currentQuest = currentQuest.order,
-                // There is still time left
-                questDeadline = timeProvider.now().plusMinutes(5),
-                questStarted = timeProvider.now(),
-                userId = UUID.randomUUID(),
-                scenarioRestartCount = 3
-            )
+            val state = state(scenario, currentQuest)
 
             // When: Restarting the quest
             val (viewModel, newState) = engine.startQuest(
@@ -700,14 +693,8 @@ internal class EngineTest {
         @Test
         fun `Scanning any on field QR of another scenario restart the scenario of the scanned QR`() {
             // Given: User has the wrong scenario
-            val state = State(
-                scenario = "wrong scenario",
-                currentQuest = 3,
-                // There is still time left
-                questDeadline = timeProvider.now().plusMinutes(5),
-                questStarted = timeProvider.now(),
-                userId = UUID.randomUUID(),
-                scenarioRestartCount = 3
+            val state = state(scenario, scenario.quests[3]).copy(
+                scenario = "wrong scenario"
             )
 
             // When: Trying to scan any QR of another quest
@@ -720,13 +707,8 @@ internal class EngineTest {
         @Test
         fun `Calling start URL with scenario different from params`() {
             // Given: State that has different scenario
-            val state = State(
-                "this is not correct scenario",
-                1,
-                timeProvider.now().plusDays(10),
-                timeProvider.now(),
-                UUID.randomUUID(),
-                5
+            val state = state(scenario, scenario.quests[2]).copy(
+                scenario = "this is not correct scenario"
             )
 
             // When: Starting quest
@@ -799,15 +781,7 @@ internal class EngineTest {
             val previousQuest = scenario.quests[2]
 
             // Given: State is set for running quest 3
-            val state = State(
-                scenario = scenario.name,
-                currentQuest = currentQuest.order,
-                // There is still time left
-                questDeadline = timeProvider.now().plusMinutes(5),
-                questStarted = timeProvider.now(),
-                userId = UUID.randomUUID(),
-                scenarioRestartCount = 3
-            )
+            val state = state(scenario, currentQuest)
 
             // When: Scanning the previous QR code, so basically trying to complete an earlier quest
             // Then: No state is returned, only view
@@ -833,7 +807,14 @@ internal class EngineTest {
     inner class `User has state for unknown scenario` {
 
         // Given: State has unknown scenario (only possible if scenarios renamed or removed)
-        val currentState = State("unknown", 0, null, timeProvider.now(), UUID.randomUUID(), 2)
+        val currentState = State(
+            "unknown",
+            0,
+            null,
+            timeProvider.now(),
+            UUID.randomUUID(),
+            2,
+        timeProvider.now())
 
         @Test
         fun `trying to complete first quest of actual scenario`() {
@@ -887,7 +868,7 @@ internal class EngineTest {
         fun `trying to complete another scenario's intro with this scenario's secret`() {
             // Given: User has state set for completing the intro quest of current scenario
             val state =
-                State(currentScenario.name, 0, null, timeProvider.now(), UUID.randomUUID(), 0)
+                state(currentScenario, currentScenario.quests[0])
 
             // When: Trying to complete a different scenario with this scenario's secret
             val scenarioNameOfAnotherExistingScenario = anotherScenario.name
@@ -912,14 +893,10 @@ internal class EngineTest {
             val scenario = loader.table.scenarios[0]
 
             // Given: State with old dates and later quest order
-            val existingState = State(
-                scenario.name,
-                10,
-                timeProvider.now().minusDays(20),
-                timeProvider.now().minusDays(39),
-                UUID.randomUUID(),
-                10
-            )
+            val existingState =  state(scenario, scenario.quests[4])
+                .copy(
+                    questStarted =timeProvider.now().minusDays(39),
+                    questDeadline = timeProvider.now().minusDays(20) )
 
             // When: scenario is initialized
             val (viewModel, newState) = engine.initScenario(
@@ -937,8 +914,10 @@ internal class EngineTest {
                         // And: questDeadline is set far in future, to "never" expire
                         questDeadline = timeProvider.now().plusYears(10),
                         // And: Restart count is increased by one
-                        scenarioRestartCount = 11,
-                        questStarted = timeProvider.now()
+                        scenarioRestartCount = existingState.scenarioRestartCount+1,
+                        questStarted = timeProvider.now(),
+                        // And: Scenario start is reset
+                        scenarioStarted = timeProvider.now()
                     )
                 )
             )
@@ -949,14 +928,8 @@ internal class EngineTest {
             val scenario = loader.table.scenarios[0]
 
             // Given: State for another scenario
-            val existingState = State(
-                "the other scenario",
-                1,
-                timeProvider.now().plusDays(1),
-                timeProvider.now(),
-                UUID.randomUUID(),
-                2
-            )
+            val existingState = state(scenario, scenario.quests[0])
+                .copy(scenario = "the other scenario")
 
             // When: scenario is initialized
             val (url, newState) = engine.initScenario(
@@ -977,7 +950,8 @@ internal class EngineTest {
                         questDeadline = timeProvider.now().plusYears(10),
                         // And: Restart count is set to 0
                         scenarioRestartCount = 0,
-                        questStarted = timeProvider.now()
+                        questStarted = timeProvider.now(),
+                        scenarioStarted = timeProvider.now()
                     )
                 )
             )
@@ -1160,15 +1134,14 @@ internal class EngineTest {
         fun `quest successfully started`() {
             val previousQuest = loader.questFor(scenario.name, questToStart.order - 1)
 
-            // Given: Proper state. The previous quest has been completed (deadline could have passed already on that)
-            val state = State(
-                scenario.name,
-                questToStart.order - 1,
-                timeProvider.now().minusDays(1),
-                timeProvider.now().minusDays(1),
-                UUID.randomUUID(),
-                5
-            )
+            // Given: Proper state. The previous quest has been completed (deadline could have
+            // passed already on that)
+            val state = state(scenario, previousQuest)
+                .copy(
+                    questStarted = timeProvider.now().minusDays(1),
+                    questDeadline = timeProvider.now().minusDays(1)
+                )
+
 
             // When: Starting the quest
             val (viewModel, newState) =
@@ -1212,26 +1185,6 @@ internal class EngineTest {
     }
 
     @Nested
-    inner class `Completing the Nth quest` {
-
-        val scenario = loader.table.scenarios[1]
-        val questToComplete = scenario.quests[3]
-
-        private fun validStateToComplete(): State {
-            return State(
-                scenario = scenario.name,
-                currentQuest = questToComplete.order,
-                // Quest has been started ages ago
-                questStarted = timeProvider.now().minusDays(100),
-                userId = UUID.randomUUID(),
-                scenarioRestartCount = 0,
-                // Deadline not yet reached
-                questDeadline = timeProvider.now().plusMinutes(5)
-            )
-        }
-    }
-
-    @Nested
     inner class `Completing the last quest` {
 
         val scenario = loader.table.scenarios[1]
@@ -1260,18 +1213,8 @@ internal class EngineTest {
             )
         }
 
-        private fun validStateToComplete(): State {
-            return State(
-                scenario = scenario.name,
-                currentQuest = questToComplete.order,
-                // Quest has been started ages ago
-                questStarted = timeProvider.now().minusDays(100),
-                userId = UUID.randomUUID(),
-                scenarioRestartCount = 0,
-                // Deadline not yet reached
-                questDeadline = timeProvider.now().plusMinutes(5)
-            )
-        }
+        private fun validStateToComplete() =
+            state(scenario, questToComplete)
     }
 
     private fun freshLocation(questToStart: Quest) =
@@ -1303,7 +1246,8 @@ internal class EngineTest {
                                 existingState.scenarioRestartCount + 1
                             } else {
                                 0
-                            }
+                            },
+                        scenarioStarted = timeProvider.now()
                     )
                 )
             )
@@ -1421,7 +1365,8 @@ internal class EngineTest {
         currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
         timeProvider.now().minusMinutes(1),
         UUID.randomUUID(),
-        5
+        5,
+        timeProvider.now().minusHours(1)
     )
 
     private fun nextQuest(scenario: Scenario, currentQuest: Quest) =

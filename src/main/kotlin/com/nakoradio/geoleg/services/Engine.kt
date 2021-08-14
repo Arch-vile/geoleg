@@ -40,6 +40,7 @@ class Engine(
             currentQuest = 0,
             scenarioRestartCount =
                 if (state?.scenario == scenario) state.scenarioRestartCount + 1 else 0,
+            scenarioStarted = timeProvider.now(),
             userId = state?.userId ?: UUID.randomUUID()
         )
         return WebAction(askForLocation(questCompleteUrl(scenario, quest), quest), newState)
