@@ -731,8 +731,6 @@ internal class EngineTest {
 
         val scenario = loader.table.scenarios[0]
 
-        // TODO: Reloading countdown page
-
         /**
          * We should allow "restarting" a quest, of course not resetting the countdown. This allows
          * reloading the start quest page (the countdown view) without ending up in error.
@@ -743,6 +741,7 @@ internal class EngineTest {
          *
          * We should show to countdown view.
          */
+        // TODO: This test should use the helpers
         @Test
         fun `Restarting quest by requesting again the start quest url`() {
             // Given: User is currently doing quest 3
@@ -1383,7 +1382,7 @@ internal class EngineTest {
                 WebAction(
                     // Then: Countdown continues
                     CountdownViewModel(
-                        timeProvider.now().toEpochSecond(),
+                        currentState.questStarted.toEpochSecond(),
                         currentState.questDeadline?.let { it.toEpochSecond() },
                         currentQuest.fictionalCountdown,
                         currentQuest.location!!.lat,

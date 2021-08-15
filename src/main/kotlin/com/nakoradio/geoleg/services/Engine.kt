@@ -69,7 +69,7 @@ class Engine(
         if (questOrderToStart != state.currentQuest + 1) {
             logger.info("Trying to start out of order quest, show countdown of current")
             val countDownView = CountdownViewModel(
-                timeProvider.now().toEpochSecond(),
+                state.questStarted.toEpochSecond(),
                 state.questDeadline?.toEpochSecond(),
                 currentQuest.fictionalCountdown,
                 currentQuest.location!!.lat,
@@ -81,14 +81,7 @@ class Engine(
 
         // Trying to restart current quest
         if (questToStart.order == currentQuest.order) {
-
-            var countDownView = CountdownViewModel(
-                timeProvider.now().toEpochSecond(),
-                state.questDeadline?.toEpochSecond(),
-                questToStart.fictionalCountdown,
-                questToStart.location!!.lat,
-                questToStart.location!!.lon
-            )
+            var countDownView = countdownViewModel(state, questToStart)
             return WebAction(countDownView, state)
         }
 
@@ -213,19 +206,24 @@ class Engine(
 
             // The quest user was currently trying to complete
             val currentQuest = loader.currentQuest(state)
-            val view = CountdownViewModel(
-                timeProvider.now().toEpochSecond(),
-                state.questDeadline?.toEpochSecond(),
-                currentQuest.fictionalCountdown,
-                currentQuest.location!!.lat,
-                currentQuest.location!!.lon
-            )
-
+            val view = countdownViewModel(state, currentQuest)
             return WebAction(view, state)
         }
 
         return complete(scenario, questToComplete, locationString, state)
     }
+
+    private fun countdownViewModel(
+        state: State,
+        quest: Quest
+    ) = CountdownViewModel(
+        state.questStarted.toEpochSecond(),
+        state.questDeadline?.toEpochSecond(),
+        quest.fictionalCountdown,
+        quest.location!!.lat,
+        quest.location!!.lon
+    )
+
 
     private fun complete(scenario: String, questToComplete: Quest, locationString: String, state: State): WebAction {
         val locationReading = LocationReading.fromString(locationString)
