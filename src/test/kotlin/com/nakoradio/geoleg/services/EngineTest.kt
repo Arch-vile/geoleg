@@ -871,7 +871,10 @@ internal class EngineTest {
 
         @Test
         fun `Start for the first quest should never be called`() {
-            fail("foo")
+            val state = state(scenario,loader.questFor(scenario.name,0))
+            assertThrows<KotlinNullPointerException> {
+                clickGO(state, scenario, scenario.quests[0])
+            }
         }
 
         /**
@@ -897,18 +900,7 @@ internal class EngineTest {
             val viewModel = scanQR(state, scenario, previousQuest)
 
             // Then: Countdown view shown for the already started quest
-            assertThat(
-                viewModel as CountdownViewModel,
-                equalTo(
-                    CountdownViewModel(
-                        now = state.questStarted.toEpochSecond(),
-                        lat = currentQuest.location!!.lat,
-                        lon = currentQuest.location!!.lon,
-                        expiresAt = state.questDeadline!!.toEpochSecond(),
-                        fictionalCountdown = currentQuest.fictionalCountdown
-                    )
-                )
-            )
+            assertCountdownContinues(viewModel,state,currentQuest)
         }
     }
 
