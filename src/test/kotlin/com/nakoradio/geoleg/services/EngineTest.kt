@@ -481,10 +481,16 @@ internal class EngineTest {
 
         @Test
         fun `Successfully start next quest`() {
+            val nextQuest =nextQuest(scenario,currentQuest)
+          // When: Starting next quest
+            val action = clickGO(currentState, nextQuest)
+
+            // Then: Countdown for the next quest
+            assertCountdownStarted(action,currentState,nextQuest)
         }
 
         @Test
-        fun `Fail when scanning current QR if location is not close to quest location`() {
+        fun `Error when scanning current QR if location is not close to quest location`() {
             // And: Location not close to target
             // When: Completing quest
             // Then: Error about not being close to target location
@@ -515,7 +521,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Fail when scanning current QR if location is not fresh`() {
+        fun `Error when scanning current QR if location is not fresh`() {
             // And: Old location reading
             val oldLocation = LocationReading(
                 currentQuest.location!!.lat,
@@ -1375,6 +1381,34 @@ internal class EngineTest {
         )
     }
 
+    private fun assertCountdownStarted(
+        outcome: WebAction,
+        currentState: State,
+        questToStart: Quest
+    ) {
+        val questDL = timeProvider.now().plusSeconds(questToStart.countdown!!)
+        assertThat(
+            outcome,
+            equalTo(
+                WebAction(
+                    // Then: Countdown started
+                    CountdownViewModel(
+                        timeProvider.now().toEpochSecond(),
+                        questDL.toEpochSecond(),
+                        questToStart.fictionalCountdown,
+                        questToStart.location!!.lat,
+                        questToStart.location!!.lon
+                    ),
+                    // And: State updated for new quest
+                    currentState.copy(
+                        currentQuest = questToStart.order,
+                        questDeadline = questDL,
+                        questStarted = timeProvider.now()
+                    )
+                )
+            )
+        )
+    }
     private fun assertCountdownContinues(
         outcome: WebAction,
         currentState: State,
