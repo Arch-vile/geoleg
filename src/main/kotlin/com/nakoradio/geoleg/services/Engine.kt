@@ -59,7 +59,7 @@ class Engine(
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
 
         // Trying to start a later, yet not reachable quest. Keep on running current one
-        if (questOrderToStart !== state.currentQuest + 1) {
+        if (questOrderToStart > state.currentQuest + 1) {
             logger.info("Trying to start upcoming quest, show countdown of current")
             val currentQuest = loader.questFor(scenario, state.currentQuest)
             val countDownView = CountdownViewModel(
@@ -73,10 +73,15 @@ class Engine(
         }
 
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
-        val currentQuest = loader.questFor(scenario, questOrderToStart - 1)
+        val currentQuest = loader.questFor(scenario, state.currentQuest)
 
-        // Trying to restart the quest
-        if (questToStart.order == state.currentQuest) {
+        // Trying to restart current quest
+        if (questToStart.order == currentQuest.order) {
+            // If DL has passed
+                if(hasQuestDLPassed(state)) {
+                    return questFailedAction(state, currentQuest)
+                }
+
             var countDownView = CountdownViewModel(
                 timeProvider.now().toEpochSecond(),
                 state.questDeadline?.toEpochSecond(),
@@ -202,7 +207,7 @@ class Engine(
             return initScenario(state, state.scenario, quest.secret)
                         }
 
-                    return WebAction(questFailedView(loader.currentQuest(state)),state)
+                    return questFailedAction(state, loader.currentQuest(state))
                 }
 
 
@@ -267,6 +272,9 @@ class Engine(
     }
 
     private fun questFailedView(quest: Quest) = OnlyView(quest.failurePage)
+
+    private fun questFailedAction(state: State, quest: Quest) =
+        WebAction(OnlyView(quest.failurePage), state)
 
     private fun hasQuestDLPassed(state: State) =
         state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false

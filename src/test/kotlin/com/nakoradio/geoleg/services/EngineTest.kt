@@ -420,12 +420,32 @@ internal class EngineTest {
                 val viewModel = scanQR(currentState, scenario, currentQuest)
 
                 // Then: Failure page is shown, state not changed
-                assertThat(
-                    viewModel,
-                    equalTo(
-                        WebAction(OnlyView("quests/testing_4_fail"), currentState)
-                    )
-                )
+                assertQuestFailed(viewModel,currentState,currentQuest)
+            }
+
+            /**
+             * With reloading browser window
+             */
+            @Test
+            fun `Fail when restarting this quest near current QR`() {
+                // When: Restarting this quest
+                val action = clickGO(currentState, scenario, currentQuest, currentQuest)
+
+                // Then: Quest failed
+                assertQuestFailed(action,currentState,currentQuest)
+            }
+
+            /**
+             * User reloads browser window while already proceeded on current quest
+             * outside the accepted range of the QR.
+             */
+            @Test
+            fun `Fail when restarting this quest away from current QR`() {
+                // When: Restarting this quest
+                val action = clickGO(currentState, scenario,  currentQuest, locationFor(nextQuest(scenario, currentQuest)))
+
+                // Then: Quest failed
+                assertQuestFailed(action,currentState,currentQuest)
             }
         }
 
