@@ -56,6 +56,7 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
+        // TODO: We should do these checks on the controller already?
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
         val currentQuest = loader.questFor(scenario, state.currentQuest)

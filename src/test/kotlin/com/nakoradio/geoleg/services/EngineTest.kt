@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 
 internal class EngineTest {
 
@@ -91,9 +90,7 @@ internal class EngineTest {
             // When: Starting the second quest with random location
             val secondQuest = nextQuest(scenario, currentQuest)
             val outcome = clickGO(
-                currentState, scenario, secondQuest,
-                // Any location will do
-                locationSomewhere()
+                currentState, secondQuest, locationSomewhere()
             )
 
             // Then: Second quest successfully started
@@ -298,7 +295,7 @@ internal class EngineTest {
         fun `Starting next quest successful`() {
             // When: Starting the next quest
             val nextQuest = nextQuest(scenario, currentQuest)
-            val outcome = clickGO(currentState, scenario, nextQuest)
+            val outcome = clickGO(currentState, nextQuest)
 
             // Then: Quest is started
             assertQuestStarted(outcome, currentState, nextQuest)
@@ -311,7 +308,7 @@ internal class EngineTest {
             // When: Starting the next quest with too far location
             // Then: Will give GPS error
             val error = assertThrows<TechnicalError> {
-                clickGO(currentState, scenario, nextQuest, locationSomewhere())
+                clickGO(currentState, nextQuest, locationSomewhere())
             }
             assertThat(error.message, equalTo("Bad gps accuracy"))
         }
@@ -320,11 +317,12 @@ internal class EngineTest {
         fun `Starting next quest fails if expired location`() {
             val nextQuest = nextQuest(scenario, currentQuest)
 
-            // When: Starting the next quest with too far location
+            // When: Starting the next quest with stale location
             // Then: Will give location expired error
             val error = assertThrows<TechnicalError> {
                 clickGO(
-                    currentState, scenario, nextQuest,
+                    currentState,
+                    nextQuest,
                     locationFor(nextQuest).copy(createdAt = timeProvider.now().minusYears(1))
                 )
             }
@@ -334,8 +332,7 @@ internal class EngineTest {
         @Test
         fun `Starting later quest should keep on running countdown`() {
             // When: Trying to start upcoming quest
-            val outcome =
-                clickGO(currentState, scenario, scenario.quests[4], locationFor(scenario.quests[4]))
+            val outcome = clickGO(currentState, scenario.quests[4])
 
             // Then: Countdown continues
             assertCountdownContinues(outcome, currentState, currentQuest)
@@ -344,7 +341,7 @@ internal class EngineTest {
         @Test
         fun `Starting later quest (with bad location) should keep on running countdown`() {
             // When: Trying to start upcoming quest with bad location
-            val outcome = clickGO(currentState, scenario, scenario.quests[4], locationSomewhere())
+            val outcome = clickGO(currentState, scenario.quests[4], locationSomewhere())
 
             // Then: Countdown continues
             assertCountdownContinues(outcome, currentState, currentQuest)
@@ -429,7 +426,7 @@ internal class EngineTest {
             @Test
             fun `Quest fail when restarting this quest near current QR`() {
                 // When: Restarting this quest
-                val action = clickGO(currentState, scenario,  currentQuest)
+                val action = clickGO(currentState, currentQuest)
 
                 // Then: Quest failed
                 assertQuestFailed(action,currentState,currentQuest)
@@ -442,7 +439,11 @@ internal class EngineTest {
             @Test
             fun `Quest fail when restarting this quest away from current QR`() {
                 // When: Restarting this quest
-                val action = clickGO(currentState, scenario,  currentQuest, locationFor(nextQuest(scenario, currentQuest)))
+                val action = clickGO(
+                    currentState,
+                    currentQuest,
+                    locationFor(nextQuest(scenario, currentQuest))
+                )
 
                 // Then: Quest failed
                 assertQuestFailed(action,currentState,currentQuest)
@@ -451,7 +452,7 @@ internal class EngineTest {
             @Test
             fun `Quest fail when starting earlier quest`() {
 // When: Starting earlier quest
-                var action = clickGO(currentState,scenario,previousQuest(scenario,currentQuest))
+                var action = clickGO(currentState, previousQuest(scenario,currentQuest))
 
                 // Then: Quest failure
                 assertQuestFailed(action,currentState,currentQuest )
@@ -460,7 +461,10 @@ internal class EngineTest {
             @Test
             fun `Quest fail when starting later quest`() {
 // When: Starting later quest
-                var action = clickGO(currentState,scenario,loader.questFor(scenario.name,currentQuest.order+2))
+                var action = clickGO(
+                    currentState,
+                    loader.questFor(scenario.name,currentQuest.order+2)
+                )
                 // Then: Quest failure
                 assertQuestFailed(action,currentState,currentQuest )
             }
@@ -473,6 +477,10 @@ internal class EngineTest {
 
             // Then: Quest completed successfully
             assertQuestSuccessPageShown(viewModel, currentState, currentQuest, scenario)
+        }
+
+        @Test
+        fun `Successfully start next quest`() {
         }
 
         @Test
@@ -568,7 +576,7 @@ internal class EngineTest {
         @Test
         fun `Continue countdown when restarting this quest near current QR`() {
             // When: Restarting this quest
-            val action = clickGO(currentState, scenario, currentQuest)
+            val action = clickGO(currentState, currentQuest)
 
             // Then: Countdown continues
             assertCountdownContinues(action, currentState, currentQuest)
@@ -582,7 +590,11 @@ internal class EngineTest {
         @Test
         fun `Continue countdown when restarting this quest away from current QR`() {
             // When: Restarting this quest
-            val action = clickGO(currentState, scenario,  currentQuest, locationFor(nextQuest(scenario, currentQuest)))
+            val action = clickGO(
+                currentState,
+                currentQuest,
+                locationFor(nextQuest(scenario, currentQuest))
+            )
 
             // Then: Countdown continues
             assertCountdownContinues(action, currentState, currentQuest)
@@ -591,7 +603,7 @@ internal class EngineTest {
         @Test
         fun `Continue countdown when starting earlier quest`() {
             // When: Starting earlier quest
-            var action = clickGO(currentState,scenario,previousQuest(scenario,currentQuest))
+            var action = clickGO(currentState, previousQuest(scenario,currentQuest))
 
            // Then: Continue countdown
            assertCountdownContinues(action,currentState,currentQuest)
@@ -600,7 +612,7 @@ internal class EngineTest {
         @Test
         fun `Continue countdown when starting later quest`() {
             // When: Starting later quest
-            var action = clickGO(currentState,scenario,loader.questFor(scenario.name,currentQuest.order+2))
+            var action = clickGO(currentState, loader.questFor(scenario.name,currentQuest.order+2))
 
             // Then: Continue countdown
             assertCountdownContinues(action,currentState,currentQuest)
@@ -814,7 +826,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Calling start URL with scenario different from params`() {
+        fun `Failure when starting quest of another scenario`() {
             // Given: State that has different scenario
             val state = state(scenario, scenario.quests[2]).copy(
                 scenario = "this is not correct scenario"
@@ -873,7 +885,7 @@ internal class EngineTest {
         fun `Start for the first quest should never be called`() {
             val state = state(scenario,loader.questFor(scenario.name,0))
             assertThrows<KotlinNullPointerException> {
-                clickGO(state, scenario, scenario.quests[0])
+                clickGO(state, scenario.quests[0])
             }
         }
 
@@ -1125,7 +1137,7 @@ internal class EngineTest {
 
             // When: Starting the quest
             val error = assertThrows<TechnicalError> {
-                clickGO(currentState,scenario,questToStart,location)
+                clickGO(currentState, questToStart, location)
             }
             assertThat(error.message, equalTo("Location not fresh"))
         }
@@ -1148,7 +1160,7 @@ internal class EngineTest {
 
             // When: Starting the quest
             val error = assertThrows<TechnicalError> {
-                clickGO(currentState,scenario,questToStart,location)
+                clickGO(currentState, questToStart, location)
             }
 
             // Then: Error about location
@@ -1182,7 +1194,7 @@ internal class EngineTest {
         @Test
         fun `Trying to start quest again keeps it running`() {
             // When: Starting this quest again
-            val action = clickGO(currentState,scenario,currentQuest)
+            val action = clickGO(currentState, currentQuest)
 
             // Then: Just continue countdown
             assertCountdownContinues(action,currentState,currentQuest)
@@ -1436,21 +1448,20 @@ internal class EngineTest {
     // Clicking GO calls the engine start quest
     private fun clickGO(
         state: State,
-        scenario: Scenario,
         questToStart: Quest,
         location: LocationReading
     ) =
         engine.startQuest(
             state,
-            scenario.name,
+            state.scenario,
             questToStart.order,
             questToStart.secret,
             location.asString()
         )
 
-    private fun clickGO(state: State, scenario: Scenario, questToStart: Quest) =
+    private fun clickGO(state: State, questToStart: Quest) =
         engine.startQuest(
-            state, scenario.name, questToStart.order, questToStart.secret,
+            state, state.scenario, questToStart.order, questToStart.secret,
             freshLocation(loader.currentQuest(state))
         )
 
