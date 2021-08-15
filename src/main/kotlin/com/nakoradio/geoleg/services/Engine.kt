@@ -37,6 +37,7 @@ class Engine(
             scenario = scenario,
             questDeadline = timeProvider.now().plusYears(10),
             questStarted = timeProvider.now(),
+            questCompleted = null,
             currentQuest = 0,
             scenarioRestartCount =
                 if (state?.scenario == scenario) state.scenarioRestartCount + 1 else 0,
@@ -178,8 +179,6 @@ class Engine(
 //            return redirectToQuestCompleteThroughLocationReading(scenario, questToComplete, state)
 //        }
 
-        val questToComplete = loader.questFor(scenario, questOrder, secret)
-
         // An edge case of trying to complete intro quest while already further on scenario
         if (questOrder == 0 && state.currentQuest != 0) {
             return initScenario(state, scenario, secret)
@@ -187,10 +186,10 @@ class Engine(
 
         // If trying to complete out of order quest, just continue the timer of current quest
         // Unless current quest has shared QR with the one we try to complete
+        val questToComplete = loader.questFor(scenario, questOrder, secret)
         if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
             questToComplete.order !== state.currentQuest
         ) {
-
             // If DL for current quest has passed, show failure page
                 if(hasQuestDLPassed(state)) {
                     // If DL has passed but scanning the online or first on field QR. We should restart the scenario
@@ -229,7 +228,12 @@ class Engine(
     private fun complete(scenario: String, questToComplete: Quest, locationString: String, state: State): WebAction {
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
-        return WebAction(checkQuestCompletion(scenario, questToComplete, locationReading.toCoordinates(), state), state)
+
+       val view = checkQuestCompletion(scenario, questToComplete, locationReading.toCoordinates(), state)
+
+        val newState = state.copy()
+        return WebAction(
+            view, state)
     }
 
     private fun restartScenario(scenario: String, state: State): WebAction {

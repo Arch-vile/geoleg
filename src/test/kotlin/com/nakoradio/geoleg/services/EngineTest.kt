@@ -482,8 +482,28 @@ internal class EngineTest {
         @Test
         fun `Successfully start next quest`() {
             val nextQuest =nextQuest(scenario,currentQuest)
-          // When: Starting next quest
+            // When: Starting next quest
             val action = clickGO(currentState, nextQuest)
+
+            // Then: Countdown for the next quest
+            assertCountdownStarted(action,currentState,nextQuest)
+        }
+
+        /**
+         * Important scenario to cover. After completing the quest, user has all the time
+         * they need to read the next story before clicking go. It is very likely that
+         * current quest's DL expires while reading the story. Starting the next quest
+         * should be possible nevertheless.
+          */
+        @Test
+        fun `Successfully start next quest after this quest's DL expired`() {
+            val nextQuest = nextQuest(scenario,currentQuest)
+
+           // Given: DL for current quest has expired (after successfully completing it)
+            val state = currentState.copy(questDeadline = timeProvider.now().minusSeconds(10))
+
+            // When: Starting next quest
+            val action = clickGO(state, nextQuest)
 
             // Then: Countdown for the next quest
             assertCountdownStarted(action,currentState,nextQuest)
@@ -677,6 +697,7 @@ internal class EngineTest {
                         scenario = scenario.name,
                         currentQuest = 0,
                         questStarted = timeProvider.now(),
+                        questCompleted = null,
                         questDeadline = timeProvider.now().plusYears(10),
                         userId = action.state!!.userId,
                         scenarioRestartCount = 0,
@@ -931,6 +952,7 @@ internal class EngineTest {
             0,
             null,
             timeProvider.now(),
+            null,
             UUID.randomUUID(),
             2,
         timeProvider.now())
@@ -1300,6 +1322,7 @@ internal class EngineTest {
                         currentQuest = 0,
                         questDeadline = timeProvider.now().plusYears(10),
                         questStarted = timeProvider.now(),
+                        questCompleted = null,
                         userId = existingState?.userId ?: action.state!!.userId,
                         scenarioRestartCount =
                             if (existingState?.scenario == scenario.name) {
@@ -1452,6 +1475,7 @@ internal class EngineTest {
         currentQuest.order,
         currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
         timeProvider.now().minusMinutes(1),
+        null,
         UUID.randomUUID(),
         5,
         timeProvider.now().minusHours(1)

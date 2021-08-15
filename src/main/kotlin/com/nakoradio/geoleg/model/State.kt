@@ -12,6 +12,7 @@ data class State(
     val questDeadline: OffsetDateTime?,
 
     val questStarted: OffsetDateTime,
+    val questCompleted: OffsetDateTime?,
     val userId: UUID,
     val scenarioRestartCount: Int,
 
@@ -24,6 +25,7 @@ data class State(
             0,
             time.now().minusDays(100),
             time.now(),
+            null,
             UUID.randomUUID(),
             0,
         time.now())
