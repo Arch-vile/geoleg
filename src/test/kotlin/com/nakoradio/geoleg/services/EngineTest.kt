@@ -1118,20 +1118,18 @@ internal class EngineTest {
         @Test
         fun `fail if location is not close enough to current quest's endpoint`() {
             // Given: Location that is not close to current quest's end point
-            val locationString = LocationReading(
+            val location = LocationReading(
                 // About 200 meters off
-                questToStart.location!!.lat + 0.002, questToStart.location!!.lon,
+                currentQuest.location!!.lat + 0.002, currentQuest.location!!.lon,
                 timeProvider.now()
-            ).asString()
-
-            // And: Valid state
-            val state = State.empty(timeProvider)
-                .copy(scenario = scenario.name, currentQuest = questToStart.order - 1)
+            )
 
             // When: Starting the quest
             val error = assertThrows<TechnicalError> {
-                engine.startQuest(state, scenario.name, 2, questToStart.secret, locationString)
+                clickGO(currentState,scenario,questToStart,location)
             }
+
+            // Then: Error about location
             assertThat(error.message, equalTo("Bad gps accuracy"))
         }
 
