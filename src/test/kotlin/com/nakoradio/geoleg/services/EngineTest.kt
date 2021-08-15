@@ -1260,36 +1260,28 @@ internal class EngineTest {
     }
 
     @Nested
-    inner class `Completing the last quest` {
+    inner class `Running last quest` {
 
         val scenario = loader.table.scenarios[1]
-        val questToComplete = scenario.quests[3]
+        val questToComplete = scenario.quests.last()
+        val state = state(scenario,questToComplete)
 
         @Test
-        fun `success`() {
-            // Given: Valid state to complete this quest
-            val state = validStateToComplete()
-
-            // When: Completing the quest
-            val viewModel = engine.complete(
-                state,
-                scenario.name,
-                questToComplete.order,
-                questToComplete.secret,
-                freshLocation(questToComplete)
-            )
+        fun `Scenario success when scanning this QR`() {
+            // When: Scanning the last QR
+            val action = scanQR(state,scenario,questToComplete)
 
             // Then: Success page is shown
             assertThat(
-                viewModel as ScenarioEndViewModel,
+                action,
                 equalTo(
-                    ScenarioEndViewModel("quests/testing_3_success")
+                    WebAction(
+                    ScenarioEndViewModel("quests/testing_5_success"),
+                        state)
                 )
             )
         }
 
-        private fun validStateToComplete() =
-            state(scenario, questToComplete)
     }
 
     private fun freshLocation(questToStart: Quest) =
