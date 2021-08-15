@@ -196,8 +196,8 @@
           "secret": "65baf0aaaa4a",
           "fictionalClock": "091725ZSEP20",
           "location": {
-            "lat": 0.0,
-            "lon": 0.0
+            "lat": 63.291966,
+            "lon": 22.137799
           },
           "countdown": 120,
           "fictionalCountdown": 300,
