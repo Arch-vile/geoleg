@@ -1092,18 +1092,14 @@ internal class EngineTest {
         @Test
         fun `fail if location reading is not fresh enough`() {
             // Given: Location that is old
-            val locationString = LocationReading(
-                questToStart.location!!.lat, questToStart.location!!.lon,
+            val location = LocationReading(
+                currentQuest.location!!.lat, currentQuest.location!!.lon,
                 timeProvider.now().minusMinutes(2)
-            ).asString()
-
-            // And: Valid state
-            val state = State.empty(timeProvider)
-                .copy(scenario = scenario.name, currentQuest = questToStart.order - 1)
+            )
 
             // When: Starting the quest
             val error = assertThrows<TechnicalError> {
-                engine.startQuest(state, scenario.name, 2, questToStart.secret, locationString)
+                clickGO(currentState,scenario,questToStart,location)
             }
             assertThat(error.message, equalTo("Location not fresh"))
         }
