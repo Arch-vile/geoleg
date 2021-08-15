@@ -450,12 +450,19 @@ internal class EngineTest {
 
             @Test
             fun `Quest fail when starting earlier quest`() {
-                fail("not tested")
+// When: Starting earlier quest
+                var action = clickGO(currentState,scenario,previousQuest(scenario,currentQuest))
+
+                // Then: Quest failure
+                assertQuestFailed(action,currentState,currentQuest )
             }
 
             @Test
             fun `Quest fail when starting later quest`() {
-                fail("not tested")
+// When: Starting later quest
+                var action = clickGO(currentState,scenario,loader.questFor(scenario.name,currentQuest.order+2))
+                // Then: Quest failure
+                assertQuestFailed(action,currentState,currentQuest )
             }
         }
 
@@ -592,7 +599,11 @@ internal class EngineTest {
 
         @Test
         fun `Continue countdown when starting later quest`() {
-            fail("not tested")
+            // When: Starting later quest
+            var action = clickGO(currentState,scenario,loader.questFor(scenario.name,currentQuest.order+2))
+
+            // Then: Continue countdown
+            assertCountdownContinues(action,currentState,currentQuest)
         }
 
         // TODO: all tests from running 2nd quest
@@ -1249,7 +1260,7 @@ internal class EngineTest {
                 action,
                 equalTo(
                     WebAction(
-                    ScenarioEndViewModel("quests/testing_5_success"),
+                    ScenarioEndViewModel("quests/testing_6_success"),
                         state)
                 )
             )

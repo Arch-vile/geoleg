@@ -217,8 +217,21 @@
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_5_fail",
           "successPage": "quests/testing_5_success"
-        }
-      ]
+        },
+        {
+          "order": 6,
+          "name": "test7",
+          "secret": "sfdsfsff",
+          "fictionalClock": "091725ZSEP20",
+          "location": {
+            "lat": 60.344222,
+            "lon": 26.444449
+          },
+          "countdown": 120,
+          "fictionalCountdown": 300,
+          "failurePage": "quests/testing_6_fail",
+          "successPage": "quests/testing_6_success"
+        }]
     }
   ]
 }
