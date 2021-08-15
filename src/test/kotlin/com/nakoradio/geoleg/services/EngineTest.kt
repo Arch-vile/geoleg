@@ -273,7 +273,7 @@ internal class EngineTest {
             val outcome = loadCountdownPage(currentState, scenario, currentQuest)
 
             // Then: Countdown continues from where it was
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -282,7 +282,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, scenario.quests[4])
 
             // Then: Countdown continues
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -291,7 +291,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, scenario.quests[4], locationSomewhere())
 
             // Then: Countdown continues
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -338,7 +338,7 @@ internal class EngineTest {
                 clickGO(currentState, scenario, scenario.quests[4], locationFor(scenario.quests[4]))
 
             // Then: Countdown continues
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -347,7 +347,7 @@ internal class EngineTest {
             val outcome = clickGO(currentState, scenario, scenario.quests[4], locationSomewhere())
 
             // Then: Countdown continues
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
     }
 
@@ -477,7 +477,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
 
             // Then: Countdown continues
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -486,7 +486,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, scenario.quests[5])
 
             // Then: Countdown continues
-            assertCountdownReloaded(outcome, currentState, currentQuest)
+            assertCountdownContinues(outcome, currentState, currentQuest)
         }
 
         @Test
@@ -554,7 +554,7 @@ internal class EngineTest {
             val action = clickGO(currentState, scenario, currentQuest, currentQuest)
 
             // Then: Countdown continues
-            assertCountdownReloaded(action, currentState, currentQuest)
+            assertCountdownContinues(action, currentState, currentQuest)
         }
 
         /**
@@ -568,7 +568,7 @@ internal class EngineTest {
             val action = clickGO(currentState, scenario,  currentQuest, locationFor(nextQuest(scenario, currentQuest)))
 
             // Then: Countdown continues
-            assertCountdownReloaded(action, currentState, currentQuest)
+            assertCountdownContinues(action, currentState, currentQuest)
         }
 
         // TODO: all tests from running 2nd quest
@@ -1085,7 +1085,9 @@ internal class EngineTest {
     inner class `Starting Nth quest` {
 
         private val scenario = loader.table.scenarios[1]
-        private val questToStart = scenario.quests[2]
+        private val questToStart = scenario.quests[4]
+        private val currentQuest = previousQuest(scenario, questToStart)
+        private val currentState = state(scenario,currentQuest)
 
         @Test
         fun `fail if location reading is not fresh enough`() {
@@ -1154,40 +1156,16 @@ internal class EngineTest {
 
         /**
          * If we try to start current quest again, we should just keep on running it without
-         * changing anything. This could happen by going back in browser history.
+         * changing anything. This could happen by reloading the browser window.
          *
          */
         @Test
         fun `Trying to start quest again keeps it running`() {
-            // And: State with current quest being the quest you try to start
-            val state = State.empty(timeProvider)
-                .copy(scenario = scenario.name, currentQuest = questToStart.order)
+            // When: Starting this quest again
+            val action = clickGO(currentState,scenario,currentQuest,currentQuest)
 
-            // When: Starting the quest
-            val foo = engine.startQuest(
-                state,
-                scenario.name,
-                2,
-                questToStart.secret,
-                freshLocation(questToStart)
-            )
-
-            // Then: State is not changed
-            assertThat(foo.state, equalTo(state))
-
-            // And: Countdown page is shown
-            assertThat(
-                foo.modelAndView as CountdownViewModel,
-                equalTo(
-                    CountdownViewModel(
-                        timeProvider.now().toEpochSecond(),
-                        state.questDeadline!!.toEpochSecond(),
-                        questToStart.fictionalCountdown,
-                        questToStart.location!!.lat,
-                        questToStart.location!!.lon
-                    )
-                )
-            )
+            // Then: Just continue countdown
+            assertCountdownContinues(action,currentState,currentQuest)
         }
 
         @Test
@@ -1388,7 +1366,7 @@ internal class EngineTest {
         )
     }
 
-    private fun assertCountdownReloaded(
+    private fun assertCountdownContinues(
         outcome: WebAction,
         currentState: State,
         currentQuest: Quest
