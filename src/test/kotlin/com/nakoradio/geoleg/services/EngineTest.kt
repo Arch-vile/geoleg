@@ -298,7 +298,7 @@ internal class EngineTest {
         fun `Starting next quest successful`() {
             // When: Starting the next quest
             val nextQuest = nextQuest(scenario, currentQuest)
-            val outcome = clickGO(currentState, scenario, currentQuest, nextQuest)
+            val outcome = clickGO(currentState, scenario, nextQuest)
 
             // Then: Quest is started
             assertQuestStarted(outcome, currentState, nextQuest)
@@ -429,7 +429,7 @@ internal class EngineTest {
             @Test
             fun `Fail when restarting this quest near current QR`() {
                 // When: Restarting this quest
-                val action = clickGO(currentState, scenario, currentQuest, currentQuest)
+                val action = clickGO(currentState, scenario,  currentQuest)
 
                 // Then: Quest failed
                 assertQuestFailed(action,currentState,currentQuest)
@@ -551,7 +551,7 @@ internal class EngineTest {
         @Test
         fun `Continue countdown when restarting this quest near current QR`() {
             // When: Restarting this quest
-            val action = clickGO(currentState, scenario, currentQuest, currentQuest)
+            val action = clickGO(currentState, scenario, currentQuest)
 
             // Then: Countdown continues
             assertCountdownContinues(action, currentState, currentQuest)
@@ -1162,7 +1162,7 @@ internal class EngineTest {
         @Test
         fun `Trying to start quest again keeps it running`() {
             // When: Starting this quest again
-            val action = clickGO(currentState,scenario,currentQuest,currentQuest)
+            val action = clickGO(currentState,scenario,currentQuest)
 
             // Then: Just continue countdown
             assertCountdownContinues(action,currentState,currentQuest)
@@ -1451,10 +1451,10 @@ internal class EngineTest {
             location.asString()
         )
 
-    private fun clickGO(state: State, scenario: Scenario, current: Quest, questToStart: Quest) =
+    private fun clickGO(state: State, scenario: Scenario, questToStart: Quest) =
         engine.startQuest(
             state, scenario.name, questToStart.order, questToStart.secret,
-            freshLocation(current)
+            freshLocation(loader.currentQuest(state))
         )
 
     fun locationFor(quest: Quest) =
