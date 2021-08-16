@@ -28,6 +28,7 @@ data class State(
             null,
             UUID.randomUUID(),
             0,
-        time.now())
+            time.now()
+        )
     }
 }

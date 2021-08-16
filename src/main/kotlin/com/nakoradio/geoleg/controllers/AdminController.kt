@@ -38,7 +38,8 @@ class AdminController(
 
     @GetMapping("/qrLinks")
     fun qrLinks(): ModelAndView {
-        return ModelAndView("admin/qrLinks", "model",
+        return ModelAndView(
+            "admin/qrLinks", "model",
             qrController.QR_CODE_MAPPING.entries
         )
     }

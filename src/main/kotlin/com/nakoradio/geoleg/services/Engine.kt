@@ -62,13 +62,13 @@ class Engine(
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
         val currentQuest = loader.questFor(scenario, state.currentQuest)
 
-        // If DL has passed
-        if(hasQuestDLPassed(state)) {
+        // Current quest not been completed and DL has passed
+        if (hasQuestDLPassed(state) && state.questCompleted == null) {
             return questFailedAction(state, currentQuest)
         }
 
-        // Trying to start out of order quest. Keep on running current one
-        if (questOrderToStart != state.currentQuest + 1) {
+        // Trying to start out of order quest or start next before completing current. Keep on running current one
+        if (questOrderToStart != state.currentQuest + 1 || state.questCompleted == null) {
             logger.info("Trying to start out of order quest, show countdown of current")
             val countDownView = CountdownViewModel(
                 state.questStarted.toEpochSecond(),
@@ -79,7 +79,6 @@ class Engine(
             )
             return WebAction(countDownView, state)
         }
-
 
         // Trying to restart current quest
         if (questToStart.order == currentQuest.order) {
@@ -96,7 +95,8 @@ class Engine(
         var newState = state.copy(
             questStarted = timeProvider.now(),
             currentQuest = questOrderToStart,
-            questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) }
+            questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) },
+            questCompleted = null
         )
 
         var expiresAt =
@@ -134,14 +134,14 @@ class Engine(
 
         if (state.scenario != scenario) {
             logger.info("Restarting scenario due to state having different scenario: ${state.scenario}")
-            return restartScenario(scenario,state)
+            return restartScenario(scenario, state)
         }
 
         // Second QR (first on field qr) should always init the scenario. This allows users to
         // always start from the beginning even if still having time to complete current quest.
-        if( questOrder == 1 && state.currentQuest > 1) {
+        if (questOrder == 1 && state.currentQuest > 1) {
             logger.info("Restarting scenario as second QR was scanned")
-            return restartScenario(scenario,state)
+            return restartScenario(scenario, state)
         }
 
         // Trying to complete earlier quest while passed DL on later quest.
@@ -191,18 +191,17 @@ class Engine(
             questToComplete.order !== state.currentQuest
         ) {
             // If DL for current quest has passed, show failure page
-                if(hasQuestDLPassed(state)) {
-                    // If DL has passed but scanning the online or first on field QR. We should restart the scenario
-                    // instead of show the quest failure, as this would allow user to restart easily.
-                        if(questToComplete.order <= 1){
-                            logger.info("Restarting scenario due to quest DL passed: ${state.currentQuest}")
-            val quest = loader.questFor(scenario, 0)
-            return initScenario(state, state.scenario, quest.secret)
-                        }
-
-                    return questFailedAction(state, loader.currentQuest(state))
+            if (hasQuestDLPassed(state)) {
+                // If DL has passed but scanning the online or first on field QR. We should restart the scenario
+                // instead of show the quest failure, as this would allow user to restart easily.
+                if (questToComplete.order <= 1) {
+                    logger.info("Restarting scenario due to quest DL passed: ${state.currentQuest}")
+                    val quest = loader.questFor(scenario, 0)
+                    return initScenario(state, state.scenario, quest.secret)
                 }
 
+                return questFailedAction(state, loader.currentQuest(state))
+            }
 
             // The quest user was currently trying to complete
             val currentQuest = loader.currentQuest(state)
@@ -224,16 +223,40 @@ class Engine(
         quest.location!!.lon
     )
 
-
     private fun complete(scenario: String, questToComplete: Quest, locationString: String, state: State): WebAction {
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
 
-       val view = checkQuestCompletion(scenario, questToComplete, locationReading.toCoordinates(), state)
+        val location = locationReading.toCoordinates()
+        var view: ViewModel? = null
+//           checkQuestCompletion(scenario,
+//           questToComplete,
+//           locationReading.toCoordinates(), state)
 
-        val newState = state.copy()
-        return WebAction(
-            view, state)
+        var quest = questToComplete
+        if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest == quest.order) {
+            quest = loader.questFor(scenario, state.currentQuest)
+        }
+
+        assertEqual(scenario, state.scenario, "scenario completion")
+        assertEqual(quest.order, state.currentQuest, "quest matching")
+
+        // Let's use the location of the shared quest if applicable
+        questToComplete.location?.let { assertProximity(it, location) }
+
+        if (hasQuestDLPassed(state)) {
+            logger.info("Quest failed due to time running out")
+            return WebAction(questFailedView(quest), state)
+        } else {
+            logger.info("Quest completed successfully")
+            val newState = state.copy(questCompleted = timeProvider.now())
+            if (loader.isLastQuest(scenario, quest.order)) {
+                return WebAction(ScenarioEndViewModel(quest.successPage), newState)
+            } else {
+                val nextQuest = loader.questFor(scenario, quest.order + 1)
+                return WebAction(QuestEndViewModel(quest.successPage, nextQuest, quest), newState)
+            }
+        }
     }
 
     private fun restartScenario(scenario: String, state: State): WebAction {
@@ -246,32 +269,6 @@ class Engine(
             askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
             state
         )
-    }
-
-    private fun checkQuestCompletion(scenario: String, questToComplete: Quest, location: Coordinates, state: State): ViewModel {
-        var quest = questToComplete
-        if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest == quest.order) {
-            quest = loader.questFor(scenario, state.currentQuest)
-        }
-
-        assertEqual(scenario, state.scenario, "scenario completion")
-        assertEqual(quest.order, state.currentQuest, "quest matching")
-
-        // Let's use the location of the shared quest if applicable
-        questToComplete.location?.let { assertProximity(it, location) }
-
-        return if (hasQuestDLPassed(state)) {
-            logger.info("Quest failed due to time running out")
-            questFailedView(quest)
-        } else {
-            logger.info("Quest completed successfully")
-            if (loader.isLastQuest(scenario, quest.order)) {
-                ScenarioEndViewModel(quest.successPage)
-            } else {
-                val nextQuest = loader.questFor(scenario, quest.order + 1)
-                QuestEndViewModel(quest.successPage, nextQuest, quest)
-            }
-        }
     }
 
     private fun questFailedView(quest: Quest) = OnlyView(quest.failurePage)
