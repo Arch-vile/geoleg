@@ -251,6 +251,8 @@ class Engine(
             logger.info("Quest completed successfully")
             val newState = state.copy(questCompleted = timeProvider.now())
             if (loader.isLastQuest(scenario, quest.order)) {
+                val elapsed = Duration.ofSeconds(newState.scenarioStarted.toEpochSecond() - timeProvider.now().toEpochSecond())
+                logger.info("Scenario completed successfully in time: $elapsed")
                 return WebAction(ScenarioEndViewModel(quest.successPage), newState)
             } else {
                 val nextQuest = loader.questFor(scenario, quest.order + 1)

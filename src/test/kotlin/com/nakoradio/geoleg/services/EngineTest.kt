@@ -413,7 +413,7 @@ internal class EngineTest {
             @Nested
             inner class `Quest DL has expired` {
                 // Quest DL has expired
-                private val currentState = state(scenario,currentQuest)
+                private val currentState = state(scenario, currentQuest)
                     .copy(questDeadline = timeProvider.now().minusYears(1))
 
                 @Test
@@ -574,11 +574,10 @@ internal class EngineTest {
                         }
                         assertThat(error.message, equalTo("Location not fresh"))
                     }
-
                 }
 
                 @Nested
-                inner class `Starting another quest`{
+                inner class `Starting another quest` {
                     @Test
                     fun `Continue countdown when starting earlier quest`() {
                         // When: Starting earlier quest
@@ -608,7 +607,7 @@ internal class EngineTest {
                 }
 
                 @Nested
-                inner class `Restarting this quest`{
+                inner class `Restarting this quest` {
 
                     /**
                      * With reloading browser window
@@ -642,7 +641,7 @@ internal class EngineTest {
                 }
 
                 @Nested
-                inner class `Scanning some other QR`{
+                inner class `Scanning some other QR` {
                     @Test
                     fun `Continue countdown when scanning earlier QR`() {
                         // When: Scanning QR code of earlier quest
@@ -699,14 +698,8 @@ internal class EngineTest {
                         // Then: Restart the scenario
                         assertScenarioRestartAction(currentState, scenario, result)
                     }
-
                 }
-
-
             }
-
-
-
 
             // TODO: all tests from running 2nd quest
             // todo: expires while reading the success story. I.e. quest completed on time but expires before starting the next.
@@ -727,7 +720,8 @@ internal class EngineTest {
             private val currentState =
                 state(scenario, currentQuest)
                     .copy(
-                        questCompleted = timeProvider.now())
+                        questCompleted = timeProvider.now()
+                    )
 
             @Nested
             inner class `Starting next quest` {
@@ -764,13 +758,8 @@ internal class EngineTest {
                     assertCountdownStarted(action, currentState, nextQuest)
                 }
             }
-
         }
-
-
-
-
-        }
+    }
 
     @Nested
     inner class `Running quest that shares QR with previous quest` {
