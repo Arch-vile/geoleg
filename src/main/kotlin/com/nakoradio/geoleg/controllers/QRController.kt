@@ -45,7 +45,7 @@ class QRController(
         "6ecp98eu" to Pair("kelo", "/engine/complete/$scenarioName/5/$quest5Secret"),
         "vyrusmvm" to Pair("masto", "/engine/complete/$scenarioName/6/$quest6Secret"),
         "2djzavs8" to Pair("helikopteri", "/engine/complete/$scenarioName/7/$quest7Secret"),
-        "kv96gnwe" to Pair("kallio", "/engine/complete/$scenarioName/8/$quest8Secret"),
+        "not used, shared QR kv96gnwe" to Pair("kallio", "/engine/complete/$scenarioName/8/$quest8Secret"),
         "hj7hujue" to Pair("Siilo", "/engine/complete/$scenarioName/9/$quest9Secret"),
         "44b6bscn" to Pair("compatibility", "/compatibility/qr?qr=ok")
     )
