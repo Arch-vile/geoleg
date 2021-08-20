@@ -34,7 +34,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q2_failure_17d522b044bc",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q2_success_2612a7062d96"
         },
         {
@@ -48,7 +48,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q3_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q3_success_8f9874319882"
         },
         {
@@ -62,7 +62,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q4_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q4_success_f512e6bf09db"
         },
         {
@@ -76,7 +76,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q5_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q5_success_bbc1c03a55c5"
         },
         {
@@ -90,7 +90,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q6_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q6_success_26c1589796e5"
         },
         {
@@ -104,7 +104,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q7_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q7_success_bf521a18fd10"
         },
         {
@@ -119,7 +119,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q8_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q8_success_8977523fdb9e"
         },
         {
@@ -133,7 +133,7 @@
           },
           "countdown": 1600,
           "fictionalCountdown": 13033,
-          "failurePage": "quests/s1q9_failure_c127bdc2e9cf",
+          "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q9_success_ced4d047b80e"
         }
       ]
