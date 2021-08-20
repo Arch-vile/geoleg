@@ -52,7 +52,10 @@ class EngineController(
         @PathVariable secret: String,
         response: HttpServletResponse
     ): ModelAndView {
-        val state = cookieManager.fromWebCookieMaybe(cookieData)
+        // Changes on state fields can cause deserialization errors, lets reset cookie then
+        val state = try { cookieManager.fromWebCookieMaybe(cookieData) } catch (e: Exception) {
+            null
+        }
         return processAction(response, engine.initScenario(state, scenario, secret))
     }
 
