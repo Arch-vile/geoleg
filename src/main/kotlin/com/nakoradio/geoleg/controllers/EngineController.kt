@@ -52,8 +52,9 @@ class EngineController(
         @PathVariable secret: String,
         response: HttpServletResponse
     ): ModelAndView {
+        // TODO: old type cookie handling should be applied to all endpoints. some way to reset state.
         // Changes on state fields can cause deserialization errors, lets reset cookie then
-        val state = try { cookieManager.fromWebCookieMaybe(cookieData) } catch (e: Exception) {
+        val state = try { cookieManager.fromWebCookieMaybe(cookieData) } catch (e: Throwable) {
             null
         }
         return processAction(response, engine.initScenario(state, scenario, secret))

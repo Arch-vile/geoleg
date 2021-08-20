@@ -18,8 +18,9 @@ class MDCFilter(val cookieManager: CookieManager) : Filter {
         val httpRequest = request as HttpServletRequest
 
         val cookieData = httpRequest.cookies?.find { it.name == COOKIE_NAME }?.value
+        // TODO: Need to think this handling of failing cookies. Add tests for sending bad cookies old type cookies.
         val cookie = cookieData?.let {
-            cookieManager.fromWebCookie(cookieData)
+            try { cookieManager.fromWebCookie(cookieData) } catch (e: Exception) { null }
         }
 
         val context = LogContext(httpRequest.requestURI, cookie)
