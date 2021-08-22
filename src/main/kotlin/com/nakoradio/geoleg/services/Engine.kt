@@ -35,7 +35,7 @@ class Engine(
         val quest = loader.questFor(scenario, 0, secret)
         val newState = State(
             scenario = scenario,
-            questDeadline = timeProvider.now().plusYears(10),
+            questDeadline = null,
             questStarted = timeProvider.now(),
             questCompleted = null,
             currentQuest = 0,
@@ -122,12 +122,14 @@ class Engine(
 
     fun complete(
         // todo: Should make checks for null states before calling this
+        // Tested out, we can just make the cookie non optional on controller
         state: State?,
         scenario: String,
         questOrder: Int,
         secret: String,
         locationString: String
     ): WebAction {
+        // We get rid of this check then
         if (state == null) {
             return WebAction(OnlyView("missingCookie"), null)
         }

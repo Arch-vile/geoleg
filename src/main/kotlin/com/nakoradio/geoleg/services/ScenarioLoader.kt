@@ -37,6 +37,8 @@ class ScenarioLoader(mapper: ObjectMapper) {
 
     fun currentQuest(state: State): Quest = questFor(state.scenario, state.currentQuest)
 
+    fun nextQuest(state: State): Quest = questFor(state.scenario, state.currentQuest+1)
+
     fun isLastQuest(scenario: String, questOrder: Int) =
         questOrder + 1 >= table.scenarios.find { it.name == scenario }
             ?.quests!!.size

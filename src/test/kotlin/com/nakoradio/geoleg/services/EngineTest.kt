@@ -43,6 +43,116 @@ internal class EngineTest {
         now = OffsetDateTime.now()
     }
 
+    @Test
+    fun `Happy flow entire scenario`() {
+        // Given: Testing the real scenario from config
+        val scenario = loader.table.scenarios[0]
+
+        // When: Scanning the first QR (will point to scenario init)
+       var action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
+
+       // Then: Scenario is initialized
+        assertThat(action, equalTo(
+            // User directed to complete first quest
+            WebAction(LocationReadingViewModel("/engine/complete/ancient-blood/0/6a5fc6c0f8ec",null,null),
+            // State initialized for scenario
+                State(scenario.name,0,null,timeProvider.now(),null,
+            action.state!!.userId,0,timeProvider.now()))
+        ))
+        var state = action.state!!
+        tick()
+
+        // User redirected to complete first quest, location does not matter
+        action = engine.complete(state,scenario.name,0, scenario.quests[0].secret,locationSomewhere().asString());
+
+        // Then: Quest completed
+        assertQuestCompleted(action, state)
+        state = action.state!!
+        tick()
+
+        // When: User starts next quest, this is the quest to the sign, again location where starting this does not matter
+        action = clickGO(state, loader.nextQuest(state), locationSomewhere());
+
+        // Then: Quest started
+        assertQuestStarted(action, state)
+        state = action.state!!
+        tick()
+
+        // When: User scans the first QR on the field
+        action = scanTargetQR(state)
+
+        // Then: Quest completed
+        assertQuestCompleted(action,state)
+        state = action.state!!
+        tick()
+
+        /**
+         * SILTA quest
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * KUUSI quest
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * KATAJA quest
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * KELO quest
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * MASTO quest
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * HELIKOPTERI quest
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * KATAJA quest (again)
+         */
+        state = startAndCompleteNextQuest(state)
+
+        /**
+         * SIILO quest
+         */
+        //state = startAndCompleteNextQuest(state)
+    }
+
+    private fun startAndCompleteNextQuest( currentState: State): State {
+        var state = currentState
+
+        // When: User starts the quest
+        var action = clickGO(state)
+
+        // Then: Quest started
+        assertQuestStarted(action, state)
+        state = action.state!!
+        tick()
+
+        // When: User completes the quest
+        action = scanTargetQR(state)
+
+        // Then: Quest completed
+        assertQuestCompleted(action, state)
+        state = action.state!!
+        tick()
+
+        return state
+    }
+
+    private fun tick() {
+        now = now.plusMinutes(5)
+    }
+
     /**
      * Flow for the first quest is:
      * 1) User scans the QR on Geocaching.com
@@ -1464,6 +1574,12 @@ internal class EngineTest {
     }
     fun assertQuestCompleted(
         outcome: WebAction,
+        currentState: State
+    ) =
+        assertQuestCompleted(outcome, currentState, loader.findScenario(currentState.scenario).quests[currentState.currentQuest],loader.findScenario(currentState.scenario))
+
+    fun assertQuestCompleted(
+        outcome: WebAction,
         currentState: State,
         questToComplete: Quest,
         // TODO: no need for the scenario argument here? can use state.
@@ -1484,6 +1600,9 @@ internal class EngineTest {
                 )
             )
         )
+    }
+    fun assertQuestStarted(outcome: WebAction, currentState: State) {
+       assertQuestStarted(outcome, currentState, loader.nextQuest(currentState))
     }
 
     fun assertQuestStarted(outcome: WebAction, currentState: State, questToStart: Quest) {
@@ -1598,6 +1717,10 @@ internal class EngineTest {
     private fun previousQuest(scenario: Scenario, currentQuest: Quest) =
         scenario.quests[currentQuest.order - 1]
 
+    // Scanning the QR of the current quest
+    private fun scanTargetQR(state: State?) =
+        scanQR(state, loader.findScenario(state!!.scenario),loader.currentQuest(state))
+
     // Calling engine complete is what happens when you scan the QR
     private fun scanQR(state: State?, scenario: Scenario, quest: Quest) =
         engine.complete(state, scenario.name, quest.order, quest.secret, freshLocation(quest))
@@ -1631,6 +1754,13 @@ internal class EngineTest {
     private fun clickGO(state: State, questToStart: Quest) =
         engine.startQuest(
             state, state.scenario, questToStart.order, questToStart.secret,
+            freshLocation(loader.currentQuest(state))
+        )
+
+    private fun clickGO(state: State) =
+        engine.startQuest(
+            state, state.scenario, state.currentQuest+1,
+            loader.nextQuest(state).secret,
             freshLocation(loader.currentQuest(state))
         )
 
