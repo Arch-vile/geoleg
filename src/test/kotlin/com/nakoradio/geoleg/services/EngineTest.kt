@@ -49,21 +49,28 @@ internal class EngineTest {
         val scenario = loader.table.scenarios[0]
 
         // When: Scanning the first QR (will point to scenario init)
-       var action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
+        var action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
 
-       // Then: Scenario is initialized
-        assertThat(action, equalTo(
-            // User directed to complete first quest
-            WebAction(LocationReadingViewModel("/engine/complete/ancient-blood/0/6a5fc6c0f8ec",null,null),
-            // State initialized for scenario
-                State(scenario.name,0,null,timeProvider.now(),null,
-            action.state!!.userId,0,timeProvider.now()))
-        ))
+        // Then: Scenario is initialized
+        assertThat(
+            action,
+            equalTo(
+                // User directed to complete first quest
+                WebAction(
+                    LocationReadingViewModel("/engine/complete/ancient-blood/0/6a5fc6c0f8ec", null, null),
+                    // State initialized for scenario
+                    State(
+                        scenario.name, 0, null, timeProvider.now(), null,
+                        action.state!!.userId, 0, timeProvider.now()
+                    )
+                )
+            )
+        )
         var state = action.state!!
         tick()
 
         // User redirected to complete first quest, location does not matter
-        action = engine.complete(state,scenario.name,0, scenario.quests[0].secret,locationSomewhere().asString());
+        action = engine.complete(state, scenario.name, 0, scenario.quests[0].secret, locationSomewhere().asString())
 
         // Then: Quest completed
         assertQuestCompleted(action, state)
@@ -71,7 +78,7 @@ internal class EngineTest {
         tick()
 
         // When: User starts next quest, this is the quest to the sign, again location where starting this does not matter
-        action = clickGO(state, loader.nextQuest(state), locationSomewhere());
+        action = clickGO(state, loader.nextQuest(state), locationSomewhere())
 
         // Then: Quest started
         assertQuestStarted(action, state)
@@ -82,7 +89,7 @@ internal class EngineTest {
         action = scanTargetQR(state)
 
         // Then: Quest completed
-        assertQuestCompleted(action,state)
+        assertQuestCompleted(action, state)
         state = action.state!!
         tick()
 
@@ -124,10 +131,10 @@ internal class EngineTest {
         /**
          * SIILO quest
          */
-        //state = startAndCompleteNextQuest(state)
+        // state = startAndCompleteNextQuest(state)
     }
 
-    private fun startAndCompleteNextQuest( currentState: State): State {
+    private fun startAndCompleteNextQuest(currentState: State): State {
         var state = currentState
 
         // When: User starts the quest
@@ -1576,7 +1583,7 @@ internal class EngineTest {
         outcome: WebAction,
         currentState: State
     ) =
-        assertQuestCompleted(outcome, currentState, loader.findScenario(currentState.scenario).quests[currentState.currentQuest],loader.findScenario(currentState.scenario))
+        assertQuestCompleted(outcome, currentState, loader.findScenario(currentState.scenario).quests[currentState.currentQuest], loader.findScenario(currentState.scenario))
 
     fun assertQuestCompleted(
         outcome: WebAction,
@@ -1602,7 +1609,7 @@ internal class EngineTest {
         )
     }
     fun assertQuestStarted(outcome: WebAction, currentState: State) {
-       assertQuestStarted(outcome, currentState, loader.nextQuest(currentState))
+        assertQuestStarted(outcome, currentState, loader.nextQuest(currentState))
     }
 
     fun assertQuestStarted(outcome: WebAction, currentState: State, questToStart: Quest) {
@@ -1719,7 +1726,7 @@ internal class EngineTest {
 
     // Scanning the QR of the current quest
     private fun scanTargetQR(state: State?) =
-        scanQR(state, loader.findScenario(state!!.scenario),loader.currentQuest(state))
+        scanQR(state, loader.findScenario(state!!.scenario), loader.currentQuest(state))
 
     // Calling engine complete is what happens when you scan the QR
     private fun scanQR(state: State?, scenario: Scenario, quest: Quest) =
@@ -1759,7 +1766,7 @@ internal class EngineTest {
 
     private fun clickGO(state: State) =
         engine.startQuest(
-            state, state.scenario, state.currentQuest+1,
+            state, state.scenario, state.currentQuest + 1,
             loader.nextQuest(state).secret,
             freshLocation(loader.currentQuest(state))
         )
