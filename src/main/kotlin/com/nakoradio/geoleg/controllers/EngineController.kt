@@ -73,7 +73,7 @@ class EngineController(
         @PathVariable locationString: String,
         response: HttpServletResponse
     ): ModelAndView {
-        val state = cookieManager.fromWebCookie(cookieData)
+        val state = cookieManager.fromWebCookieOrException(cookieData)
         return processAction(response, engine.startQuest(state, scenario, questToStart, secret, locationString))
     }
 
@@ -99,7 +99,7 @@ class EngineController(
         @PathVariable locationString: String,
         response: HttpServletResponse
     ): ModelAndView {
-        val state = cookieManager.fromWebCookie(cookieData)
+        val state = cookieManager.fromWebCookieOrException(cookieData)
         return processAction(
             response,
             engine.complete(state, scenario, questOrder, secret, locationString)
