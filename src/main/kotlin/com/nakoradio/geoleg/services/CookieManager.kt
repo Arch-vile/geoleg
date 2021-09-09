@@ -3,6 +3,7 @@ package com.nakoradio.geoleg.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nakoradio.geoleg.controllers.COOKIE_NAME
 import com.nakoradio.geoleg.model.State
+import org.springframework.core.MethodParameter
 import javax.servlet.http.Cookie
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.MissingRequestCookieException
@@ -29,6 +30,8 @@ class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
     // TODO: Bad cookie data format should be handled on more abstract level, in some interceptor
     fun fromWebCookieOrException(cookieData: String): State =
         try { fromWebCookie(cookieData) } catch (e: Exception) {
-            throw MissingRequestCookieException("yummy", null!!)
+            throw MissingCookieException()
         }
 }
+
+class MissingCookieException : Exception()

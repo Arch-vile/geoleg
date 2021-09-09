@@ -5,11 +5,13 @@ import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.CountdownViewModel
 import com.nakoradio.geoleg.services.Engine
 import com.nakoradio.geoleg.services.LocationReadingViewModel
+import com.nakoradio.geoleg.services.MissingCookieException
 import com.nakoradio.geoleg.services.ViewModel
 import com.nakoradio.geoleg.utils.Time
 import javax.servlet.http.HttpServletResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.CookieValue
@@ -117,8 +119,16 @@ class EngineController(
         processWebView(model)
 
     @ExceptionHandler(value = [MissingRequestCookieException::class])
-    fun missinCoookieHandler(ex: MissingRequestCookieException) =
-        ModelAndView("missingCookie", "msg", "doo")
+    fun missinCoookieHandler(ex: MissingRequestCookieException): ModelAndView {
+        logger.info("Handling MissingRequestCookieException.class")
+        return ModelAndView("missingCookie", "msg", "nothing to say")
+    }
+
+    @ExceptionHandler(value = [MissingCookieException::class])
+    fun missinCoookieHandler(ex: MissingCookieException): ModelAndView {
+        logger.info("Handling MissingCookieException.class")
+        return ModelAndView("missingCookie", "msg", "nothing to say")
+    }
 
     private fun processAction(response: HttpServletResponse, action: WebAction): ModelAndView {
         if (action.state == null) {
