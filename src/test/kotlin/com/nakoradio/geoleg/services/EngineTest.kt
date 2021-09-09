@@ -1596,17 +1596,21 @@ internal class EngineTest {
         )
     }
 
-    private fun stateForRunningQuest(scenario: Scenario, currentQuest: Quest) = State(
-        scenario.name,
-        currentQuest.order,
-        currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
-        // TODO: this should be in past?
-        timeProvider.now().minusMinutes(1),
-        null,
-        UUID.randomUUID(),
-        5,
-        timeProvider.now().minusHours(1)
-    )
+    private fun stateForRunningQuest(scenario: Scenario, currentQuest: Quest): State {
+        val state = State(
+            scenario.name,
+            currentQuest.order,
+            currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
+            timeProvider.now().minusMinutes(1),
+            null,
+            UUID.randomUUID(),
+            5,
+            timeProvider.now().minusHours(1)
+        )
+        // Let's tick the time to reflect reality of actual state being older then current time
+        tick()
+        return state
+    }
 
     private fun nextQuest(scenario: Scenario, currentQuest: Quest) =
         scenario.quests[currentQuest.order + 1]
