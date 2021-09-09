@@ -202,7 +202,7 @@ internal class EngineTest {
 
         private val scenario = loader.table.scenarios[1]
         private val currentQuest = scenario.quests[0]
-        private val currentState = state(scenario, currentQuest).copy(questCompleted = timeProvider.now())
+        private val currentState = stateForRunningQuest(scenario, currentQuest).copy(questCompleted = timeProvider.now())
 
         /**
          * Init scenario will redirect to this action to automatically complete
@@ -350,7 +350,7 @@ internal class EngineTest {
         private val currentQuest = scenario.quests[1]
 
         // Second quest has unlimited time to complete
-        private val currentState = state(scenario, currentQuest)
+        private val currentState = stateForRunningQuest(scenario, currentQuest)
 
         @Test
         fun `Second quest has no DL`() {
@@ -493,7 +493,7 @@ internal class EngineTest {
         private val currentQuest = scenario.quests[1]
 
         // Second quest has unlimited time to complete
-        private val currentState = state(scenario, currentQuest).copy(questCompleted = timeProvider.now())
+        private val currentState = stateForRunningQuest(scenario, currentQuest).copy(questCompleted = timeProvider.now())
 
         @Test
         fun `Starting next quest fails if expired location`() {
@@ -548,12 +548,12 @@ internal class EngineTest {
          */
         @Nested
         inner class `Quest ongoing` {
-            private val currentState = state(scenario, currentQuest)
+            private val currentState = stateForRunningQuest(scenario, currentQuest)
 
             @Nested
             inner class `Quest DL has expired` {
                 // Quest DL has expired
-                private val currentState = state(scenario, currentQuest)
+                private val currentState = stateForRunningQuest(scenario, currentQuest)
                     .copy(questDeadline = timeProvider.now().minusYears(1))
 
                 @Test
@@ -858,7 +858,7 @@ internal class EngineTest {
         @Nested
         inner class `Quest completed` {
             private val currentState =
-                state(scenario, currentQuest)
+                stateForRunningQuest(scenario, currentQuest)
                     .copy(
                         questCompleted = timeProvider.now()
                     )
@@ -867,13 +867,11 @@ internal class EngineTest {
             inner class `Starting next quest` {
                 @Test
                 fun `Successfully start next quest`() {
-                    val nextQuest = nextQuest(scenario, currentQuest)
-
                     // When: Starting next quest
-                    val action = clickGO(currentState, nextQuest)
+                    val action = clickGO(currentState)
 
                     // Then: Countdown for the next quest
-                    assertCountdownStarted(action, currentState, nextQuest)
+                    assertQuestStarted(action, currentState)
                 }
 
                 /**
@@ -894,8 +892,8 @@ internal class EngineTest {
                     // When: Starting next quest
                     val action = clickGO(state, nextQuest)
 
-                    // Then: Countdown for the next quest
-                    assertCountdownStarted(action, currentState, nextQuest)
+                    // Then: Quest is started
+                    assertQuestStarted(action, currentState)
                 }
             }
         }
@@ -907,7 +905,7 @@ internal class EngineTest {
         // Quest 4 is reusing quest 2 QR
         private val scenario = loader.table.scenarios[1]
         private val currentQuest = scenario.quests[4]
-        private val currentState = state(scenario, currentQuest)
+        private val currentState = stateForRunningQuest(scenario, currentQuest)
         private val sharedQuest = scenario.quests[2]
 
         @Test
@@ -1017,61 +1015,13 @@ internal class EngineTest {
 
         val scenario = loader.table.scenarios[0]
 
-        /**
-         * We should allow "restarting" a quest, of course not resetting the countdown. This allows
-         * reloading the start quest page (the countdown view) without ending up in error.
-         *
-         * Use case is:
-         * 1. User completes the quest
-         * 2. On the countdown view user reloads the page (so basically requests the quest start action)
-         *
-         * We should show to countdown view.
-         */
-        // TODO: This test should use the helpers
-        @Test
-        fun `Restarting quest by requesting again the start quest url`() {
-            // Given: User is currently doing quest 3
-            val currentQuest = scenario.quests[3]
-            val previousQuest = scenario.quests[2]
-
-            // Given: State is set for running quest 3
-            val state = state(scenario, currentQuest)
-
-            // When: Restarting the quest
-            val (viewModel, newState) = engine.startQuest(
-                state,
-                scenario.name,
-                currentQuest.order,
-                currentQuest.secret,
-                freshLocation(previousQuest)
-            )
-
-            // Then: State is not changed
-            assertThat(newState, equalTo(state))
-
-            // And: Countdown page shown
-            // Then: Redirected to countdown page
-            assertThat(
-                viewModel as CountdownViewModel,
-                equalTo(
-                    CountdownViewModel(
-                        now = state.questStarted.toEpochSecond(),
-                        lat = currentQuest.location!!.lat,
-                        lon = currentQuest.location!!.lon,
-                        expiresAt = state.questDeadline!!.toEpochSecond(),
-                        fictionalCountdown = currentQuest.fictionalCountdown
-                    )
-                )
-            )
-        }
-
         @Test
         fun `trying to complete first quest of non existing scenario`() {
             // Given: User has state set for completing the intro quest
             // When: Completing intro for non existing scenario
             assertThrows<TechnicalError> {
                 engine.complete(
-                    state(scenario, scenario.quests[0]),
+                    stateForRunningQuest(scenario, scenario.quests[0]),
                     "other scenario",
                     0,
                     scenario.quests[0].secret,
@@ -1088,7 +1038,7 @@ internal class EngineTest {
         @Test
         fun `Scanning any on field QR of another scenario restart the scenario of the scanned QR`() {
             // Given: User has the wrong scenario
-            val state = state(scenario, scenario.quests[3]).copy(
+            val state = stateForRunningQuest(scenario, scenario.quests[3]).copy(
                 scenario = "wrong scenario"
             )
 
@@ -1102,7 +1052,7 @@ internal class EngineTest {
         @Test
         fun `Failure when starting quest of another scenario`() {
             // Given: State that has different scenario
-            val state = state(scenario, scenario.quests[2]).copy(
+            val state = stateForRunningQuest(scenario, scenario.quests[2]).copy(
                 scenario = "this is not correct scenario"
             )
 
@@ -1126,7 +1076,7 @@ internal class EngineTest {
             // When: Trying to scan QR with malformed location string
             // Then: Error given
             val error = assertThrows<TechnicalError> {
-                val currentState = state(scenario, scenario.quests[3])
+                val currentState = stateForRunningQuest(scenario, scenario.quests[3])
                 engine.complete(
                     currentState,
                     scenario.name,
@@ -1143,7 +1093,7 @@ internal class EngineTest {
             // When: Trying to complete quest with bad secret
             // Then: Error
             val error = assertThrows<TechnicalError> {
-                val currentState = state(scenario, scenario.quests[3])
+                val currentState = stateForRunningQuest(scenario, scenario.quests[3])
                 engine.complete(
                     currentState,
                     scenario.name,
@@ -1157,7 +1107,7 @@ internal class EngineTest {
 
         @Test
         fun `Start for the first quest should never be called`() {
-            val state = state(scenario, loader.questFor(scenario.name, 0))
+            val state = stateForRunningQuest(scenario, loader.questFor(scenario.name, 0))
             assertThrows<KotlinNullPointerException> {
                 clickGO(state, scenario.quests[0])
             }
@@ -1179,7 +1129,7 @@ internal class EngineTest {
             val previousQuest = scenario.quests[2]
 
             // Given: State is set for running quest 3
-            val state = state(scenario, currentQuest)
+            val state = stateForRunningQuest(scenario, currentQuest)
 
             // When: Scanning the previous QR code, so basically trying to complete an earlier quest
             // Then: No state is returned, only view
@@ -1222,7 +1172,7 @@ internal class EngineTest {
     @Nested
     inner class `User has state for different scenario` {
         val currentScenario = loader.table.scenarios[0]
-        val currentState = state(currentScenario, currentScenario.quests[3])
+        val currentState = stateForRunningQuest(currentScenario, currentScenario.quests[3])
         val anotherScenario = loader.table.scenarios[1]
 
         @Test
@@ -1257,7 +1207,7 @@ internal class EngineTest {
         fun `trying to complete another scenario's intro with this scenario's secret`() {
             // Given: User has state set for completing the intro quest of current scenario
             val state =
-                state(currentScenario, currentScenario.quests[0])
+                stateForRunningQuest(currentScenario, currentScenario.quests[0])
 
             // When: Trying to complete a different scenario with this scenario's secret
             val scenarioNameOfAnotherExistingScenario = anotherScenario.name
@@ -1282,7 +1232,7 @@ internal class EngineTest {
             val scenario = loader.table.scenarios[0]
 
             // Given: State with old dates and later quest order
-            val existingState = state(scenario, scenario.quests[4])
+            val existingState = stateForRunningQuest(scenario, scenario.quests[4])
                 .copy(
                     questStarted = timeProvider.now().minusDays(39),
                     questDeadline = timeProvider.now().minusDays(20)
@@ -1318,7 +1268,7 @@ internal class EngineTest {
             val scenario = loader.table.scenarios[0]
 
             // Given: State for another scenario
-            val existingState = state(scenario, scenario.quests[0])
+            val existingState = stateForRunningQuest(scenario, scenario.quests[0])
                 .copy(scenario = "the other scenario")
 
             // When: scenario is initialized
@@ -1402,7 +1352,7 @@ internal class EngineTest {
         private val scenario = loader.table.scenarios[1]
         private val questToStart = scenario.quests[4]
         private val currentQuest = previousQuest(scenario, questToStart)
-        private val currentState = state(scenario, currentQuest).copy(questCompleted = timeProvider.now())
+        private val currentState = stateForRunningQuest(scenario, currentQuest).copy(questCompleted = timeProvider.now())
 
         @Test
         fun `fail if location reading is not fresh enough`() {
@@ -1476,50 +1426,6 @@ internal class EngineTest {
             // Then: Just continue countdown
             assertCountdownContinues(action, currentState, currentQuest)
         }
-
-        // TODO: This test should use the helpers
-        @Test
-        fun `quest successfully started`() {
-            // When: Starting the quest
-            val (viewModel, newState) =
-                engine.startQuest(
-                    currentState,
-                    scenario.name,
-                    questToStart.order,
-                    questToStart.secret,
-                    // At the location of previous quest
-                    freshLocation(currentQuest)
-                )
-
-            // Then: Redirected to countdown page
-            assertThat(
-                viewModel as CountdownViewModel,
-                equalTo(
-                    CountdownViewModel(
-                        now = newState!!.questStarted.toEpochSecond(),
-                        lat = questToStart.location!!.lat,
-                        lon = questToStart.location!!.lon,
-                        expiresAt = newState!!.questDeadline!!.toEpochSecond(),
-                        fictionalCountdown = questToStart.fictionalCountdown
-                    )
-                )
-            )
-
-            assertThat(
-                newState,
-                equalTo(
-                    currentState.copy(
-                        // And: New state is updated with deadline accordingly to quest spec
-                        questDeadline = timeProvider.now().plusSeconds(questToStart.countdown!!),
-                        // Ans: questStarted timestamp update
-                        questStarted = timeProvider.now(),
-                        // And: current quest set to the one to start
-                        currentQuest = questToStart.order,
-                        questCompleted = null
-                    )
-                )
-            )
-        }
     }
 
     @Nested
@@ -1527,7 +1433,7 @@ internal class EngineTest {
 
         val scenario = loader.table.scenarios[1]
         val questToComplete = scenario.quests.last()
-        val state = state(scenario, questToComplete)
+        val state = stateForRunningQuest(scenario, questToComplete)
 
         @Test
         fun `Scenario success when scanning this QR`() {
@@ -1652,35 +1558,6 @@ internal class EngineTest {
         )
     }
 
-    private fun assertCountdownStarted(
-        outcome: WebAction,
-        currentState: State,
-        questToStart: Quest
-    ) {
-        val questDL = timeProvider.now().plusSeconds(questToStart.countdown!!)
-        assertThat(
-            outcome,
-            equalTo(
-                WebAction(
-                    // Then: Countdown started
-                    CountdownViewModel(
-                        timeProvider.now().toEpochSecond(),
-                        questDL.toEpochSecond(),
-                        questToStart.fictionalCountdown,
-                        questToStart.location!!.lat,
-                        questToStart.location!!.lon
-                    ),
-                    // And: State updated for new quest
-                    currentState.copy(
-                        currentQuest = questToStart.order,
-                        questDeadline = questDL,
-                        questStarted = timeProvider.now(),
-                        questCompleted = null
-                    )
-                )
-            )
-        )
-    }
     private fun assertCountdownContinues(
         outcome: WebAction,
         currentState: State,
@@ -1719,10 +1596,11 @@ internal class EngineTest {
         )
     }
 
-    private fun state(scenario: Scenario, currentQuest: Quest) = State(
+    private fun stateForRunningQuest(scenario: Scenario, currentQuest: Quest) = State(
         scenario.name,
         currentQuest.order,
         currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
+        // TODO: this should be in past?
         timeProvider.now().minusMinutes(1),
         null,
         UUID.randomUUID(),
