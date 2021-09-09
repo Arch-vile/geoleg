@@ -1144,15 +1144,16 @@ internal class EngineTest {
     inner class `User has state for unknown scenario` {
 
         // Given: State has unknown scenario (only possible if scenarios renamed or removed)
-        val currentState = State(
+        val currentState =
+            State(
             "unknown",
             0,
             null,
-            timeProvider.now(),
+            timeProvider.now().minusMinutes(3),
             null,
             UUID.randomUUID(),
             2,
-            timeProvider.now()
+            timeProvider.now().minusMinutes(10)
         )
 
         @Test
