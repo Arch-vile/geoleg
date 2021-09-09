@@ -131,9 +131,30 @@ internal class EngineTest {
         /**
          * SIILO quest
          */
-        // state = startAndCompleteNextQuest(state)
+        // When: User starts the quest
+        action = clickGO(state)
 
-        //missing scenario finish test
+        // Then: Quest started
+        assertQuestStarted(action, state)
+        state = action.state!!
+        tick()
+
+        // When: User completes the quest
+        action = scanTargetQR(state)
+
+        // Then: Quest completed
+        assertThat(
+            action,
+            equalTo(
+                WebAction(
+                    // Then: Show quest success view
+                    ScenarioEndViewModel(loader.currentQuest(state).successPage),
+                    // And: Quest completion marked to state
+                    state.copy(questCompleted = timeProvider.now())
+                )
+            )
+        )
+        tick()
     }
 
     private fun startAndCompleteNextQuest(currentState: State): State {
