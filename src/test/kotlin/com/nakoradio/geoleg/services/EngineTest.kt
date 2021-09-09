@@ -60,7 +60,7 @@ internal class EngineTest {
                     LocationReadingViewModel("/engine/complete/ancient-blood/0/6a5fc6c0f8ec", null, null),
                     // State initialized for scenario
                     State(
-                        scenario.name, 0, null, timeProvider.now(), null,
+                        scenario.name, 0, timeProvider.now().plusYears(10), timeProvider.now(), null,
                         action.state!!.userId, 0, timeProvider.now()
                     )
                 )
@@ -132,6 +132,8 @@ internal class EngineTest {
          * SIILO quest
          */
         // state = startAndCompleteNextQuest(state)
+
+        //missing scenario finish test
     }
 
     private fun startAndCompleteNextQuest(currentState: State): State {

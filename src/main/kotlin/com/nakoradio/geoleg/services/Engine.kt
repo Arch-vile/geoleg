@@ -35,7 +35,8 @@ class Engine(
         val quest = loader.questFor(scenario, 0, secret)
         val newState = State(
             scenario = scenario,
-            questDeadline = null,
+            // TODO: not sure why we want set this? to avoid having null?
+            questDeadline = timeProvider.now().plusYears(10),
             questStarted = timeProvider.now(),
             questCompleted = null,
             currentQuest = 0,
