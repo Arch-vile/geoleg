@@ -13,6 +13,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -132,7 +133,7 @@ internal class EngineTest {
          * SIILO quest
          */
         // When: User starts the quest
-        action = clickGO(state)
+        action = startNextQuest(state)
 
         // Then: Quest started
         assertQuestStarted(action, state)
@@ -161,7 +162,7 @@ internal class EngineTest {
         var state = currentState
 
         // When: User starts the quest
-        var action = clickGO(state)
+        var action = startNextQuest(state)
 
         // Then: Quest started
         assertQuestStarted(action, state)
@@ -435,7 +436,7 @@ internal class EngineTest {
         fun `Starting next quest before completing this keeps countdown running`() {
             // When: Starting the next quest
             val nextQuest = nextQuest(scenario, currentQuest)
-            val outcome = clickGO(currentState, nextQuest)
+            val outcome = startQuest(currentState, nextQuest)
 
             // Then: Countdown keeps running
             assertCountdownContinues(outcome, currentState, currentQuest)
@@ -470,7 +471,7 @@ internal class EngineTest {
         @Test
         fun `Starting later quest should keep on running countdown`() {
             // When: Trying to start upcoming quest
-            val outcome = clickGO(currentState, scenario.quests[4])
+            val outcome = startQuest(currentState, scenario.quests[4])
 
             // Then: Countdown continues
             assertCountdownContinues(outcome, currentState, currentQuest)
@@ -527,7 +528,7 @@ internal class EngineTest {
         fun `Starting next quest successful`() {
             // When: Starting the next quest
             val nextQuest = nextQuest(scenario, currentQuest)
-            val outcome = clickGO(currentState, nextQuest)
+            val outcome = startQuest(currentState, nextQuest)
 
             // Then: Quest is started
             assertQuestStarted(outcome, currentState, nextQuest)
@@ -619,7 +620,7 @@ internal class EngineTest {
                 @Test
                 fun `Quest fail when restarting this quest near current QR`() {
                     // When: Restarting this quest
-                    val action = clickGO(currentState, currentQuest)
+                    val action = startQuest(currentState, currentQuest)
 
                     // Then: Quest failed
                     assertQuestFailed(action, currentState, currentQuest)
@@ -645,7 +646,7 @@ internal class EngineTest {
                 @Test
                 fun `Quest fail when starting earlier quest`() {
 // When: Starting earlier quest
-                    var action = clickGO(currentState, previousQuest(scenario, currentQuest))
+                    var action = startQuest(currentState, previousQuest(scenario, currentQuest))
 
                     // Then: Quest failure
                     assertQuestFailed(action, currentState, currentQuest)
@@ -654,7 +655,7 @@ internal class EngineTest {
                 @Test
                 fun `Quest fail when starting later quest`() {
 // When: Starting later quest
-                    var action = clickGO(
+                    var action = startQuest(
                         currentState,
                         loader.questFor(scenario.name, currentQuest.order + 2)
                     )
@@ -665,7 +666,7 @@ internal class EngineTest {
                 @Test
                 fun `Quest fail when starting next quest`() {
 // When: Starting later quest
-                    var action = clickGO(currentState, nextQuest(scenario, currentQuest))
+                    var action = startQuest(currentState, nextQuest(scenario, currentQuest))
 
                     // Then: Quest failure
                     assertQuestFailed(action, currentState, currentQuest)
@@ -721,7 +722,7 @@ internal class EngineTest {
                     @Test
                     fun `Continue countdown when starting earlier quest`() {
                         // When: Starting earlier quest
-                        var action = clickGO(currentState, previousQuest(scenario, currentQuest))
+                        var action = startQuest(currentState, previousQuest(scenario, currentQuest))
 
                         // Then: Continue countdown
                         assertCountdownContinues(action, currentState, currentQuest)
@@ -730,7 +731,7 @@ internal class EngineTest {
                     @Test
                     fun `Continue countdown when starting later quest`() {
                         // When: Starting later quest
-                        var action = clickGO(currentState, loader.questFor(scenario.name, currentQuest.order + 2))
+                        var action = startQuest(currentState, loader.questFor(scenario.name, currentQuest.order + 2))
 
                         // Then: Continue countdown
                         assertCountdownContinues(action, currentState, currentQuest)
@@ -739,7 +740,7 @@ internal class EngineTest {
                     @Test
                     fun `Continue countdown when starting next quest`() {
                         // When: Starting next quest, without completing current one
-                        var action = clickGO(currentState, nextQuest(scenario, currentQuest))
+                        var action = startQuest(currentState, nextQuest(scenario, currentQuest))
 
                         // Then: Continue countdown
                         assertCountdownContinues(action, currentState, currentQuest)
@@ -755,7 +756,7 @@ internal class EngineTest {
                     @Test
                     fun `Continue countdown when near start point`() {
                         // When: Restarting this quest
-                        val action = clickGO(currentState, currentQuest)
+                        val action = startQuest(currentState, currentQuest)
 
                         // Then: Countdown continues
                         assertCountdownContinues(action, currentState, currentQuest)
@@ -868,7 +869,7 @@ internal class EngineTest {
                 @Test
                 fun `Successfully start next quest`() {
                     // When: Starting next quest
-                    val action = clickGO(currentState)
+                    val action = startNextQuest(currentState)
 
                     // Then: Countdown for the next quest
                     assertQuestStarted(action, currentState)
@@ -890,7 +891,7 @@ internal class EngineTest {
                     )
 
                     // When: Starting next quest
-                    val action = clickGO(state, nextQuest)
+                    val action = startQuest(state, nextQuest)
 
                     // Then: Quest is started
                     assertQuestStarted(action, currentState)
@@ -1109,7 +1110,7 @@ internal class EngineTest {
         fun `Start for the first quest should never be called`() {
             val state = stateForRunningQuest(scenario, loader.questFor(scenario.name, 0))
             assertThrows<KotlinNullPointerException> {
-                clickGO(state, scenario.quests[0])
+                startQuest(state, scenario.quests[0])
             }
         }
 
@@ -1422,7 +1423,7 @@ internal class EngineTest {
         @Test
         fun `Trying to start quest again keeps it running`() {
             // When: Starting this quest again
-            val action = clickGO(currentState, currentQuest)
+            val action = startQuest(currentState, currentQuest)
 
             // Then: Just continue countdown
             assertCountdownContinues(action, currentState, currentQuest)
@@ -1635,6 +1636,7 @@ internal class EngineTest {
     private fun loadCountdownPage(state: State, scenario: Scenario, quest: Quest) =
         engine.startQuest(state, scenario.name, quest.order, quest.secret, freshLocation(quest))
 
+    // TODO: rename as others below
     // Clicking GO calls the engine start quest
     private fun clickGO(
         state: State,
@@ -1649,18 +1651,20 @@ internal class EngineTest {
             location.asString()
         )
 
-    private fun clickGO(state: State, questToStart: Quest) =
+    private fun startQuest(state: State, questToStart: Quest): WebAction =
         engine.startQuest(
-            state, state.scenario, questToStart.order, questToStart.secret,
-            freshLocation(loader.currentQuest(state))
-        )
+        state, state.scenario, questToStart.order, questToStart.secret,
+        freshLocation(loader.currentQuest(state))
+    )
 
-    private fun clickGO(state: State) =
-        engine.startQuest(
+    private fun startNextQuest(state: State): WebAction {
+        assertThat(state.questCompleted, notNullValue())
+        return engine.startQuest(
             state, state.scenario, state.currentQuest + 1,
             loader.nextQuest(state).secret,
             freshLocation(loader.currentQuest(state))
         )
+    }
 
     fun locationFor(quest: Quest) =
         LocationReading(quest.location!!.lat, quest.location!!.lon, timeProvider.now())
