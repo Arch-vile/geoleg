@@ -217,7 +217,7 @@ internal class EngineTest {
             )
 
             // Then: Show success page
-            assertQuestCompleted(action, currentState, currentQuest, scenario)
+            assertQuestCompleted(action, currentState)
         }
 
         /**
@@ -261,7 +261,7 @@ internal class EngineTest {
             )
 
             // Then: Quest completed again
-            assertQuestCompleted(outcome, currentState, currentQuest, scenario)
+            assertQuestCompleted(outcome, currentState)
         }
 
         /**
@@ -363,7 +363,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, currentQuest)
 
             // Then: Quest completed
-            assertQuestCompleted(outcome, currentState, currentQuest, scenario)
+            assertQuestCompleted(outcome, currentState)
         }
 
         @Test
@@ -375,7 +375,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, currentQuest)
 
             // Then: Quest completed, second quest has no deadline
-            assertQuestCompleted(outcome, currentState, currentQuest, scenario)
+            assertQuestCompleted(outcome, currentState)
         }
 
         @Test
@@ -684,7 +684,7 @@ internal class EngineTest {
                         val viewModel = scanQR(currentState, scenario, currentQuest)
 
                         // Then: Quest completed successfully
-                        assertQuestCompleted(viewModel, currentState, currentQuest, scenario)
+                        assertQuestCompleted(viewModel, currentState)
                     }
 
                     @Test
@@ -916,7 +916,7 @@ internal class EngineTest {
             val outcome = scanQR(currentState, scenario, sharedQuest)
 
             // Then: Quest successfully completed
-            assertQuestCompleted(outcome, currentState, currentQuest, scenario)
+            assertQuestCompleted(outcome, currentState)
         }
     }
 
@@ -1602,28 +1602,17 @@ internal class EngineTest {
             )
         )
     }
-    fun assertQuestCompleted(
-        outcome: WebAction,
-        currentState: State
-    ) =
-        assertQuestCompleted(outcome, currentState, loader.findScenario(currentState.scenario).quests[currentState.currentQuest], loader.findScenario(currentState.scenario))
 
-    fun assertQuestCompleted(
-        outcome: WebAction,
-        currentState: State,
-        questToComplete: Quest,
-        // TODO: no need for the scenario argument here? can use state.
-        scenario: Scenario
-    ) {
+    fun assertQuestCompleted( outcome: WebAction, currentState: State) {
         assertThat(
             outcome,
             equalTo(
                 WebAction(
                     // Then: Show quest success view
                     QuestEndViewModel(
-                        questToComplete.successPage,
-                        scenario.nextQuest(questToComplete),
-                        questToComplete
+                        loader.currentQuest(currentState).successPage,
+                        loader.nextQuest(currentState),
+                        loader.currentQuest(currentState)
                     ),
                     // And: Quest completion marked to state
                     currentState.copy(questCompleted = timeProvider.now())
