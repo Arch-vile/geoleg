@@ -840,15 +840,6 @@ internal class EngineTest {
                     }
                 }
             }
-
-            // TODO: all tests from running 2nd quest
-            // todo: expires while reading the success story. I.e. quest completed on time but expires before starting the next.
-
-            // TODO: Restarting quest with timeout expired
-
-            // TODO: Starting earlier quest
-            // TODO: after completeting the last quest, going back to start
-            // TODO: do a scenario walkthrough test
         }
 
         /**
@@ -1622,7 +1613,6 @@ internal class EngineTest {
         scenario.name,
         currentQuest.order,
         currentQuest.countdown?.let { timeProvider.now().plusSeconds(it) },
-        // TODO: this should be in past?
         timeProvider.now().minusMinutes(1),
         null,
         UUID.randomUUID(),
