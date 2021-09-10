@@ -53,6 +53,7 @@ class Engine(
      */
     fun startQuest(
         state: State,
+        // TODO: state has scenario, why need to take that as param at all? Would be safer to just use what is in state?
         scenario: String,
         questOrderToStart: Int,
         secret: String,
@@ -61,30 +62,24 @@ class Engine(
         // TODO: We should do these checks on the controller already?
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
-        val currentQuest = loader.questFor(scenario, state.currentQuest)
+
+        val currentQuest = loader.currentQuest(state)
 
         // Current quest not been completed and DL has passed
         if (hasQuestDLPassed(state) && state.questCompleted == null) {
+            // TODO: current quest can be determined from the state
             return questFailedAction(state, currentQuest)
         }
 
         // Trying to start out of order quest or start next before completing current. Keep on running current one
         if (questOrderToStart != state.currentQuest + 1 || state.questCompleted == null) {
-            logger.info("Trying to start out of order quest, show countdown of current")
-            val countDownView = CountdownViewModel(
-                state.questStarted.toEpochSecond(),
-                state.questDeadline?.toEpochSecond(),
-                currentQuest.fictionalCountdown,
-                currentQuest.location!!.lat,
-                currentQuest.location!!.lon
-            )
-            return WebAction(countDownView, state)
+            logger.info("Trying to start out of order quest, showing countdown of current")
+            return WebAction(continueCountdownView(state), state)
         }
 
-        // Trying to restart current quest
+        // Trying to restart current quest, continue countdown
         if (questToStart.order == currentQuest.order) {
-            var countDownView = countdownViewModel(state, questToStart)
-            return WebAction(countDownView, state)
+            return WebAction(continueCountdownView(state), state)
         }
 
         currentQuest.location?.let {
@@ -100,13 +95,9 @@ class Engine(
             questCompleted = null
         )
 
-        var expiresAt =
-            questToStart.countdown?.let { timeProvider.now().plusSeconds(it).toEpochSecond() }
-        var now = timeProvider.now().toEpochSecond()
-        var countDownView = CountdownViewModel(now, expiresAt, questToStart.fictionalCountdown, questToStart.location!!.lat, questToStart.location!!.lon)
-
-        return WebAction(countDownView, newState)
+        return WebAction(createCountdownView(questToStart), newState)
     }
+
 
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
@@ -206,25 +197,12 @@ class Engine(
                 return questFailedAction(state, loader.currentQuest(state))
             }
 
-            // The quest user was currently trying to complete
-            val currentQuest = loader.currentQuest(state)
-            val view = countdownViewModel(state, currentQuest)
-            return WebAction(view, state)
+            return WebAction(continueCountdownView(state), state)
         }
 
         return complete(scenario, questToComplete, locationString, state)
     }
 
-    private fun countdownViewModel(
-        state: State,
-        quest: Quest
-    ) = CountdownViewModel(
-        state.questStarted.toEpochSecond(),
-        state.questDeadline?.toEpochSecond(),
-        quest.fictionalCountdown,
-        quest.location!!.lat,
-        quest.location!!.lon
-    )
 
     private fun complete(scenario: String, questToComplete: Quest, locationString: String, state: State): WebAction {
         val locationReading = LocationReading.fromString(locationString)
@@ -269,10 +247,31 @@ class Engine(
         return initScenario(state, scenario, quest.secret)
     }
 
-    private fun redirectToQuestCompleteThroughLocationReading(scenario: String, questToComplete: Quest, state: State): WebAction {
-        return WebAction(
-            askForLocation(questCompleteUrl(scenario, questToComplete), questToComplete),
-            state
+    private fun continueCountdownView(
+        state: State
+    ): CountdownViewModel {
+        val currentQuest = loader.currentQuest(state)
+        return CountdownViewModel(
+            state.questStarted.toEpochSecond(),
+            state.questDeadline?.toEpochSecond(),
+            currentQuest.fictionalCountdown,
+            currentQuest.location!!.lat,
+            currentQuest.location!!.lon,
+            currentQuest.message
+        )
+    }
+
+    private fun createCountdownView(forQuest: Quest ): CountdownViewModel {
+        val now = timeProvider.now()
+        var expiresAt =
+            forQuest.countdown?.let { now.plusSeconds(it).toEpochSecond() }
+        return CountdownViewModel(
+            now.toEpochSecond(),
+            expiresAt,
+            forQuest.fictionalCountdown,
+            forQuest.location?.lat,
+            forQuest.location?.lon,
+            forQuest.message
         )
     }
 

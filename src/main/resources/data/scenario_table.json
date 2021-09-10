@@ -111,12 +111,9 @@
           "order": 8,
           "sharedQrWithQuest": 4,
           "name": "Huippu 2",
+          "message": { "fiMessage": "Palaa puhelimelle" },
           "secret": "e359dec5aa1c",
           "fictionalClock": "091725ZSEP20",
-          "location": {
-            "lat": 60.291330,
-            "lon": 24.912280
-          },
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",

@@ -2,6 +2,7 @@ package com.nakoradio.geoleg.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.nakoradio.geoleg.model.LocalizedMessage
 import com.nakoradio.geoleg.model.LocationReading
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.Scenario
@@ -13,12 +14,14 @@ import java.time.OffsetDateTime
 import java.util.UUID
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.not
 import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 
 internal class EngineTest {
 
@@ -994,22 +997,82 @@ internal class EngineTest {
     }
 
     @Nested
-    inner class `Running quest that shares QR with previous quest` {
+    inner class `Quests that share QR codes` {
 
-        // Quest 4 is reusing quest 2 QR
-        private val scenario = loader.table.scenarios[1]
-        private val currentQuest = scenario.quests[4]
-        private val currentState = stateForRunningQuest(scenario, currentQuest)
-        private val sharedQuest = scenario.quests[2]
+        // Quest 8 is reusing quest 4 QR
+        private val scenario = loader.table.scenarios[0]
+        private val laterQuestWithSharedQR = scenario.quests[8]
+        private val earlierQuestWithSharedQR = scenario.quests[4]
 
-        @Test
-        fun `Can be completed with the shared QR`() {
-            // When: Completing the quest, with the shared QR of quest 2. Values come from URL params.
-            val outcome = scanQR(currentState, scenario, sharedQuest)
+        @Nested
+        inner class `Running the later quest` {
+            private val currentState = stateForRunningQuest(scenario, laterQuestWithSharedQR)
 
-            // Then: Quest successfully completed
-            assertQuestCompleted(outcome, currentState)
+            @Test
+            fun `Can be completed with the shared QR`() {
+                // When: Completing the quest, with the shared QR of quest 2. Values come from URL params.
+                val outcome = scanQR(currentState, scenario, earlierQuestWithSharedQR)
+
+                // Then: Quest successfully completed
+                assertQuestCompleted(outcome, currentState)
+            }
+
+            @Test
+            fun `Uses the location of the earlier QR quest`() {
+                // The later quest does not have location set
+                assertThat(laterQuestWithSharedQR.location, nullValue())
+
+                // Earlier quest has location
+                assertThat(earlierQuestWithSharedQR.location, not(nullValue()))
+
+                // Scanning QR will fail if not valid location
+               assertThrows<TechnicalError> {
+                scanQR(currentState,scenario,earlierQuestWithSharedQR, locationSomewhere())
+                }
+            }
         }
+
+        @Nested
+        inner class `Starting the later quest sharing the QR` {
+
+            // User has completed previous quest and is about to start the later quest that
+            // uses the shared QR
+            private val currentState =
+                stateForRunningQuest(scenario, previousQuest(scenario, laterQuestWithSharedQR))
+                    .copy(questCompleted = timeProvider.now().minusMinutes(1))
+
+            /**
+             * Small twist, user does not get the coordinates of the later quest to the shared
+             * location. They must identify it by the description given on the story.
+              */
+            @Test
+            fun `Countdown page should not show coordinates but message` () {
+                val outcome = startNextQuest(currentState)
+
+                assertThat(
+                    outcome,
+                    equalTo(
+                        WebAction(
+                            // Then: Show countdown view
+                            CountdownViewModel(
+                                timeProvider.now().toEpochSecond(),
+                                laterQuestWithSharedQR.countdown?.let {
+                                    timeProvider.now().plusSeconds(it).toEpochSecond()
+                                },
+                                laterQuestWithSharedQR.fictionalCountdown,
+                                null, null,
+                               LocalizedMessage("Palaa puhelimelle")
+                            ),
+                            // And: State is updated for the quest to start
+                            updatedStateForNewlyStartedQuest(currentState, laterQuestWithSharedQR)
+                        )
+                    )
+                )
+
+
+            }
+        }
+
     }
 
     /**
@@ -1467,10 +1530,11 @@ internal class EngineTest {
     }
 
     private fun freshLocation(questToStart: Quest) =
-        LocationReading(
+        if ( questToStart.location != null)
+            LocationReading(
             questToStart.location!!.lat, questToStart.location!!.lon,
             timeProvider.now()
-        ).asString()
+        ).asString() else locationSomewhere().asString()
 
     fun assertScenarioRestartAction(existingState: State?, scenario: Scenario, action: WebAction) {
         assertThat(
@@ -1555,21 +1619,27 @@ internal class EngineTest {
                             timeProvider.now().plusSeconds(it).toEpochSecond()
                         },
                         questToStart.fictionalCountdown,
-                        questToStart.location!!.lat, questToStart.location!!.lon
+                        questToStart.location?.lat, questToStart.location?.lon,
+                        questToStart.message
                     ),
                     // And: State is updated for the quest to start
-                    currentState.copy(
-                        currentQuest = questToStart.order,
-                        questStarted = timeProvider.now(),
-                        questDeadline = questToStart.countdown?.let {
-                            timeProvider.now().plusSeconds(it)
-                        },
-                        questCompleted = null
-                    )
+                    updatedStateForNewlyStartedQuest(currentState, questToStart)
                 )
             )
         )
     }
+
+    private fun updatedStateForNewlyStartedQuest(
+        currentState: State,
+        questToStart: Quest
+    ) = currentState.copy(
+        currentQuest = questToStart.order,
+        questStarted = timeProvider.now(),
+        questDeadline = questToStart.countdown?.let {
+            timeProvider.now().plusSeconds(it)
+        },
+        questCompleted = null
+    )
 
     private fun assertCountdownContinues(
         outcome: WebAction,
