@@ -15,6 +15,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.lang.IllegalStateException
 
 @Service
 class Engine(
@@ -59,6 +60,11 @@ class Engine(
         secret: String,
         locationString: String
     ): WebAction {
+        // Start for the first quest is never called as we go through the scenario init
+        if(questOrderToStart == 0) {
+            throw IllegalStateException("First quest should never be started")
+        }
+
         // TODO: We should do these checks on the controller already?
         assertEqual(state.scenario, scenario, "Bad cookie scenario")
         val questToStart = loader.questFor(scenario, questOrderToStart, secret)
@@ -255,8 +261,8 @@ class Engine(
             state.questStarted.toEpochSecond(),
             state.questDeadline?.toEpochSecond(),
             currentQuest.fictionalCountdown,
-            currentQuest.location!!.lat,
-            currentQuest.location!!.lon,
+            currentQuest.location?.lat,
+            currentQuest.location?.lon,
             currentQuest.message
         )
     }

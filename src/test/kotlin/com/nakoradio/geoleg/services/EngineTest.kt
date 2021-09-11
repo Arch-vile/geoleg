@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
+import java.lang.IllegalStateException
 
 internal class EngineTest {
 
@@ -308,7 +308,7 @@ internal class EngineTest {
          */
         @Test
         fun `Calling start URL of first quest will give error`() {
-            assertThrows<KotlinNullPointerException> {
+            assertThrows<IllegalStateException> {
                 engine.startQuest(
                     currentState,
                     scenario.name,
@@ -319,21 +319,17 @@ internal class EngineTest {
             }
         }
 
-        /**
-         * Starting a later quest should never happen. OK to fail.
-         */
         @Test
-        fun `Calling start URL of a later quest fail`() {
-            assertThrows<KotlinNullPointerException> {
+        fun `Calling start URL of a later quest will continue countdown`() {
                 // Trying to start a later quest
-                engine.startQuest(
+                val outcome = engine.startQuest(
                     currentState,
                     scenario.name,
                     3,
                     scenario.quests[3].secret,
                     freshLocation(scenario.quests[3])
                 )
-            }
+            assertCountdownContinues(outcome,currentState,loader.currentQuest(currentState))
         }
     }
 
@@ -749,39 +745,10 @@ internal class EngineTest {
                     }
                 }
 
+
                 @Nested
-                inner class `Restarting this quest` {
-
-                    /**
-                     * With reloading browser window
-                     */
-                    @Test
-                    fun `Continue countdown when near start point`() {
-                        // When: Restarting this quest
-                        val action = startQuest(currentState, currentQuest)
-
-                        // Then: Countdown continues
-                        assertCountdownContinues(action, currentState, currentQuest)
-                    }
-
-                    /**
-                     * User reloads browser window while already proceeded on current quest
-                     * outside the accepted range of the QR. Important for the user not to
-                     * loose the target coordinates.
-                     */
-                    @Test
-                    fun `Continue countdown when far from start point`() {
-                        // When: Restarting this quest
-                        val action = startQuest(
-                            currentState,
-                            currentQuest,
-                            locationFor(nextQuest(scenario, currentQuest))
-                        )
-
-                        // Then: Countdown continues
-                        assertCountdownContinues(action, currentState, currentQuest)
-                    }
-                }
+                inner class `Restarting current quest` :
+                    BaseTestClassForRestartingCurrentQuest(currentState)
 
                 @Nested
                 inner class `Scanning some other QR` {
@@ -994,6 +961,29 @@ internal class EngineTest {
 
             }
         }
+    }
+
+    @Nested
+    inner class `Quest without coordinates` {
+
+        @Nested
+        inner class `Running` {
+            private val scenario = loader.table.scenarios[0]
+            private val questWithoutCoordinates = scenario.quests[8]
+            private val currentState = stateForRunningQuest(scenario,questWithoutCoordinates)
+
+            @Test
+            fun `Asserting test preconditions`() {
+                // Just making sure that the quest actually does not have coordinates
+                assertThat(questWithoutCoordinates.location, nullValue())
+            }
+
+            @Nested
+            inner class `Restarting current quest` : BaseTestClassForRestartingCurrentQuest(currentState)
+
+
+        }
+
     }
 
     @Nested
@@ -1265,7 +1255,7 @@ internal class EngineTest {
         @Test
         fun `Start for the first quest should never be called`() {
             val state = stateForRunningQuest(scenario, loader.questFor(scenario.name, 0))
-            assertThrows<KotlinNullPointerException> {
+            assertThrows<IllegalStateException> {
                 startQuest(state, scenario.quests[0])
             }
         }
@@ -1641,6 +1631,7 @@ internal class EngineTest {
         questCompleted = null
     )
 
+    // TODO: isnt state enough argument?
     private fun assertCountdownContinues(
         outcome: WebAction,
         currentState: State,
@@ -1655,8 +1646,9 @@ internal class EngineTest {
                         currentState.questStarted.toEpochSecond(),
                         currentState.questDeadline?.let { it.toEpochSecond() },
                         currentQuest.fictionalCountdown,
-                        currentQuest.location!!.lat,
-                        currentQuest.location!!.lon
+                        currentQuest.location?.lat,
+                        currentQuest.location?.lon,
+                        currentQuest.message
                     ),
                     // And: State is not changed
                     currentState
@@ -1749,4 +1741,40 @@ internal class EngineTest {
 
     fun locationSomewhere() =
         LocationReading(2.0, 3.0, timeProvider.now())
+
+
+    abstract inner class BaseTestClassForRestartingCurrentQuest(val currentState: State) {
+
+        /**
+         * With reloading browser window
+         */
+        @Test
+        fun `Continue countdown when near start point`() {
+            // When: Restarting this quest
+            val action = startQuest(currentState, loader.currentQuest(currentState))
+
+            // Then: Countdown continues
+            assertCountdownContinues(action, currentState, loader.currentQuest(currentState))
+        }
+
+        /**
+         * User reloads browser window while already proceeded on current quest
+         * outside the accepted range of the QR. Important for the user not to
+         * loose the target coordinates.
+         */
+        @Test
+        fun `Continue countdown when far from start point`() {
+            // When: Restarting this quest
+            val action = startQuest(
+                currentState,
+                loader.currentQuest(currentState),
+                locationSomewhere()
+            )
+
+            // Then: Countdown continues
+            assertCountdownContinues(action, currentState, loader.currentQuest(currentState))
+        }
+    }
 }
+
+
