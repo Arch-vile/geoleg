@@ -5,7 +5,8 @@
 <body class="black">
 
 <h2 id="timer" class="clock"></h2>
-<h2 id="destination"></h2>
+<h2 th:classappend="${ model.lat == null ? 'hidden' : ''  }" id="destination"></h2>
+<h2 th:text="${model.message.fiMessage}"></h2>
 
 <script th:inline="javascript">
   // Let's keep the start timestamp so that we know how much time has passed. With this
