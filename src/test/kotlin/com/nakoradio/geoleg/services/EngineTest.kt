@@ -329,7 +329,7 @@ internal class EngineTest {
                 scenario.quests[3].secret,
                 freshLocation(scenario.quests[3])
             )
-            assertCountdownContinues(outcome, currentState, loader.currentQuest(currentState))
+            assertCountdownContinues(outcome, currentState)
         }
     }
 
@@ -344,143 +344,146 @@ internal class EngineTest {
      * countdown page (`/engine/start/:scenario/1/:secret/:location`)
      */
     @Nested
-    inner class `Running second quest` {
+    inner class `Second quest` {
 
         private val scenario = loader.table.scenarios[1]
         private val currentQuest = scenario.quests[1]
 
-        // Second quest has unlimited time to complete
-        private val currentState = stateForRunningQuest(scenario, currentQuest)
+        @Nested
+        inner class `Quest ongoing` {
 
-        @Test
-        fun `Second quest has no DL`() {
-            assertThat(currentState.questDeadline, nullValue())
-        }
+            // Second quest has unlimited time to complete
+            private val currentState = stateForRunningQuest(scenario, currentQuest)
 
-        @Test
-        fun `Scanning QR completes the quest`() {
-            //  When: Completing the quest
-            val outcome = scanQR(currentState, scenario, currentQuest)
 
-            // Then: Quest completed
-            assertQuestCompleted(outcome, currentState)
-        }
+            @Nested
+            inner class `Restarting current quest (common)` :
+                BaseTestClassForRestartingCurrentQuest(currentState)
 
-        @Test
-        fun `Scanning QR past deadline`() {
-            // Given: DL is long gone already
-            now = OffsetDateTime.now().plusYears(100)
 
-            // When: Scanning the QR
-            val outcome = scanQR(currentState, scenario, currentQuest)
-
-            // Then: Quest completed, second quest has no deadline
-            assertQuestCompleted(outcome, currentState)
-        }
-
-        @Test
-        fun `Scanning QR should fail if location is not fresh`() {
-            // And: Old location reading
-            val expiredLocationRead =
-                locationFor(currentQuest).copy(createdAt = timeProvider.now().minusDays(200))
-
-            // When: Scanning the QR code
-            // Then: Error about expired location
-            val error = assertThrows<TechnicalError> {
-                scanQR(currentState, scenario, currentQuest, expiredLocationRead)
+            @Test
+            fun `Second quest has no DL`() {
+                assertThat(currentState.questDeadline, nullValue())
             }
-            assertThat(error.message, equalTo("Location not fresh"))
-        }
 
-        @Test
-        fun `Scanning QR should fail if location is not close to quest location`() {
-            // Given: Location far from quest location
-            var location = locationSomewhere()
-            // When: Scanning the QR
-            // Then: Error about not being close to target location
-            val error = assertThrows<TechnicalError> {
-                scanQR(currentState, scenario, currentQuest, location)
+            @Test
+            fun `Scanning QR completes the quest`() {
+                //  When: Completing the quest
+                val outcome = scanQR(currentState, scenario, currentQuest)
+
+                // Then: Quest completed
+                assertQuestCompleted(outcome, currentState)
             }
-            assertThat(error.message, equalTo("Bad gps accuracy"))
-        }
 
-        @Test
-        fun `Reloading page just continues countdown`() {
-            // When: Reloading page (we are currently on countdown page)
-            val outcome = loadCountdownPage(currentState, scenario, currentQuest)
+            @Test
+            fun `Scanning QR past deadline`() {
+                // Given: DL is long gone already
+                now = OffsetDateTime.now().plusYears(100)
 
-            // Then: Countdown continues from where it was
-            assertCountdownContinues(outcome, currentState, currentQuest)
-        }
+                // When: Scanning the QR
+                val outcome = scanQR(currentState, scenario, currentQuest)
 
-        @Test
-        fun `Scanning later quest's QR code should continue countdown`() {
-            // When: Scanning QR code of later quest
-            val outcome = scanQR(currentState, scenario, scenario.quests[4])
+                // Then: Quest completed, second quest has no deadline
+                assertQuestCompleted(outcome, currentState)
+            }
 
-            // Then: Countdown continues
-            assertCountdownContinues(outcome, currentState, currentQuest)
-        }
+            @Test
+            fun `Scanning QR should fail if location is not fresh`() {
+                // And: Old location reading
+                val expiredLocationRead =
+                    locationFor(currentQuest).copy(createdAt = timeProvider.now().minusDays(200))
 
-        @Test
-        fun `Scanning later quest's QR code with bad location should continue countdown`() {
-            // When: Scanning QR code of later quest
-            val outcome = scanQR(currentState, scenario, scenario.quests[4], locationSomewhere())
+                // When: Scanning the QR code
+                // Then: Error about expired location
+                val error = assertThrows<TechnicalError> {
+                    scanQR(currentState, scenario, currentQuest, expiredLocationRead)
+                }
+                assertThat(error.message, equalTo("Location not fresh"))
+            }
 
-            // Then: Countdown continues
-            assertCountdownContinues(outcome, currentState, currentQuest)
-        }
+            @Test
+            fun `Scanning QR should fail if location is not close to quest location`() {
+                // Given: Location far from quest location
+                var location = locationSomewhere()
+                // When: Scanning the QR
+                // Then: Error about not being close to target location
+                val error = assertThrows<TechnicalError> {
+                    scanQR(currentState, scenario, currentQuest, location)
+                }
+                assertThat(error.message, equalTo("Bad gps accuracy"))
+            }
 
-        @Test
-        fun `Starting next quest before completing this keeps countdown running`() {
-            // When: Starting the next quest
-            val outcome = startQuest(currentState, loader.nextQuest(currentState))
+            @Test
+            fun `Scanning later quest's QR code should continue countdown`() {
+                // When: Scanning QR code of later quest
+                val outcome = scanQR(currentState, scenario, scenario.quests[4])
 
-            // Then: Countdown keeps running
-            assertCountdownContinues(outcome, currentState, currentQuest)
-        }
+                // Then: Countdown continues
+                assertCountdownContinues(outcome, currentState)
+            }
 
-        @Test
-        fun `Starting next quest with wrong location keeps running the countdown`() {
-            // When: Starting the next quest with too far location
-            val action = startQuest(currentState, loader.nextQuest(currentState), locationSomewhere())
+            @Test
+            fun `Scanning later quest's QR code with bad location should continue countdown`() {
+                // When: Scanning QR code of later quest
+                val outcome =
+                    scanQR(currentState, scenario, scenario.quests[4], locationSomewhere())
 
-            // Then: Countdown keeps on running
-            assertCountdownContinues(action, currentState, currentQuest)
-        }
+                // Then: Countdown continues
+                assertCountdownContinues(outcome, currentState)
+            }
 
-        @Test
-        fun `Starting next quest with stale location before completing this keeps countdown running`() {
-            val nextQuest = loader.nextQuest(currentState)
+            @Test
+            fun `Starting next quest before completing this keeps countdown running`() {
+                // When: Starting the next quest
+                val outcome = startQuest(currentState, loader.nextQuest(currentState))
 
-            // When: Starting the next quest before completing this
-            var action = startQuest(
-                currentState,
-                nextQuest,
-                locationFor(nextQuest).copy(createdAt = timeProvider.now().minusYears(1))
-            )
+                // Then: Countdown keeps running
+                assertCountdownContinues(outcome, currentState)
+            }
 
-            // Then: Countdown continues (even with location reading expired)
-            assertCountdownContinues(action, currentState, currentQuest)
-        }
+            @Test
+            fun `Starting next quest with wrong location keeps running the countdown`() {
+                // When: Starting the next quest with too far location
+                val action =
+                    startQuest(currentState, loader.nextQuest(currentState), locationSomewhere())
 
-        @Test
-        fun `Starting later quest should keep on running countdown`() {
-            // When: Trying to start upcoming quest
-            val outcome = startQuest(currentState, scenario.quests[4])
+                // Then: Countdown keeps on running
+                assertCountdownContinues(action, currentState)
+            }
 
-            // Then: Countdown continues
-            assertCountdownContinues(outcome, currentState, currentQuest)
-        }
+            @Test
+            fun `Starting next quest with stale location before completing this keeps countdown running`() {
+                val nextQuest = loader.nextQuest(currentState)
 
-        @Test
-        fun `Starting later quest (with bad location) should keep on running countdown`() {
-            // When: Trying to start upcoming quest with bad location
-            val outcome =
-                startQuest(currentState, scenario.quests[4], locationSomewhere())
+                // When: Starting the next quest before completing this
+                var action = startQuest(
+                    currentState,
+                    nextQuest,
+                    locationFor(nextQuest).copy(createdAt = timeProvider.now().minusYears(1))
+                )
 
-            // Then: Countdown continues
-            assertCountdownContinues(outcome, currentState, currentQuest)
+                // Then: Countdown continues (even with location reading expired)
+                assertCountdownContinues(action, currentState)
+            }
+
+            @Test
+            fun `Starting later quest should keep on running countdown`() {
+                // When: Trying to start upcoming quest
+                val outcome = startQuest(currentState, scenario.quests[4])
+
+                // Then: Countdown continues
+                assertCountdownContinues(outcome, currentState)
+            }
+
+            @Test
+            fun `Starting later quest (with bad location) should keep on running countdown`() {
+                // When: Trying to start upcoming quest with bad location
+                val outcome =
+                    startQuest(currentState, scenario.quests[4], locationSomewhere())
+
+                // Then: Countdown continues
+                assertCountdownContinues(outcome, currentState)
+            }
         }
     }
 
@@ -723,7 +726,7 @@ internal class EngineTest {
                         var action = startQuest(currentState, previousQuest(scenario, currentQuest))
 
                         // Then: Continue countdown
-                        assertCountdownContinues(action, currentState, currentQuest)
+                        assertCountdownContinues(action, currentState)
                     }
 
                     @Test
@@ -732,7 +735,7 @@ internal class EngineTest {
                         var action = startQuest(currentState, loader.questFor(scenario.name, currentQuest.order + 2))
 
                         // Then: Continue countdown
-                        assertCountdownContinues(action, currentState, currentQuest)
+                        assertCountdownContinues(action, currentState)
                     }
 
                     @Test
@@ -741,12 +744,12 @@ internal class EngineTest {
                         var action = startQuest(currentState, nextQuest(scenario, currentQuest))
 
                         // Then: Continue countdown
-                        assertCountdownContinues(action, currentState, currentQuest)
+                        assertCountdownContinues(action, currentState)
                     }
                 }
 
                 @Nested
-                inner class `Restarting current quest` :
+                inner class `Restarting current quest (common)` :
                     BaseTestClassForRestartingCurrentQuest(currentState)
 
                 @Nested
@@ -757,7 +760,7 @@ internal class EngineTest {
                         val outcome = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
 
                         // Then: Countdown continues
-                        assertCountdownContinues(outcome, currentState, currentQuest)
+                        assertCountdownContinues(outcome, currentState)
                     }
 
                     @Test
@@ -766,7 +769,7 @@ internal class EngineTest {
                         val outcome = scanQR(currentState, scenario, scenario.quests[5])
 
                         // Then: Countdown continues
-                        assertCountdownContinues(outcome, currentState, currentQuest)
+                        assertCountdownContinues(outcome, currentState)
                     }
 
                     /**
@@ -927,7 +930,7 @@ internal class EngineTest {
                     val action = startQuest(currentState, currentQuest)
 
                     // Then: Just continue countdown
-                    assertCountdownContinues(action, currentState, currentQuest)
+                    assertCountdownContinues(action, currentState)
                 }
             }
         }
@@ -1247,7 +1250,7 @@ internal class EngineTest {
             val viewModel = scanQR(state, scenario, previousQuest)
 
             // Then: Countdown view shown for the already started quest
-            assertCountdownContinues(viewModel, state, currentQuest)
+            assertCountdownContinues(viewModel, state)
         }
     }
 
@@ -1594,13 +1597,11 @@ internal class EngineTest {
         },
         questCompleted = null
     )
-
-    // TODO: isnt state enough argument?
     private fun assertCountdownContinues(
         outcome: WebAction,
-        currentState: State,
-        currentQuest: Quest
+        currentState: State
     ) {
+        val currentQuest = loader.currentQuest(currentState)
         assertThat(
             outcome,
             equalTo(
@@ -1668,9 +1669,6 @@ internal class EngineTest {
     ) =
         engine.complete(state, scenario.name, quest.order, quest.secret, atLocation.asString())
 
-    // Load success page
-    private fun loadCountdownPage(state: State, scenario: Scenario, quest: Quest) =
-        engine.startQuest(state, scenario.name, quest.order, quest.secret, freshLocation(quest))
 
     private fun startQuest(
         state: State,
@@ -1706,6 +1704,11 @@ internal class EngineTest {
     fun locationSomewhere() =
         LocationReading(2.0, 3.0, timeProvider.now())
 
+    /**
+     * Tests for reloading the browser after user has started a quest. After clicking "go" the
+     * countdown is shown on the url with `/start`. It is not unlikely that the browser window
+     * could be reloaded while user is on this page.
+     */
     abstract inner class BaseTestClassForRestartingCurrentQuest(val currentState: State) {
 
         /**
@@ -1717,7 +1720,7 @@ internal class EngineTest {
             val action = startQuest(currentState, loader.currentQuest(currentState))
 
             // Then: Countdown continues
-            assertCountdownContinues(action, currentState, loader.currentQuest(currentState))
+            assertCountdownContinues(action, currentState)
         }
 
         /**
@@ -1735,7 +1738,7 @@ internal class EngineTest {
             )
 
             // Then: Countdown continues
-            assertCountdownContinues(action, currentState, loader.currentQuest(currentState))
+            assertCountdownContinues(action, currentState)
         }
     }
 }
