@@ -10,6 +10,7 @@ import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.Time
+import java.lang.IllegalStateException
 import java.time.OffsetDateTime
 import java.util.UUID
 import org.hamcrest.MatcherAssert.assertThat
@@ -21,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
 
 internal class EngineTest {
 
@@ -321,15 +321,15 @@ internal class EngineTest {
 
         @Test
         fun `Calling start URL of a later quest will continue countdown`() {
-                // Trying to start a later quest
-                val outcome = engine.startQuest(
-                    currentState,
-                    scenario.name,
-                    3,
-                    scenario.quests[3].secret,
-                    freshLocation(scenario.quests[3])
-                )
-            assertCountdownContinues(outcome,currentState,loader.currentQuest(currentState))
+            // Trying to start a later quest
+            val outcome = engine.startQuest(
+                currentState,
+                scenario.name,
+                3,
+                scenario.quests[3].secret,
+                freshLocation(scenario.quests[3])
+            )
+            assertCountdownContinues(outcome, currentState, loader.currentQuest(currentState))
         }
     }
 
@@ -745,7 +745,6 @@ internal class EngineTest {
                     }
                 }
 
-
                 @Nested
                 inner class `Restarting current quest` :
                     BaseTestClassForRestartingCurrentQuest(currentState)
@@ -858,107 +857,78 @@ internal class EngineTest {
                     assertQuestStarted(action, currentState)
                 }
 
-                    @Test
-                    fun `fail if location reading is not fresh enough`() {
-                        // Given: Location that is old
-                        val location = LocationReading(
-                            currentQuest.location!!.lat, currentQuest.location!!.lon,
-                            timeProvider.now().minusMinutes(2)
+                @Test
+                fun `fail if location reading is not fresh enough`() {
+                    // Given: Location that is old
+                    val location = LocationReading(
+                        currentQuest.location!!.lat, currentQuest.location!!.lon,
+                        timeProvider.now().minusMinutes(2)
+                    )
+
+                    // When: Starting the quest
+                    val error = assertThrows<TechnicalError> {
+                        startQuest(currentState, loader.nextQuest(currentState), location)
+                    }
+                    assertThat(error.message, equalTo("Location not fresh"))
+                }
+
+                /**
+                 * Quest is meant to be started from the previous quest's endpoint. Otherwise
+                 * you could cheat in the next quest by first failing the quest once
+                 * to get the location and on a second try go close to the quest endpoint
+                 * already before starting the timer.
+                 *
+                 */
+                @Test
+                fun `fail if location is not close enough to current quest's endpoint`() {
+                    // Given: Location that is not close to current quest's end point
+                    val location = LocationReading(
+                        // About 200 meters off
+                        currentQuest.location!!.lat + 0.002, currentQuest.location!!.lon,
+                        timeProvider.now()
+                    )
+
+                    // When: Starting the quest
+                    val error = assertThrows<TechnicalError> {
+                        startQuest(currentState, loader.nextQuest(currentState), location)
+                    }
+
+                    // Then: Error about location
+                    assertThat(error.message, equalTo("Bad gps accuracy"))
+                }
+
+                @Test
+                fun `fail if state's scenario is different from param`() {
+                    // And: State with different scenario
+                    val state = State.empty(timeProvider)
+                        .copy(scenario = "not correct")
+
+                    // When: Starting the quest
+                    val error = assertThrows<TechnicalError> {
+                        engine.startQuest(
+                            state,
+                            scenario.name,
+                            state.currentQuest + 1,
+                            loader.nextQuest(currentState).secret,
+                            freshLocation(loader.nextQuest(currentState))
                         )
-
-                        // When: Starting the quest
-                        val error = assertThrows<TechnicalError> {
-                            startQuest(currentState, loader.nextQuest(currentState), location)
-                        }
-                        assertThat(error.message, equalTo("Location not fresh"))
                     }
+                    assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
+                }
 
-                    /**
-                     * Quest is meant to be started from the previous quest's endpoint. Otherwise
-                     * you could cheat in the next quest by first failing the quest once
-                     * to get the location and on a second try go close to the quest endpoint
-                     * already before starting the timer.
-                     *
-                     */
-                    @Test
-                    fun `fail if location is not close enough to current quest's endpoint`() {
-                        // Given: Location that is not close to current quest's end point
-                        val location = LocationReading(
-                            // About 200 meters off
-                            currentQuest.location!!.lat + 0.002, currentQuest.location!!.lon,
-                            timeProvider.now()
-                        )
+                /**
+                 * If we try to start current quest again, we should just keep on running it without
+                 * changing anything. This could happen by reloading the browser window.
+                 *
+                 */
+                @Test
+                fun `Trying to start quest again keeps it running`() {
+                    // When: Starting this quest again
+                    val action = startQuest(currentState, currentQuest)
 
-                        // When: Starting the quest
-                        val error = assertThrows<TechnicalError> {
-                            startQuest(currentState, loader.nextQuest(currentState), location)
-                        }
-
-                        // Then: Error about location
-                        assertThat(error.message, equalTo("Bad gps accuracy"))
-                    }
-
-                    @Test
-                    fun `fail if state's scenario is different from param`() {
-                        // And: State with different scenario
-                        val state = State.empty(timeProvider)
-                            .copy( scenario = "not correct" )
-
-                        // When: Starting the quest
-                        val error = assertThrows<TechnicalError> {
-                            engine.startQuest(
-                                state,
-                                scenario.name,
-                                state.currentQuest+1,
-                                loader.nextQuest(currentState).secret,
-                                freshLocation(loader.nextQuest(currentState))
-                            )
-                        }
-                        assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
-                    }
-
-                    /**
-                     * If we try to start current quest again, we should just keep on running it without
-                     * changing anything. This could happen by reloading the browser window.
-                     *
-                     */
-                    @Test
-                    fun `Trying to start quest again keeps it running`() {
-                        // When: Starting this quest again
-                        val action = startQuest(currentState, currentQuest)
-
-                        // Then: Just continue countdown
-                        assertCountdownContinues(action, currentState, currentQuest)
-                    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    // Then: Just continue countdown
+                    assertCountdownContinues(action, currentState, currentQuest)
+                }
             }
         }
     }
@@ -970,7 +940,7 @@ internal class EngineTest {
         inner class `Running` {
             private val scenario = loader.table.scenarios[0]
             private val questWithoutCoordinates = scenario.quests[8]
-            private val currentState = stateForRunningQuest(scenario,questWithoutCoordinates)
+            private val currentState = stateForRunningQuest(scenario, questWithoutCoordinates)
 
             @Test
             fun `Asserting test preconditions`() {
@@ -980,10 +950,7 @@ internal class EngineTest {
 
             @Nested
             inner class `Restarting current quest` : BaseTestClassForRestartingCurrentQuest(currentState)
-
-
         }
-
     }
 
     @Nested
@@ -1016,8 +983,8 @@ internal class EngineTest {
                 assertThat(earlierQuestWithSharedQR.location, not(nullValue()))
 
                 // Scanning QR will fail if not valid location
-               assertThrows<TechnicalError> {
-                scanQR(currentState,scenario,earlierQuestWithSharedQR, locationSomewhere())
+                assertThrows<TechnicalError> {
+                    scanQR(currentState, scenario, earlierQuestWithSharedQR, locationSomewhere())
                 }
             }
         }
@@ -1034,9 +1001,9 @@ internal class EngineTest {
             /**
              * Small twist, user does not get the coordinates of the later quest to the shared
              * location. They must identify it by the description given on the story.
-              */
+             */
             @Test
-            fun `Countdown page should not show coordinates but message` () {
+            fun `Countdown page should not show coordinates but message`() {
                 val outcome = startNextQuest(currentState)
 
                 assertThat(
@@ -1051,18 +1018,15 @@ internal class EngineTest {
                                 },
                                 laterQuestWithSharedQR.fictionalCountdown,
                                 null, null,
-                               LocalizedMessage("Palaa puhelimelle")
+                                LocalizedMessage("Palaa puhelimelle")
                             ),
                             // And: State is updated for the quest to start
                             updatedStateForNewlyStartedQuest(currentState, laterQuestWithSharedQR)
                         )
                     )
                 )
-
-
             }
         }
-
     }
 
     /**
@@ -1293,15 +1257,15 @@ internal class EngineTest {
         // Given: State has unknown scenario (only possible if scenarios renamed or removed)
         val currentState =
             State(
-            "unknown",
-            0,
-            null,
-            timeProvider.now().minusMinutes(3),
-            null,
-            UUID.randomUUID(),
-            2,
-            timeProvider.now().minusMinutes(10)
-        )
+                "unknown",
+                0,
+                null,
+                timeProvider.now().minusMinutes(3),
+                null,
+                UUID.randomUUID(),
+                2,
+                timeProvider.now().minusMinutes(10)
+            )
 
         @Test
         fun `trying to complete first quest of actual scenario`() {
@@ -1520,11 +1484,11 @@ internal class EngineTest {
     }
 
     private fun freshLocation(questToStart: Quest) =
-        if ( questToStart.location != null)
+        if (questToStart.location != null)
             LocationReading(
-            questToStart.location!!.lat, questToStart.location!!.lon,
-            timeProvider.now()
-        ).asString() else locationSomewhere().asString()
+                questToStart.location!!.lat, questToStart.location!!.lon,
+                timeProvider.now()
+            ).asString() else locationSomewhere().asString()
 
     fun assertScenarioRestartAction(existingState: State?, scenario: Scenario, action: WebAction) {
         assertThat(
@@ -1576,7 +1540,7 @@ internal class EngineTest {
         )
     }
 
-    fun assertQuestCompleted( outcome: WebAction, currentState: State) {
+    fun assertQuestCompleted(outcome: WebAction, currentState: State) {
         assertThat(
             outcome,
             equalTo(
@@ -1723,9 +1687,9 @@ internal class EngineTest {
 
     private fun startQuest(state: State, questToStart: Quest): WebAction =
         engine.startQuest(
-        state, state.scenario, questToStart.order, questToStart.secret,
-        freshLocation(loader.currentQuest(state))
-    )
+            state, state.scenario, questToStart.order, questToStart.secret,
+            freshLocation(loader.currentQuest(state))
+        )
 
     private fun startNextQuest(state: State): WebAction {
         assertThat(state.questCompleted, notNullValue())
@@ -1741,7 +1705,6 @@ internal class EngineTest {
 
     fun locationSomewhere() =
         LocationReading(2.0, 3.0, timeProvider.now())
-
 
     abstract inner class BaseTestClassForRestartingCurrentQuest(val currentState: State) {
 
@@ -1776,5 +1739,3 @@ internal class EngineTest {
         }
     }
 }
-
-

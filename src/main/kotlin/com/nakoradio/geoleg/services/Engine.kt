@@ -8,6 +8,7 @@ import com.nakoradio.geoleg.model.TechnicalError
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.utils.Time
 import com.nakoradio.geoleg.utils.distance
+import java.lang.IllegalStateException
 import java.time.Duration
 import java.util.UUID
 import kotlin.math.absoluteValue
@@ -15,7 +16,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.lang.IllegalStateException
 
 @Service
 class Engine(
@@ -61,7 +61,7 @@ class Engine(
         locationString: String
     ): WebAction {
         // Start for the first quest is never called as we go through the scenario init
-        if(questOrderToStart == 0) {
+        if (questOrderToStart == 0) {
             throw IllegalStateException("First quest should never be started")
         }
 
@@ -103,7 +103,6 @@ class Engine(
 
         return WebAction(createCountdownView(questToStart), newState)
     }
-
 
     // This just does the redirection to location granting, which redirects back
     // to the other complete endpoint with location.
@@ -209,7 +208,6 @@ class Engine(
         return complete(scenario, questToComplete, locationString, state)
     }
 
-
     private fun complete(scenario: String, questToComplete: Quest, locationString: String, state: State): WebAction {
         val locationReading = LocationReading.fromString(locationString)
         checkIsFresh(locationReading)
@@ -267,7 +265,7 @@ class Engine(
         )
     }
 
-    private fun createCountdownView(forQuest: Quest ): CountdownViewModel {
+    private fun createCountdownView(forQuest: Quest): CountdownViewModel {
         val now = timeProvider.now()
         var expiresAt =
             forQuest.countdown?.let { now.plusSeconds(it).toEpochSecond() }

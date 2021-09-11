@@ -3,10 +3,8 @@ package com.nakoradio.geoleg.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nakoradio.geoleg.controllers.COOKIE_NAME
 import com.nakoradio.geoleg.model.State
-import org.springframework.core.MethodParameter
 import javax.servlet.http.Cookie
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.MissingRequestCookieException
 
 @Service
 class CookieManager(val cryptor: Cryptor, val jsonMapper: ObjectMapper) {
