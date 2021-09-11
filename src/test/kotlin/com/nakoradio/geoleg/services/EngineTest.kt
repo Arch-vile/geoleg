@@ -542,7 +542,7 @@ internal class EngineTest {
     inner class `Nth quest` {
 
         private val scenario = loader.table.scenarios[1]
-        private val currentQuest = scenario.quests[4]
+        private val currentQuest = scenario.quests[5]
 
         /**
          * Quest has been started but not yet completed
@@ -678,85 +678,35 @@ internal class EngineTest {
             inner class `Quest DL not exceeded` {
 
                 @Nested
-                inner class `Scanning quests' QR to complete it` {
+                inner  class `Completing current quest (common)` : BaseTestClassForCompletingCurrentQuest(currentState)
 
-                    @Test
-                    fun `Completing successfully`() {
-                        // When: Completing the quest
-                        val viewModel = scanQR(currentState, scenario, currentQuest)
-
-                        // Then: Quest completed successfully
-                        assertQuestCompleted(viewModel, currentState)
-                    }
-
-                    @Test
-                    fun `Error if location is not close to quest location`() {
-                        // And: Location not close to target
-                        // When: Completing quest
-                        // Then: Error about not being close to target location
-                        val error = assertThrows<TechnicalError> {
-                            scanQR(currentState, scenario, currentQuest, locationSomewhere())
-                        }
-                        assertThat(error.message, equalTo("Bad gps accuracy"))
-                    }
-
-                    @Test
-                    fun `Error if location is not fresh`() {
-                        // And: Old location reading
-                        val oldLocation = LocationReading(
-                            currentQuest.location!!.lat,
-                            currentQuest.location!!.lon,
-                            timeProvider.now().minusDays(200)
-                        )
-
-                        // When: Scanning the QR
-                        // Then: Error about expired location
-                        val error = assertThrows<TechnicalError> {
-                            scanQR(currentState, scenario, currentQuest, oldLocation)
-                        }
-                        assertThat(error.message, equalTo("Location not fresh"))
-                    }
-                }
-
-                @Nested
-                inner class `Starting another quest` {
-                    @Test
-                    fun `Continue countdown when starting earlier quest`() {
-                        // When: Starting earlier quest
-                        var action = startQuest(currentState, previousQuest(scenario, currentQuest))
-
-                        // Then: Continue countdown
-                        assertCountdownContinues(action, currentState)
-                    }
-
-                    @Test
-                    fun `Continue countdown when starting later quest`() {
-                        // When: Starting later quest
-                        var action = startQuest(currentState, loader.questFor(scenario.name, currentQuest.order + 2))
-
-                        // Then: Continue countdown
-                        assertCountdownContinues(action, currentState)
-                    }
-
-                    @Test
-                    fun `Continue countdown when starting next quest`() {
-                        // When: Starting next quest, without completing current one
-                        var action = startQuest(currentState, nextQuest(scenario, currentQuest))
-
-                        // Then: Continue countdown
-                        assertCountdownContinues(action, currentState)
-                    }
-                }
+               @Nested
+               inner class `Starting another quest (common)` : BaseTestClassForStartingAnotherQuestWhileCurrentNotCompleted(currentState)
 
                 @Nested
                 inner class `Restarting current quest (common)` :
                     BaseTestClassForRestartingCurrentQuest(currentState)
 
                 @Nested
-                inner class `Scanning some other QR` {
+                inner class `Scanning other then current quest's QR` {
+
                     @Test
                     fun `Continue countdown when scanning earlier QR`() {
                         // When: Scanning QR code of earlier quest
+                        val outcome = scanQR(currentState, scenario,
+                            loader.questFor(currentState.scenario, currentState.currentQuest-2))
+
+                        // Then: Countdown continues
+                        assertCountdownContinues(outcome, currentState)
+                    }
+
+                    // Scanning the QR that you just used to complete the previous quest.
+                    // 1. Go to QR and scan it to complete quest
+                    // 2. Start next quest
+                    // 3. Scan again the same QR as in step 1
+                    @Test
+                    fun `Continue countdown when scanning previous QR`() {
+                        // When: Scanning QR code of previous quest
                         val outcome = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
 
                         // Then: Countdown continues
@@ -766,7 +716,7 @@ internal class EngineTest {
                     @Test
                     fun `Continue countdown when scanning later QR`() {
                         // When: Scanning QR code of later quest
-                        val outcome = scanQR(currentState, scenario, scenario.quests[5])
+                        val outcome = scanQR(currentState, scenario, loader.nextQuest(currentState))
 
                         // Then: Countdown continues
                         assertCountdownContinues(outcome, currentState)
@@ -1478,7 +1428,7 @@ internal class EngineTest {
                 action,
                 equalTo(
                     WebAction(
-                        ScenarioEndViewModel("quests/testing_6_success"),
+                        ScenarioEndViewModel("quests/testing_7_success"),
                         state.copy(questCompleted = timeProvider.now())
                     )
                 )
@@ -1657,6 +1607,9 @@ internal class EngineTest {
     private fun scanTargetQR(state: State?) =
         scanQR(state, loader.findScenario(state!!.scenario), loader.currentQuest(state))
 
+    private fun scanTargetQR(state: State?, location: LocationReading) =
+        scanQR(state, loader.findScenario(state!!.scenario), loader.currentQuest(state), location)
+
     // Calling engine complete is what happens when you scan the QR
     private fun scanQR(state: State?, scenario: Scenario, quest: Quest) =
         engine.complete(state, scenario.name, quest.order, quest.secret, freshLocation(quest))
@@ -1703,6 +1656,89 @@ internal class EngineTest {
 
     fun locationSomewhere() =
         LocationReading(2.0, 3.0, timeProvider.now())
+
+
+    abstract inner class BaseTestClassForStartingAnotherQuestWhileCurrentNotCompleted(val currentState: State) {
+        @Test
+        fun `Continue countdown when starting earlier quest`() {
+            // When: Starting earlier quest
+            var action = startQuest(currentState, loader.previousQuest(currentState))
+
+            // Then: Continue countdown
+            assertCountdownContinues(action, currentState)
+        }
+
+        @Test
+        fun `Continue countdown when starting later quest`() {
+            // When: Starting later quest
+            var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest+2))
+
+            // Then: Continue countdown
+            assertCountdownContinues(action, currentState)
+        }
+
+        @Test
+        fun `Continue countdown when starting next quest`() {
+            // When: Starting next quest, without completing current one
+            var action = startQuest(currentState, loader.nextQuest(currentState))
+
+            // Then: Continue countdown
+            assertCountdownContinues(action, currentState)
+        }
+    }
+
+    /**
+     * Common tests for completing current quest
+     */
+    abstract inner class BaseTestClassForCompletingCurrentQuest(val currentState: State) {
+
+        @Test
+        fun `Completing successfully`() {
+            // When: Completing the quest
+            val viewModel = scanTargetQR(currentState)
+
+            // Then: Quest completed successfully
+            assertQuestCompleted(viewModel, currentState)
+        }
+
+        @Test
+        fun `Completing successfully rescanning the qr and what if dl passed in between`() {
+            // When: Completing the quest
+            val viewModel = scanTargetQR(currentState)
+
+            // Then: Quest completed successfully
+            assertQuestCompleted(viewModel, currentState)
+        }
+
+        @Test
+        fun `Error if location is not close to quest location`() {
+            // And: Location not close to target
+            // When: Completing quest
+            // Then: Error about not being close to target location
+            val error = assertThrows<TechnicalError> {
+                scanTargetQR(currentState, locationSomewhere())
+            }
+            assertThat(error.message, equalTo("Bad gps accuracy"))
+        }
+
+        @Test
+        fun `Error if location is not fresh`() {
+            // And: Old location reading
+            val oldLocation = LocationReading(
+                loader.currentQuest(currentState).location!!.lat,
+                loader.currentQuest(currentState).location!!.lon,
+                timeProvider.now().minusDays(200)
+            )
+
+            // When: Scanning the QR
+            // Then: Error about expired location
+            val error = assertThrows<TechnicalError> {
+                scanTargetQR(currentState, oldLocation)
+            }
+            assertThat(error.message, equalTo("Location not fresh"))
+        }
+    }
+
 
     /**
      * Tests for reloading the browser after user has started a quest. After clicking "go" the

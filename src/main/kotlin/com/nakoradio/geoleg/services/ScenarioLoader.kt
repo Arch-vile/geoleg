@@ -37,6 +37,8 @@ class ScenarioLoader(mapper: ObjectMapper) {
 
     fun currentQuest(state: State): Quest = questFor(state.scenario, state.currentQuest)
 
+    fun previousQuest(state: State): Quest = questFor(state.scenario, state.currentQuest - 1)
+
     fun nextQuest(state: State): Quest = questFor(state.scenario, state.currentQuest + 1)
 
     fun isLastQuest(scenario: String, questOrder: Int) =
