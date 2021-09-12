@@ -357,8 +357,9 @@ internal class EngineTest {
 
 
             @Nested
-            inner class `Restarting current quest (common)` :
-                BaseTestClassForRestartingCurrentQuest(currentState)
+            inner class `Restarting current quest (template)` :
+                BaseTestClassForRestartingCurrentQuest(currentState,
+                    {outcome -> assertCountdownContinues(outcome,currentState) })
 
 
             @Test
@@ -557,210 +558,46 @@ internal class EngineTest {
                 private val currentState = stateForRunningQuest(scenario, currentQuest)
                     .copy(questDeadline = timeProvider.now().minusYears(1))
 
-                @Test
-                fun `Quest fail when scanning earlier QR`() {
-                    // When: Scanning code of earlier quest
-                    val action = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
+                @Nested
+                inner  class `Completing quest should show timeout failure (template)` : BaseTestClassForCompletingCurrentQuest(currentState,
+                    { outcome -> assertQuestFailed(outcome,currentState)})
 
-                    // Then: Quest should fail
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
 
-                @Test
-                fun `Restart scenario when scanning first QR`() {
-                    // When: Executing the intro's `complete` action
-                    val action =
-                        engine.complete(
-                            currentState,
-                            scenario.name,
-                            0,
-                            scenario.quests[0].secret,
-                            locationSomewhere().asString()
-                        )
+                @Nested
+                inner class `Completing out of order quests should show failure (template)`
+                    : BaseTestClassForCompletingOutOfOrderQuests(currentState,
+                    {outcome -> assertQuestFailed(outcome,currentState) })
 
-                    // Then: Scenario is restarted
-                    assertScenarioRestartAction(currentState, scenario, action)
-                }
+               @Nested
+               inner class `Restarting current quest should show failure (template)` : BaseTestClassForRestartingCurrentQuest(currentState,
+                   {outcome ->  assertQuestFailed(outcome, currentState) })
 
-                @Test
-                fun `Quest fail when scanning later QR`() {
-                    // When: Scanning code of upcoming quest
-                    val action = scanQR(currentState, scenario, nextQuest(scenario, currentQuest))
-
-                    // Then: Quest should fail
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
-
-                /**
-                 * Very likely scenario. User has failed to complete this quest due to DL, now they come
-                 * back to the starting position to scan the first QR code on the field again.
-                 */
-                @Test
-                fun `Restart scenario when scanning second QR`() {
-                    // When: Scanning second (first on field) quest's QR
-                    val secondQuest = scenario.quests[1]
-                    val result = scanQR(currentState, scenario, secondQuest)
-
-                    // Then: Restart the scenario
-                    assertScenarioRestartAction(currentState, scenario, result)
-                }
-
-                @Test
-                fun `Quest fail when scanning current QR`() {
-                    // When: Scanning the QR
-                    val viewModel = scanQR(currentState, scenario, currentQuest)
-
-                    // Then: Failure page is shown, state not changed
-                    assertQuestFailed(viewModel, currentState, currentQuest)
-                }
-
-                /**
-                 * With reloading browser window
-                 */
-                @Test
-                fun `Quest fail when restarting this quest near current QR`() {
-                    // When: Restarting this quest
-                    val action = startQuest(currentState, currentQuest)
-
-                    // Then: Quest failed
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
-
-                /**
-                 * User reloads browser window while already proceeded on current quest
-                 * outside the accepted range of the QR.
-                 */
-                @Test
-                fun `Quest fail when restarting this quest away from current QR`() {
-                    // When: Restarting this quest
-                    val action = startQuest(
-                        currentState,
-                        currentQuest,
-                        locationFor(nextQuest(scenario, currentQuest))
-                    )
-
-                    // Then: Quest failed
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
-
-                @Test
-                fun `Quest fail when starting earlier quest`() {
-// When: Starting earlier quest
-                    var action = startQuest(currentState, previousQuest(scenario, currentQuest))
-
-                    // Then: Quest failure
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
-
-                @Test
-                fun `Quest fail when starting later quest`() {
-// When: Starting later quest
-                    var action = startQuest(
-                        currentState,
-                        loader.questFor(scenario.name, currentQuest.order + 2)
-                    )
-                    // Then: Quest failure
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
-
-                @Test
-                fun `Quest fail when starting next quest`() {
-// When: Starting later quest
-                    var action =
-                        startQuest(currentState, nextQuest(scenario, currentQuest))
-
-                    // Then: Quest failure
-                    assertQuestFailed(action, currentState, currentQuest)
-                }
+                @Nested
+                inner class `Starting another quest should show failure (template)` :
+                    BaseTestClassForStartingAnotherQuest(currentState,
+                        { o -> assertQuestFailed(o,currentState) } )
             }
 
             @Nested
             inner class `Quest DL not exceeded` {
 
                 @Nested
-                inner  class `Completing current quest (common)` : BaseTestClassForCompletingCurrentQuest(currentState)
+                inner  class `Should complete current quest (template)` : BaseTestClassForCompletingCurrentQuest(currentState,
+                    { outcome -> assertQuestCompleted(outcome,currentState)})
 
                @Nested
-               inner class `Starting another quest (common)` : BaseTestClassForStartingAnotherQuestWhileCurrentNotCompleted(currentState)
+               inner class `Should continue countdown (template)` : BaseTestClassForStartingAnotherQuest(currentState,
+                   { outcome -> assertCountdownContinues(outcome, currentState) })
 
                 @Nested
-                inner class `Restarting current quest (common)` :
-                    BaseTestClassForRestartingCurrentQuest(currentState)
+                inner class `Should continue countdown also (template)` :
+                    BaseTestClassForRestartingCurrentQuest(currentState, { outcome -> assertCountdownContinues(outcome,currentState) })
 
-                @Nested
-                inner class `Scanning other then current quest's QR` {
-
-                    @Test
-                    fun `Continue countdown when scanning earlier QR`() {
-                        // When: Scanning QR code of earlier quest
-                        val outcome = scanQR(currentState, scenario,
-                            loader.questFor(currentState.scenario, currentState.currentQuest-2))
-
-                        // Then: Countdown continues
-                        assertCountdownContinues(outcome, currentState)
-                    }
-
-                    // Scanning the QR that you just used to complete the previous quest.
-                    // 1. Go to QR and scan it to complete quest
-                    // 2. Start next quest
-                    // 3. Scan again the same QR as in step 1
-                    @Test
-                    fun `Continue countdown when scanning previous QR`() {
-                        // When: Scanning QR code of previous quest
-                        val outcome = scanQR(currentState, scenario, previousQuest(scenario, currentQuest))
-
-                        // Then: Countdown continues
-                        assertCountdownContinues(outcome, currentState)
-                    }
-
-                    @Test
-                    fun `Continue countdown when scanning later QR`() {
-                        // When: Scanning QR code of later quest
-                        val outcome = scanQR(currentState, scenario, loader.nextQuest(currentState))
-
-                        // Then: Countdown continues
-                        assertCountdownContinues(outcome, currentState)
-                    }
-
-                    /**
-                     * User cannot end up here by scanning QR code (because the intro quest QR code points to
-                     * init scenario action instead of complete) but can access this e.g. by using browser
-                     * history or such.
-                     *
-                     * TODO: Did we already change so that actually first qr points to complete also? We should.
-                     * then update the above description.
-                     *
-                     * Let's just keep running current quest.
-                     */
-                    @Test
-                    fun `Restart scenario when scanning first QR`() {
-                        // When: Executing the intro's `complete` action
-                        val action =
-                            engine.complete(
-                                currentState,
-                                scenario.name,
-                                0,
-                                scenario.quests[0].secret,
-                                locationSomewhere().asString()
-                            )
-
-                        // Then: Scenario is restarted
-                        assertScenarioRestartAction(currentState, scenario, action)
-                    }
-
-                    /**
-                     * Allows restarting the scenario no matter what.
-                     */
-                    @Test
-                    fun `Restart scenario when scanning second QR`() {
-                        // When: Scanning second (first on field) quest's QR
-                        val secondQuest = scenario.quests[1]
-                        val result = scanQR(currentState, scenario, secondQuest)
-
-                        // Then: Restart the scenario
-                        assertScenarioRestartAction(currentState, scenario, result)
-                    }
-                }
+              @Nested
+              inner class `Completing out of order quests (template)` :
+                  BaseTestClassForCompletingOutOfOrderQuests(
+                      currentState,
+                      { outcome -> assertCountdownContinues(outcome,currentState)  } )
             }
         }
 
@@ -777,112 +614,125 @@ internal class EngineTest {
                     )
 
             @Nested
-            inner class `Starting next quest` {
-
+            inner class `Quest DL has expired` {
                 @Test
-                fun `Successfully start next quest`() {
-                    // When: Starting next quest
-                    val action = startNextQuest(currentState)
+                fun `MISSING TESTS`() {
 
-                    // Then: Countdown for the next quest
-                    assertQuestStarted(action, currentState)
-                }
-
-                /**
-                 * Important scenario to cover. After completing the quest, user has all the time
-                 * they need to read the next story before clicking go. It is very likely that
-                 * current quest's DL expires while reading the story. Starting the next quest
-                 * should be possible nevertheless.
-                 */
-                @Test
-                fun `Successfully start next quest after this quest's DL expired`() {
-                    val nextQuest = nextQuest(scenario, currentQuest)
-
-                    // Given: DL for current quest has expired (after successfully completing it)
-                    val state = currentState.copy(
-                        questDeadline = timeProvider.now().minusSeconds(10)
-                    )
-
-                    // When: Starting next quest
-                    val action = startQuest(state, nextQuest)
-
-                    // Then: Quest is started
-                    assertQuestStarted(action, currentState)
-                }
-
-                @Test
-                fun `fail if location reading is not fresh enough`() {
-                    // Given: Location that is old
-                    val location = LocationReading(
-                        currentQuest.location!!.lat, currentQuest.location!!.lon,
-                        timeProvider.now().minusMinutes(2)
-                    )
-
-                    // When: Starting the quest
-                    val error = assertThrows<TechnicalError> {
-                        startQuest(currentState, loader.nextQuest(currentState), location)
-                    }
-                    assertThat(error.message, equalTo("Location not fresh"))
-                }
-
-                /**
-                 * Quest is meant to be started from the previous quest's endpoint. Otherwise
-                 * you could cheat in the next quest by first failing the quest once
-                 * to get the location and on a second try go close to the quest endpoint
-                 * already before starting the timer.
-                 *
-                 */
-                @Test
-                fun `fail if location is not close enough to current quest's endpoint`() {
-                    // Given: Location that is not close to current quest's end point
-                    val location = LocationReading(
-                        // About 200 meters off
-                        currentQuest.location!!.lat + 0.002, currentQuest.location!!.lon,
-                        timeProvider.now()
-                    )
-
-                    // When: Starting the quest
-                    val error = assertThrows<TechnicalError> {
-                        startQuest(currentState, loader.nextQuest(currentState), location)
-                    }
-
-                    // Then: Error about location
-                    assertThat(error.message, equalTo("Bad gps accuracy"))
-                }
-
-                @Test
-                fun `fail if state's scenario is different from param`() {
-                    // And: State with different scenario
-                    val state = State.empty(timeProvider)
-                        .copy(scenario = "not correct")
-
-                    // When: Starting the quest
-                    val error = assertThrows<TechnicalError> {
-                        engine.startQuest(
-                            state,
-                            scenario.name,
-                            state.currentQuest + 1,
-                            loader.nextQuest(currentState).secret,
-                            freshLocation(loader.nextQuest(currentState))
-                        )
-                    }
-                    assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
-                }
-
-                /**
-                 * If we try to start current quest again, we should just keep on running it without
-                 * changing anything. This could happen by reloading the browser window.
-                 *
-                 */
-                @Test
-                fun `Trying to start quest again keeps it running`() {
-                    // When: Starting this quest again
-                    val action = startQuest(currentState, currentQuest)
-
-                    // Then: Just continue countdown
-                    assertCountdownContinues(action, currentState)
                 }
             }
+
+            @Nested
+            inner class `Quest DL not exceeded` {
+                @Nested
+                inner class `Starting next quest` {
+
+                    @Test
+                    fun `Successfully start next quest`() {
+                        // When: Starting next quest
+                        val action = startNextQuest(currentState)
+
+                        // Then: Countdown for the next quest
+                        assertQuestStarted(action, currentState)
+                    }
+
+                    /**
+                     * Important scenario to cover. After completing the quest, user has all the time
+                     * they need to read the next story before clicking go. It is very likely that
+                     * current quest's DL expires while reading the story. Starting the next quest
+                     * should be possible nevertheless.
+                     */
+                    @Test
+                    fun `Successfully start next quest after this quest's DL expired`() {
+                        val nextQuest = nextQuest(scenario, currentQuest)
+
+                        // Given: DL for current quest has expired (after successfully completing it)
+                        val state = currentState.copy(
+                            questDeadline = timeProvider.now().minusSeconds(10)
+                        )
+
+                        // When: Starting next quest
+                        val action = startQuest(state, nextQuest)
+
+                        // Then: Quest is started
+                        assertQuestStarted(action, currentState)
+                    }
+
+                    @Test
+                    fun `fail if location reading is not fresh enough`() {
+                        // Given: Location that is old
+                        val location = LocationReading(
+                            currentQuest.location!!.lat, currentQuest.location!!.lon,
+                            timeProvider.now().minusMinutes(2)
+                        )
+
+                        // When: Starting the quest
+                        val error = assertThrows<TechnicalError> {
+                            startQuest(currentState, loader.nextQuest(currentState), location)
+                        }
+                        assertThat(error.message, equalTo("Location not fresh"))
+                    }
+
+                    /**
+                     * Quest is meant to be started from the previous quest's endpoint. Otherwise
+                     * you could cheat in the next quest by first failing the quest once
+                     * to get the location and on a second try go close to the quest endpoint
+                     * already before starting the timer.
+                     *
+                     */
+                    @Test
+                    fun `fail if location is not close enough to current quest's endpoint`() {
+                        // Given: Location that is not close to current quest's end point
+                        val location = LocationReading(
+                            // About 200 meters off
+                            currentQuest.location!!.lat + 0.002, currentQuest.location!!.lon,
+                            timeProvider.now()
+                        )
+
+                        // When: Starting the quest
+                        val error = assertThrows<TechnicalError> {
+                            startQuest(currentState, loader.nextQuest(currentState), location)
+                        }
+
+                        // Then: Error about location
+                        assertThat(error.message, equalTo("Bad gps accuracy"))
+                    }
+
+                    @Test
+                    fun `fail if state's scenario is different from param`() {
+                        // And: State with different scenario
+                        val state = State.empty(timeProvider)
+                            .copy(scenario = "not correct")
+
+                        // When: Starting the quest
+                        val error = assertThrows<TechnicalError> {
+                            engine.startQuest(
+                                state,
+                                scenario.name,
+                                state.currentQuest + 1,
+                                loader.nextQuest(currentState).secret,
+                                freshLocation(loader.nextQuest(currentState))
+                            )
+                        }
+                        assertThat(error.message, equalTo("Not good: Bad cookie scenario"))
+                    }
+
+                    /**
+                     * If we try to start current quest again, we should just keep on running it without
+                     * changing anything. This could happen by reloading the browser window.
+                     *
+                     */
+                    @Test
+                    fun `Trying to start quest again keeps it running`() {
+                        // When: Starting this quest again
+                        val action = startQuest(currentState, currentQuest)
+
+                        // Then: Just continue countdown
+                        assertCountdownContinues(action, currentState)
+                    }
+                }
+            }
+
+
         }
     }
 
@@ -902,7 +752,8 @@ internal class EngineTest {
             }
 
             @Nested
-            inner class `Restarting current quest` : BaseTestClassForRestartingCurrentQuest(currentState)
+            inner class `Should continue countdown (template)` : BaseTestClassForRestartingCurrentQuest(
+                currentState, { outcome -> assertCountdownContinues(outcome,currentState) })
         }
     }
 
@@ -1443,6 +1294,10 @@ internal class EngineTest {
                 timeProvider.now()
             ).asString() else locationSomewhere().asString()
 
+    fun assertScenarioRestartAction(existingState: State?,  action: WebAction) {
+       return assertScenarioRestartAction(existingState, loader.findScenario(existingState!!.scenario), action)
+    }
+
     fun assertScenarioRestartAction(existingState: State?, scenario: Scenario, action: WebAction) {
         assertThat(
             action,
@@ -1475,6 +1330,12 @@ internal class EngineTest {
         )
     }
 
+    fun assertQuestFailed(
+        outcome: WebAction,
+        currentState: State
+    ) {
+       assertQuestFailed(outcome, currentState, loader.currentQuest(currentState))
+    }
     fun assertQuestFailed(
         outcome: WebAction,
         currentState: State,
@@ -1614,6 +1475,16 @@ internal class EngineTest {
     private fun scanQR(state: State?, scenario: Scenario, quest: Quest) =
         engine.complete(state, scenario.name, quest.order, quest.secret, freshLocation(quest))
 
+    private fun scanQR(state: State?, quest: Quest) =
+        engine.complete(state, state!!.scenario, quest.order, quest.secret, freshLocation(quest))
+
+    private fun scanQR(
+        state: State?,
+        quest: Quest,
+        atLocation: LocationReading
+    ) =
+        engine.complete(state, state!!.scenario, quest.order, quest.secret, atLocation.asString())
+
     private fun scanQR(
         state: State?,
         scenario: Scenario,
@@ -1642,6 +1513,12 @@ internal class EngineTest {
             freshLocation(loader.currentQuest(state))
         )
 
+    private fun restartCurrentQuest(state: State): WebAction =
+        engine.startQuest(
+            state, state.scenario, state.currentQuest, loader.currentQuest(state).secret,
+            freshLocation(loader.currentQuest(state))
+        )
+
     private fun startNextQuest(state: State): WebAction {
         assertThat(state.questCompleted, notNullValue())
         return engine.startQuest(
@@ -1657,61 +1534,80 @@ internal class EngineTest {
     fun locationSomewhere() =
         LocationReading(2.0, 3.0, timeProvider.now())
 
+    abstract inner class BaseTestClassForStartingAnotherQuest(
+        val currentState: State, val verify: (outcome: WebAction ) -> Unit) {
 
-    abstract inner class BaseTestClassForStartingAnotherQuestWhileCurrentNotCompleted(val currentState: State) {
         @Test
-        fun `Continue countdown when starting earlier quest`() {
+        fun `when starting earlier quest`() {
             // When: Starting earlier quest
             var action = startQuest(currentState, loader.previousQuest(currentState))
 
-            // Then: Continue countdown
-            assertCountdownContinues(action, currentState)
+            // Then:
+            verify(action)
         }
 
         @Test
-        fun `Continue countdown when starting later quest`() {
+        fun `when starting earlier quest without proper location`() {
+            // When: Starting earlier quest
+            var action = startQuest(currentState, loader.previousQuest(currentState), locationSomewhere())
+
+            // Then:
+            verify(action)
+        }
+
+        @Test
+        fun `when starting later quest`() {
             // When: Starting later quest
             var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest+2))
 
-            // Then: Continue countdown
-            assertCountdownContinues(action, currentState)
+            // Then:
+            verify(action)
         }
 
         @Test
-        fun `Continue countdown when starting next quest`() {
+        fun `when starting later quest without proper location`() {
+            // When: Starting later quest
+            var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest+2), locationSomewhere())
+
+            // Then:
+            verify(action)
+        }
+
+        @Test
+        fun `when starting next quest`() {
             // When: Starting next quest, without completing current one
             var action = startQuest(currentState, loader.nextQuest(currentState))
 
-            // Then: Continue countdown
-            assertCountdownContinues(action, currentState)
+            // Then:
+            verify(action)
+        }
+
+        @Test
+        fun `when starting next quest without proper location`() {
+            // When: Starting next quest, without completing current one
+            var action = startQuest(currentState, loader.nextQuest(currentState), locationSomewhere())
+
+            // Then:
+            verify(action)
         }
     }
 
     /**
      * Common tests for completing current quest
      */
-    abstract inner class BaseTestClassForCompletingCurrentQuest(val currentState: State) {
+    abstract inner class BaseTestClassForCompletingCurrentQuest(val currentState: State, val verify: (outcome: WebAction) -> Unit) {
 
         @Test
-        fun `Completing successfully`() {
+        fun `when scanning QR`() {
             // When: Completing the quest
             val viewModel = scanTargetQR(currentState)
 
-            // Then: Quest completed successfully
-            assertQuestCompleted(viewModel, currentState)
+            // Then:
+            verify(viewModel)
         }
 
         @Test
-        fun `Completing successfully rescanning the qr and what if dl passed in between`() {
-            // When: Completing the quest
-            val viewModel = scanTargetQR(currentState)
-
-            // Then: Quest completed successfully
-            assertQuestCompleted(viewModel, currentState)
-        }
-
-        @Test
-        fun `Error if location is not close to quest location`() {
+        fun `or fail if location is not close to quest location`() {
             // And: Location not close to target
             // When: Completing quest
             // Then: Error about not being close to target location
@@ -1722,7 +1618,7 @@ internal class EngineTest {
         }
 
         @Test
-        fun `Error if location is not fresh`() {
+        fun `or fail if location is not fresh`() {
             // And: Old location reading
             val oldLocation = LocationReading(
                 loader.currentQuest(currentState).location!!.lat,
@@ -1740,23 +1636,131 @@ internal class EngineTest {
     }
 
 
+    abstract inner class BaseTestClassForCompletingOutOfOrderQuests(
+        val currentState: State,
+    val verify: (outcome: WebAction) -> Unit) {
+
+        @Test
+        fun `when scanning earlier QR`() {
+            // When: Scanning QR code of earlier quest
+            val outcome = scanQR(currentState,
+                loader.questFor(currentState.scenario, currentState.currentQuest-2))
+
+            // Then:
+            verify(outcome)
+        }
+
+        // Could easily happen by just going back in browser history
+        @Test
+        fun `when scanning earlier QR without proper location`() {
+            // When: Scanning QR code of earlier quest
+            val outcome = scanQR(currentState,
+                loader.questFor(currentState.scenario, currentState.currentQuest-2),
+                locationSomewhere())
+
+            // Then:
+            verify(outcome)
+        }
+
+        // Scanning the QR that you just used to complete the previous quest.
+        // 1. Go to QR and scan it to complete quest
+        // 2. Start next quest
+        // 3. Scan again the same QR as in step 1
+        @Test
+        fun `when scanning previous QR`() {
+            // When: Scanning QR code of previous quest
+            val outcome = scanQR(currentState, loader.previousQuest(currentState))
+
+            // Then:
+            verify(outcome)
+        }
+
+        // Could easily happen by going back in browser history
+        @Test
+        fun `when scanning previous QR without proper location`() {
+            // When: Scanning QR code of previous quest
+            val outcome = scanQR(currentState, loader.previousQuest(currentState), locationSomewhere())
+
+            // Then:
+            verify(outcome)
+        }
+
+        @Test
+        fun `when scanning later QR`() {
+            // When: Scanning QR code of later quest
+            val outcome = scanQR(currentState, loader.nextQuest(currentState))
+
+            // Then:
+            verify(outcome)
+        }
+
+        @Test
+        fun `when scanning later QR without proper location`() {
+            // When: Scanning QR code of later quest
+            val outcome = scanQR(currentState, loader.nextQuest(currentState),locationSomewhere())
+
+            // Then:
+            verify(outcome)
+        }
+
+        /**
+         * User cannot end up here by scanning QR code (because the intro quest QR code points to
+         * init scenario action instead of complete) but can access this e.g. by using browser
+         * history or such.
+         *
+         * TODO: Did we already change so that actually first qr points to complete also? We should.
+         * then update the above description.
+         *
+         * Let's just keep running current quest.
+         */
+        @Test
+        fun `Restart scenario when scanning first QR`() {
+            // When: Executing the intro's `complete` action, anywhere
+            val action =
+                engine.complete(
+                    currentState,
+                    currentState.scenario,
+                    0,
+                    loader.findScenario(currentState.scenario).quests[0].secret,
+                    locationSomewhere().asString()
+                )
+
+            // Then: Scenario is restarted
+            assertScenarioRestartAction(currentState, action)
+        }
+
+        /**
+         * Allows restarting the scenario no matter what.
+         */
+        @Test
+        fun `Restart scenario when scanning second QR`() {
+            // When: Scanning second (first on field) quest's QR
+            val secondQuest = loader.findScenario(currentState.scenario).quests[1]
+            val result = scanQR(currentState, secondQuest)
+
+            // Then: Restart the scenario
+            assertScenarioRestartAction(currentState, result)
+        }
+    }
+
     /**
      * Tests for reloading the browser after user has started a quest. After clicking "go" the
      * countdown is shown on the url with `/start`. It is not unlikely that the browser window
      * could be reloaded while user is on this page.
      */
-    abstract inner class BaseTestClassForRestartingCurrentQuest(val currentState: State) {
+    abstract inner class BaseTestClassForRestartingCurrentQuest(val currentState: State,
+    val verify:  (outcome: WebAction) -> Unit) {
 
         /**
          * With reloading browser window
          */
         @Test
-        fun `Continue countdown when near start point`() {
+        fun `when restarting current quest near start point`() {
             // When: Restarting this quest
             val action = startQuest(currentState, loader.currentQuest(currentState))
 
-            // Then: Countdown continues
-            assertCountdownContinues(action, currentState)
+            // Then:
+            verify(action)
         }
 
         /**
@@ -1765,7 +1769,7 @@ internal class EngineTest {
          * loose the target coordinates.
          */
         @Test
-        fun `Continue countdown when far from start point`() {
+        fun `when restarting current quest far from start point`() {
             // When: Restarting this quest
             val action = startQuest(
                 currentState,
@@ -1773,8 +1777,8 @@ internal class EngineTest {
                 locationSomewhere()
             )
 
-            // Then: Countdown continues
-            assertCountdownContinues(action, currentState)
+            // Then:
+            verify(action)
         }
     }
 }
