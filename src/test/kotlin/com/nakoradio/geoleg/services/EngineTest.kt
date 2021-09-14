@@ -1354,7 +1354,7 @@ internal class EngineTest {
             equalTo(
                 WebAction(
                     // Then: Show quest failure view
-                    OnlyView(questToComplete.failurePage),
+                    QuestFailedViewModel(questToComplete.failurePage,currentState),
                     // And: State is not changing
                     currentState
                 )

@@ -2,6 +2,7 @@ package com.nakoradio.geoleg.services
 
 import com.nakoradio.geoleg.model.LocalizedMessage
 import com.nakoradio.geoleg.model.Quest
+import com.nakoradio.geoleg.model.State
 
 open class ViewModel(open val view: String)
 
@@ -20,6 +21,11 @@ data class QuestEndViewModel(
     override val view: String,
     val nextQuest: Quest,
     val currentQuest: Quest
+) : ViewModel(view)
+
+data class QuestFailedViewModel(
+    override val view: String,
+    val state: State
 ) : ViewModel(view)
 
 data class ScenarioEndViewModel(

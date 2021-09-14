@@ -236,7 +236,7 @@ class Engine(
 
         if (hasQuestDLPassed(state)) {
             logger.info("Quest failed due to time running out")
-            return WebAction(questFailedView(quest), state)
+            return questFailedAction(state,quest)
         } else {
             logger.info("Quest completed successfully")
             val newState = state.copy(questCompleted = timeProvider.now())
@@ -293,10 +293,10 @@ class Engine(
         )
     }
 
-    private fun questFailedView(quest: Quest) = OnlyView(quest.failurePage)
+    private fun questFailedView(quest: Quest, state: State) = QuestFailedViewModel(quest.failurePage,state)
 
     private fun questFailedAction(state: State, quest: Quest) =
-        WebAction(OnlyView(quest.failurePage), state)
+        WebAction(questFailedView(quest,state), state)
 
     private fun hasQuestDLPassed(state: State) =
         if(state.questCompleted != null) false else
