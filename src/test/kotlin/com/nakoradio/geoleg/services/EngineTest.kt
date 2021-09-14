@@ -618,6 +618,8 @@ internal class EngineTest {
                 @Test
                 fun `MISSING TESTS`() {
 
+
+
                 }
             }
 
@@ -1281,6 +1283,29 @@ internal class EngineTest {
                     WebAction(
                         ScenarioEndViewModel("quests/testing_7_success"),
                         state.copy(questCompleted = timeProvider.now())
+                    )
+                )
+            )
+        }
+
+        @Test
+        fun `Scenario success if scanning any other QR after last quest completed even if DL passed`() {
+            // Given: Last quest completed
+            val newState = state.copy(questCompleted = timeProvider.now())
+
+            // And: Deadline for last quest passed
+            now = timeProvider.now().plusDays(10)
+
+            // When: Scanning some QR
+            val action = scanQR(newState, scenario, loader.previousQuest(newState))
+
+            // Then: Success page is shown
+            assertThat(
+                action,
+                equalTo(
+                    WebAction(
+                        ScenarioEndViewModel("quests/testing_7_success"),
+                        newState
                     )
                 )
             )

@@ -183,12 +183,20 @@ class Engine(
             return initScenario(state, scenario, secret)
         }
 
+
+
         // If trying to complete out of order quest, just continue the timer of current quest
         // Unless current quest has shared QR with the one we try to complete
         val questToComplete = loader.questFor(scenario, questOrder, secret)
         if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
             questToComplete.order !== state.currentQuest
         ) {
+
+            // If curren quest is already completed
+                if(state.questCompleted != null)
+                    return questEndView(state);
+
+
             // If DL for current quest has passed, show failure page
             if (hasQuestDLPassed(state)) {
                 // If DL has passed but scanning the online or first on field QR. We should restart the scenario
@@ -238,11 +246,20 @@ class Engine(
             if (loader.isLastQuest(scenario, quest.order)) {
                 val elapsed = Duration.ofSeconds(newState.scenarioStarted.toEpochSecond() - timeProvider.now().toEpochSecond())
                 logger.info("Scenario completed successfully in time: $elapsed")
-                return WebAction(ScenarioEndViewModel(quest.successPage), newState)
+                return questEndView(newState);
             } else {
-                val nextQuest = loader.questFor(scenario, quest.order + 1)
-                return WebAction(QuestEndViewModel(quest.successPage, nextQuest, quest), newState)
+                return questEndView(newState);
             }
+        }
+    }
+
+    fun questEndView( state: State): WebAction {
+        val quest = loader.currentQuest(state)
+        return if (loader.isLastQuest(state.scenario, quest.order)) {
+            WebAction(ScenarioEndViewModel(quest.successPage), state)
+        } else {
+            val nextQuest = loader.nextQuest(state)
+            WebAction(QuestEndViewModel(quest.successPage, nextQuest, quest), state)
         }
     }
 
@@ -285,6 +302,7 @@ class Engine(
         WebAction(OnlyView(quest.failurePage), state)
 
     private fun hasQuestDLPassed(state: State) =
+        if(state.questCompleted != null) false else
         state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false
 
     private fun assertProximity(target: Coordinates, location: Coordinates) {
