@@ -5,7 +5,7 @@
 
 Here is a typical request-response flow of the application:
 1. Request for QR code on Geocaching.com site (`/qr/:qrcode`)
-1. Response has redirect to init the scenario (`/engine/init/:scenario/:secret`)
+1. Response has redirect to init the scenario (`/engine/init/:scenario`)
    - Sets the state cookie `currentQuest=0`
 1. Response shows the location reading page (though not needed) and automatic javaScript navigation to (`/engine/complete/:scenario/0/:secret/:location`)
    - Has the background story for the scenario

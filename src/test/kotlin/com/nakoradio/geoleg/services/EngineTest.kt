@@ -53,7 +53,7 @@ internal class EngineTest {
         val scenario = loader.table.scenarios[0]
 
         // When: Scanning the first QR (will point to scenario init)
-        var action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
+        var action = engine.initScenario(null, scenario.name)
 
         // Then: Scenario is initialized
         assertThat(
@@ -190,7 +190,7 @@ internal class EngineTest {
     /**
      * Flow for the first quest is:
      * 1) User scans the QR on Geocaching.com
-     * 2) On a redirect to `/engine/init/:scenario/:secret` state cookie is set for `currentQuest=0`
+     * 2) On a redirect to `/engine/init/:scenario` state cookie is set for `currentQuest=0`
      * 3) User is automatically redirected to complete the first quest (state not changed)
      *
      * So first quest is the one started and automatically completed by scanning the QR code on the
@@ -244,7 +244,7 @@ internal class EngineTest {
         @Test
         fun `Rescanning the QR code will reinitialize the scenario`() {
             // When: Scanning the QR code again, i.e. calling the scenario init
-            val outcome = engine.initScenario(currentState, scenario.name, currentQuest.secret)
+            val outcome = engine.initScenario(currentState, scenario.name)
 
             // Then: Scenario is restarted
             assertScenarioRestartAction(currentState, scenario, outcome)
@@ -850,7 +850,7 @@ internal class EngineTest {
         @Test
         fun `Starting the scenario`() {
             // When: Initiating scenario without a state
-            val action = engine.initScenario(null, scenario.name, scenario.quests[0].secret)
+            val action = engine.initScenario(null, scenario.name)
             // Then: State set to scenario start
             assertThat(
                 action.state,
@@ -1140,7 +1140,7 @@ internal class EngineTest {
     }
 
     /**
-     * Loading (and reloading) the `/engine/init/$scenarioName/$quest0Secret` action
+     * Loading (and reloading) the `/engine/init/$scenarioName` action
      */
     @Nested
     inner class `Scenario initialization` {
@@ -1159,8 +1159,7 @@ internal class EngineTest {
             // When: scenario is initialized
             val (viewModel, newState) = engine.initScenario(
                 existingState,
-                scenario.name,
-                scenario.quests[0].secret
+                scenario.name
             )
 
             assertThat(
@@ -1192,8 +1191,7 @@ internal class EngineTest {
             // When: scenario is initialized
             val (url, newState) = engine.initScenario(
                 existingState,
-                scenario.name,
-                scenario.quests[0].secret
+                scenario.name
             )
 
             assertThat(
@@ -1230,8 +1228,7 @@ internal class EngineTest {
             // When: scenario is initialized with bad secret
             val (viewModel, newState) = engine.initScenario(
                 State.empty(timeProvider),
-                scenario.name,
-                scenario.quests[0].secret
+                scenario.name
             )
 
             // Then: Redirected to quest complete
@@ -1248,20 +1245,6 @@ internal class EngineTest {
             )
         }
 
-        @Test
-        fun `initializing scenario with bad secret should throw error`() {
-            val scenario = loader.table.scenarios[0]
-
-            // When: scenario is initialized with bad secret
-            // Then: Throws
-            assertThrows<TechnicalError> {
-                val (url, newState) = engine.initScenario(
-                    State.empty(timeProvider),
-                    scenario.name,
-                    "bad secret"
-                )
-            }
-        }
     }
 
     @Nested

@@ -29,11 +29,10 @@ class Engine(
     // will be automatically completed.
     fun initScenario(
         state: State?,
-        scenario: String,
-        secret: String
+        scenario: String
     ): WebAction {
         logger.info("Initializing scenario: $scenario")
-        val quest = loader.questFor(scenario, 0, secret)
+        val quest = loader.questFor(scenario, 0)
         val newState = State(
             scenario = scenario,
             // TODO: not sure why we want set this? to avoid having null?
@@ -156,7 +155,7 @@ class Engine(
         // TODO: This is overlapping with one check above
         // And edge case trying to complete intro quest while on another scenario
         if (scenario != state.scenario) {
-            return initScenario(state, scenario, secret)
+            return initScenario(state, scenario)
         }
 
         // Special handling when running first quest. Trying to complete any later quest.
@@ -170,7 +169,7 @@ class Engine(
 //            return WebAction(OnlyView(loader.questFor(scenario,0).successPage),
 //            State(scenario,0,null,timeProvider.now(),state.userId,state.scenarioRestartCount+1)
 //                )
-            return initScenario(state, scenario, loader.questFor(scenario, 0).secret)
+            return initScenario(state, scenario)
         }
         // Let's redirect the user to try to complete the first quest
 //        if (state.currentQuest == 0 && questOrder == 1) {
@@ -180,7 +179,7 @@ class Engine(
 
         // An edge case of trying to complete intro quest while already further on scenario
         if (questOrder == 0 && state.currentQuest != 0) {
-            return initScenario(state, scenario, secret)
+            return initScenario(state, scenario)
         }
 
 
@@ -196,15 +195,13 @@ class Engine(
                 if(state.questCompleted != null)
                     return questEndView(state);
 
-
             // If DL for current quest has passed, show failure page
             if (hasQuestDLPassed(state)) {
                 // If DL has passed but scanning the online or first on field QR. We should restart the scenario
                 // instead of show the quest failure, as this would allow user to restart easily.
                 if (questToComplete.order <= 1) {
                     logger.info("Restarting scenario due to quest DL passed: ${state.currentQuest}")
-                    val quest = loader.questFor(scenario, 0)
-                    return initScenario(state, state.scenario, quest.secret)
+                    return initScenario(state, state.scenario)
                 }
 
                 return questFailedAction(state, loader.currentQuest(state))
@@ -265,7 +262,7 @@ class Engine(
 
     private fun restartScenario(scenario: String, state: State): WebAction {
         val quest = loader.questFor(scenario, 0)
-        return initScenario(state, scenario, quest.secret)
+        return initScenario(state, scenario)
     }
 
     private fun continueCountdownView(

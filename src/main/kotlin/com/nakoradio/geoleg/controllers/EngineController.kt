@@ -45,12 +45,11 @@ class EngineController(
      * to reach it (also countdown set to zero, so timer not shown).
      *
      */
-    @GetMapping("/engine/init/{scenario}/{secret}")
+    @GetMapping("/engine/init/{scenario}")
     @ResponseBody
     fun initScenario(
         @CookieValue(COOKIE_NAME) cookieData: String?,
         @PathVariable scenario: String,
-        @PathVariable secret: String,
         response: HttpServletResponse
     ): ModelAndView {
         // TODO: old type cookie handling should be applied to all endpoints. some way to reset state.
@@ -58,7 +57,7 @@ class EngineController(
         val state = try { cookieManager.fromWebCookieMaybe(cookieData) } catch (e: Throwable) {
             null
         }
-        return processAction(response, engine.initScenario(state, scenario, secret))
+        return processAction(response, engine.initScenario(state, scenario))
     }
 
     /**

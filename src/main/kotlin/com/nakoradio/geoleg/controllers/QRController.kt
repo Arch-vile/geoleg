@@ -37,7 +37,7 @@ class QRController(
 
     // Codes are random strings to avoid guessing and for flexible replacing
     public val QR_CODE_MAPPING = mapOf(
-        "gtf92jgf" to Pair("init", "/engine/init/$scenarioName/$quest0Secret"),
+        "gtf92jgf" to Pair("init", "/engine/init/$scenarioName"),
         "9xs4tu3v" to Pair("kyltti", "/engine/complete/$scenarioName/1/$quest1Secret"),
         "snwxfqgj" to Pair("silta", "/engine/complete/$scenarioName/2/$quest2Secret"),
         "4c8czet6" to Pair("kuusi", "/engine/complete/$scenarioName/3/$quest3Secret"),
