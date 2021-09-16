@@ -310,7 +310,7 @@ class Engine(
         var distance = distance(target, location)
         if (distance > 100) {
             logger.error("quest location [$target] location [$location] distance [$distance]")
-            throw TechnicalError("Bad gps accuracy")
+            throw TechnicalError("Coordinates not matching QR location, try rescanning the QR")
         }
     }
 
@@ -327,7 +327,7 @@ class Engine(
 
         // We should receive the location right after granted, if it takes longer, suspect something funny
         if (Duration.between(timeProvider.now(), location.createdAt).seconds.absoluteValue > 30) {
-            throw TechnicalError("Location not fresh")
+            throw TechnicalError("Could not get fresh location, try rescanning the QR")
         }
     }
 
