@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments :: headPart (title = 'Hall of fame')"></head>
+<body class="black">
+
+<h2>Aikaisemmat mestarit</h2>
+<table>
+  <tr th:each="result: ${model.results}">
+    <td th:text="${result.nick}"/>
+    <td th:text="${result.time}"/>
+  </tr>
+</table>
+
+</body>
+</html>

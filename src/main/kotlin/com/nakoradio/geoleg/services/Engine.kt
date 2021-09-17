@@ -182,8 +182,6 @@ class Engine(
             return initScenario(state, scenario)
         }
 
-
-
         // If trying to complete out of order quest, just continue the timer of current quest
         // Unless current quest has shared QR with the one we try to complete
         val questToComplete = loader.questFor(scenario, questOrder, secret)

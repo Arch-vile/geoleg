@@ -144,6 +144,8 @@ class EngineController(
         return asModelAndView(webView)
     }
 
-    private fun asModelAndView(modelView: ViewModel) =
+    companion object {
+    fun asModelAndView(modelView: ViewModel) =
         ModelAndView(modelView.view, "model", modelView)
+        }
 }

@@ -1,5 +1,7 @@
 package com.nakoradio.geoleg.services
 
+import com.nakoradio.geoleg.controllers.HallOfFameController
+import com.nakoradio.geoleg.model.Result
 import com.nakoradio.geoleg.model.LocalizedMessage
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.State
@@ -37,3 +39,12 @@ data class LocationReadingViewModel(
     val lat: Double?,
     val lon: Double?
 ) : ViewModel("checkLocation")
+
+data class HallOfFameFormViewModel(
+    val yourResult: String,
+    val results: List<HallOfFameController.ResultForView>
+) : ViewModel("hallOfFameForm")
+
+data class HallOfFameListViewModel(
+    val results: List<HallOfFameController.ResultForView>
+) : ViewModel("hallOfFameList")
