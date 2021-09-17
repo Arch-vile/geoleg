@@ -399,7 +399,7 @@ internal class EngineTest {
                 val error = assertThrows<TechnicalError> {
                     scanQR(currentState, scenario, currentQuest, expiredLocationRead)
                 }
-                assertThat(error.message, equalTo("Location not fresh"))
+                assertThat(error.message, equalTo("Could not get fresh location, try rescanning the QR"))
             }
 
             @Test
@@ -411,7 +411,7 @@ internal class EngineTest {
                 val error = assertThrows<TechnicalError> {
                     scanQR(currentState, scenario, currentQuest, location)
                 }
-                assertThat(error.message, equalTo("Bad gps accuracy"))
+                assertThat(error.message, equalTo("Coordinates not matching QR location, try rescanning the QR"))
             }
 
             @Test
@@ -510,7 +510,7 @@ internal class EngineTest {
                     locationFor(nextQuest).copy(createdAt = timeProvider.now().minusYears(1))
                 )
             }
-            assertThat(error.message, equalTo("Location not fresh"))
+            assertThat(error.message, equalTo("Could not get fresh location, try rescanning the QR"))
         }
 
         @Test
@@ -522,7 +522,7 @@ internal class EngineTest {
             val error = assertThrows<TechnicalError> {
                 startQuest(currentState, nextQuest, locationSomewhere())
             }
-            assertThat(error.message, equalTo("Bad gps accuracy"))
+            assertThat(error.message, equalTo("Coordinates not matching QR location, try rescanning the QR"))
         }
 
         @Test
@@ -671,7 +671,7 @@ internal class EngineTest {
                         val error = assertThrows<TechnicalError> {
                             startQuest(currentState, loader.nextQuest(currentState), location)
                         }
-                        assertThat(error.message, equalTo("Location not fresh"))
+                        assertThat(error.message, equalTo("Could not get fresh location, try rescanning the QR"))
                     }
 
                     /**
@@ -696,7 +696,7 @@ internal class EngineTest {
                         }
 
                         // Then: Error about location
-                        assertThat(error.message, equalTo("Bad gps accuracy"))
+                        assertThat(error.message, equalTo("Coordinates not matching QR location, try rescanning the QR"))
                     }
 
                     @Test
@@ -1622,7 +1622,7 @@ internal class EngineTest {
             val error = assertThrows<TechnicalError> {
                 scanTargetQR(currentState, locationSomewhere())
             }
-            assertThat(error.message, equalTo("Bad gps accuracy"))
+            assertThat(error.message, equalTo("Coordinates not matching QR location, try rescanning the QR"))
         }
 
         @Test
@@ -1639,7 +1639,7 @@ internal class EngineTest {
             val error = assertThrows<TechnicalError> {
                 scanTargetQR(currentState, oldLocation)
             }
-            assertThat(error.message, equalTo("Location not fresh"))
+            assertThat(error.message, equalTo("Could not get fresh location, try rescanning the QR"))
         }
     }
 
