@@ -15,6 +15,14 @@
   <a th:href="@{'/engine/init/'+${model.state.scenario}}">Better luck next time</a>
 </div>
 
+<div th:fragment="mapLinks" th:if="${model.lat != null}">
+  <ul>
+    <li><a target="_blank" th:href="@{'geo:' + ${model.lat} + ',' + ${model.lon}}">Geo link</a></li>
+    <li><a target="_blank" th:href="@{'https://maps.apple.com/?q=target&ll=' + ${model.lat} + ',' + ${model.lon}}">Apple Maps</a></li>
+    <li><a target="_blank" th:href="@{'https://www.google.com/maps/search/?api=1&query=' + ${model.lat} + ',' + ${model.lon}}">Google Maps</a></li>
+  </ul>
+</div>
+
 <div th:fragment="storyBanner">
   <h1  class="clock" th:text="${model.nextQuest.fictionalClock}"></h1>
 </div>

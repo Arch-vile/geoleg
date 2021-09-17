@@ -6,6 +6,7 @@
 
 <h2 id="timer" class="clock"></h2>
 <h2 th:classappend="${ model.lat == null ? 'hidden' : ''  }" id="destination"></h2>
+<div th:replace="fragments :: mapLinks"></div>
 
 <h2  th:if="${model.message != null}" th:text="${model.message.fiMessage}"></h2>
 
