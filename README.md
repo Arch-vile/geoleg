@@ -1,5 +1,8 @@
 # geoleg
 
+# Development
+
+You need to copy the `.env_example` to `.env` and set the missing values. Use your own judgement how to load those environment variables when running the application.
 
 ## Request-response flow
 
