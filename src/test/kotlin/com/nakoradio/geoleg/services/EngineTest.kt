@@ -22,6 +22,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.web.util.HtmlUtils
+import java.net.URLEncoder
+import java.util.Base64
 
 internal class EngineTest {
 

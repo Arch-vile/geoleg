@@ -3,16 +3,17 @@ package com.nakoradio.geoleg.controllers
 import com.nakoradio.geoleg.model.Result
 import com.nakoradio.geoleg.model.State
 import com.nakoradio.geoleg.services.CookieManager
+import com.nakoradio.geoleg.services.HallOfFameDAO
 import com.nakoradio.geoleg.services.HallOfFameFormViewModel
 import com.nakoradio.geoleg.services.HallOfFameListViewModel
 import com.nakoradio.geoleg.services.ScenarioLoader
-import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Duration
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.servlet.ModelAndView
@@ -21,19 +22,15 @@ import org.springframework.web.servlet.ModelAndView
 class HallOfFameController(
     val cookieManager: CookieManager,
     val loader: ScenarioLoader,
-    val redisTemplate: StringRedisTemplate
+    val hallOfFameDAO: HallOfFameDAO
 ) {
-    val hallOfFame: MutableMap<String, Result> =
-        mutableMapOf(Pair("userId:scenario:time", Result(10101, "ancient-blood", "nick")))
 
-    @GetMapping("/hallOfFame/list")
+    @GetMapping("/hallOfFame/{scenario}/list")
     @ResponseBody
-    fun getHallOfFameList(): String {
-
-      redisTemplate.opsForHash<String,String>().values("/hallOfFame")?.forEach { print(it) }
-
-        return "list";
-    }
+    fun getHallOfFameList(
+        @PathVariable scenario: String
+    ) =
+       EngineController.asModelAndView(HallOfFameListViewModel(resultsList(scenario)))
 
     @GetMapping("/hallOfFame/submit")
     @ResponseBody
@@ -65,22 +62,19 @@ class HallOfFameController(
         }
 
         val timeInSeconds = scenarioCompleteTime(state)
-        hallOfFame[asResultKey(state, timeInSeconds)] =
-            Result(timeInSeconds, state.scenario, payload.nickName)
-
+       hallOfFameDAO.create(state,Result(timeInSeconds, state.scenario, payload.nickName) )
         return EngineController.asModelAndView(HallOfFameListViewModel(resultsList(state)))
     }
 
-    private fun resultsList(state: State) = hallOfFame.values
-        .filter { it.scenario == state.scenario }
+    private fun resultsList(state: State) = resultsList(state.scenario)
+
+    private fun resultsList(scenario: String) =
+        hallOfFameDAO.list()
+        .filter { it.scenario == scenario }
         .sortedBy { it.timeInSeconds }
         .map { ResultForView(timeToString(it.timeInSeconds), it.nickName) }
         .toList()
 
-    // Using all these terms in the key will allow us to avoid not to worry about double submitting
-    // as the key will be the same based on the state for the same run.
-    private fun asResultKey(state: State, timeInSeconds: Long) =
-        "${state.userId}:${state.scenario}:${state.scenarioRestartCount}:$timeInSeconds"
 
     private fun scenarioCompleteTime(state: State) =
         state.questCompleted!!.toEpochSecond() - state.scenarioStarted.toEpochSecond()
