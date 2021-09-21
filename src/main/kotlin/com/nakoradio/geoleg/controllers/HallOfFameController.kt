@@ -6,6 +6,7 @@ import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.HallOfFameFormViewModel
 import com.nakoradio.geoleg.services.HallOfFameListViewModel
 import com.nakoradio.geoleg.services.ScenarioLoader
+import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Duration
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
@@ -19,10 +20,20 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 class HallOfFameController(
     val cookieManager: CookieManager,
-    val loader: ScenarioLoader
+    val loader: ScenarioLoader,
+    val redisTemplate: StringRedisTemplate
 ) {
     val hallOfFame: MutableMap<String, Result> =
         mutableMapOf(Pair("userId:scenario:time", Result(10101, "ancient-blood", "nick")))
+
+    @GetMapping("/hallOfFame/list")
+    @ResponseBody
+    fun getHallOfFameList(): String {
+
+      redisTemplate.opsForHash<String,String>().values("/hallOfFame")?.forEach { print(it) }
+
+        return "list";
+    }
 
     @GetMapping("/hallOfFame/submit")
     @ResponseBody
