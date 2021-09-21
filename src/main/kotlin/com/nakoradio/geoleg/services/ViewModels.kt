@@ -1,7 +1,6 @@
 package com.nakoradio.geoleg.services
 
 import com.nakoradio.geoleg.controllers.HallOfFameController
-import com.nakoradio.geoleg.model.Result
 import com.nakoradio.geoleg.model.LocalizedMessage
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.State

@@ -188,10 +188,9 @@ class Engine(
         if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
             questToComplete.order !== state.currentQuest
         ) {
-
             // If curren quest is already completed
-                if(state.questCompleted != null)
-                    return questEndView(state);
+            if (state.questCompleted != null)
+                return questEndView(state)
 
             // If DL for current quest has passed, show failure page
             if (hasQuestDLPassed(state)) {
@@ -234,21 +233,21 @@ class Engine(
 
         if (hasQuestDLPassed(state)) {
             logger.info("Quest failed due to time running out")
-            return questFailedAction(state,quest)
+            return questFailedAction(state, quest)
         } else {
             logger.info("Quest completed successfully")
             val newState = state.copy(questCompleted = timeProvider.now())
             if (loader.isLastQuest(scenario, quest.order)) {
                 val elapsed = Duration.ofSeconds(newState.scenarioStarted.toEpochSecond() - timeProvider.now().toEpochSecond())
                 logger.info("Scenario completed successfully in time: $elapsed")
-                return questEndView(newState);
+                return questEndView(newState)
             } else {
-                return questEndView(newState);
+                return questEndView(newState)
             }
         }
     }
 
-    fun questEndView( state: State): WebAction {
+    fun questEndView(state: State): WebAction {
         val quest = loader.currentQuest(state)
         return if (loader.isLastQuest(state.scenario, quest.order)) {
             WebAction(ScenarioEndViewModel(quest.successPage), state)
@@ -291,14 +290,14 @@ class Engine(
         )
     }
 
-    private fun questFailedView(quest: Quest, state: State) = QuestFailedViewModel(quest.failurePage,state)
+    private fun questFailedView(quest: Quest, state: State) = QuestFailedViewModel(quest.failurePage, state)
 
     private fun questFailedAction(state: State, quest: Quest) =
-        WebAction(questFailedView(quest,state), state)
+        WebAction(questFailedView(quest, state), state)
 
     private fun hasQuestDLPassed(state: State) =
-        if(state.questCompleted != null) false else
-        state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false
+        if (state.questCompleted != null) false else
+            state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false
 
     private fun assertProximity(target: Coordinates, location: Coordinates) {
         if (!verifyLocation) {

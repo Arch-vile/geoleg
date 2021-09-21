@@ -355,12 +355,12 @@ internal class EngineTest {
             // Second quest has unlimited time to complete
             private val currentState = stateForRunningQuest(scenario, currentQuest)
 
-
             @Nested
             inner class `Restarting current quest (template)` :
-                BaseTestClassForRestartingCurrentQuest(currentState,
-                    {outcome -> assertCountdownContinues(outcome,currentState) })
-
+                BaseTestClassForRestartingCurrentQuest(
+                    currentState,
+                    { outcome -> assertCountdownContinues(outcome, currentState) }
+                )
 
             @Test
             fun `Second quest has no DL`() {
@@ -559,45 +559,57 @@ internal class EngineTest {
                     .copy(questDeadline = timeProvider.now().minusYears(1))
 
                 @Nested
-                inner  class `Completing quest should show timeout failure (template)` : BaseTestClassForCompletingCurrentQuest(currentState,
-                    { outcome -> assertQuestFailed(outcome,currentState)})
-
+                inner class `Completing quest should show timeout failure (template)` : BaseTestClassForCompletingCurrentQuest(
+                    currentState,
+                    { outcome -> assertQuestFailed(outcome, currentState) }
+                )
 
                 @Nested
-                inner class `Completing out of order quests should show failure (template)`
-                    : BaseTestClassForCompletingOutOfOrderQuests(currentState,
-                    {outcome -> assertQuestFailed(outcome,currentState) })
+                inner class `Completing out of order quests should show failure (template)` :
+                    BaseTestClassForCompletingOutOfOrderQuests(
+                        currentState,
+                        { outcome -> assertQuestFailed(outcome, currentState) }
+                    )
 
-               @Nested
-               inner class `Restarting current quest should show failure (template)` : BaseTestClassForRestartingCurrentQuest(currentState,
-                   {outcome ->  assertQuestFailed(outcome, currentState) })
+                @Nested
+                inner class `Restarting current quest should show failure (template)` : BaseTestClassForRestartingCurrentQuest(
+                    currentState,
+                    { outcome -> assertQuestFailed(outcome, currentState) }
+                )
 
                 @Nested
                 inner class `Starting another quest should show failure (template)` :
-                    BaseTestClassForStartingAnotherQuest(currentState,
-                        { o -> assertQuestFailed(o,currentState) } )
+                    BaseTestClassForStartingAnotherQuest(
+                        currentState,
+                        { o -> assertQuestFailed(o, currentState) }
+                    )
             }
 
             @Nested
             inner class `Quest DL not exceeded` {
 
                 @Nested
-                inner  class `Should complete current quest (template)` : BaseTestClassForCompletingCurrentQuest(currentState,
-                    { outcome -> assertQuestCompleted(outcome,currentState)})
+                inner class `Should complete current quest (template)` : BaseTestClassForCompletingCurrentQuest(
+                    currentState,
+                    { outcome -> assertQuestCompleted(outcome, currentState) }
+                )
 
-               @Nested
-               inner class `Should continue countdown (template)` : BaseTestClassForStartingAnotherQuest(currentState,
-                   { outcome -> assertCountdownContinues(outcome, currentState) })
+                @Nested
+                inner class `Should continue countdown (template)` : BaseTestClassForStartingAnotherQuest(
+                    currentState,
+                    { outcome -> assertCountdownContinues(outcome, currentState) }
+                )
 
                 @Nested
                 inner class `Should continue countdown also (template)` :
-                    BaseTestClassForRestartingCurrentQuest(currentState, { outcome -> assertCountdownContinues(outcome,currentState) })
+                    BaseTestClassForRestartingCurrentQuest(currentState, { outcome -> assertCountdownContinues(outcome, currentState) })
 
-              @Nested
-              inner class `Completing out of order quests (template)` :
-                  BaseTestClassForCompletingOutOfOrderQuests(
-                      currentState,
-                      { outcome -> assertCountdownContinues(outcome,currentState)  } )
+                @Nested
+                inner class `Completing out of order quests (template)` :
+                    BaseTestClassForCompletingOutOfOrderQuests(
+                        currentState,
+                        { outcome -> assertCountdownContinues(outcome, currentState) }
+                    )
             }
         }
 
@@ -617,9 +629,6 @@ internal class EngineTest {
             inner class `Quest DL has expired` {
                 @Test
                 fun `MISSING TESTS`() {
-
-
-
                 }
             }
 
@@ -733,8 +742,6 @@ internal class EngineTest {
                     }
                 }
             }
-
-
         }
     }
 
@@ -755,7 +762,8 @@ internal class EngineTest {
 
             @Nested
             inner class `Should continue countdown (template)` : BaseTestClassForRestartingCurrentQuest(
-                currentState, { outcome -> assertCountdownContinues(outcome,currentState) })
+                currentState, { outcome -> assertCountdownContinues(outcome, currentState) }
+            )
         }
     }
 
@@ -1244,7 +1252,6 @@ internal class EngineTest {
                 )
             )
         }
-
     }
 
     @Nested
@@ -1302,8 +1309,8 @@ internal class EngineTest {
                 timeProvider.now()
             ).asString() else locationSomewhere().asString()
 
-    fun assertScenarioRestartAction(existingState: State?,  action: WebAction) {
-       return assertScenarioRestartAction(existingState, loader.findScenario(existingState!!.scenario), action)
+    fun assertScenarioRestartAction(existingState: State?, action: WebAction) {
+        return assertScenarioRestartAction(existingState, loader.findScenario(existingState!!.scenario), action)
     }
 
     fun assertScenarioRestartAction(existingState: State?, scenario: Scenario, action: WebAction) {
@@ -1342,7 +1349,7 @@ internal class EngineTest {
         outcome: WebAction,
         currentState: State
     ) {
-       assertQuestFailed(outcome, currentState, loader.currentQuest(currentState))
+        assertQuestFailed(outcome, currentState, loader.currentQuest(currentState))
     }
     fun assertQuestFailed(
         outcome: WebAction,
@@ -1354,7 +1361,7 @@ internal class EngineTest {
             equalTo(
                 WebAction(
                     // Then: Show quest failure view
-                    QuestFailedViewModel(questToComplete.failurePage,currentState),
+                    QuestFailedViewModel(questToComplete.failurePage, currentState),
                     // And: State is not changing
                     currentState
                 )
@@ -1501,7 +1508,6 @@ internal class EngineTest {
     ) =
         engine.complete(state, scenario.name, quest.order, quest.secret, atLocation.asString())
 
-
     private fun startQuest(
         state: State,
         questToStart: Quest,
@@ -1543,7 +1549,9 @@ internal class EngineTest {
         LocationReading(2.0, 3.0, timeProvider.now())
 
     abstract inner class BaseTestClassForStartingAnotherQuest(
-        val currentState: State, val verify: (outcome: WebAction ) -> Unit) {
+        val currentState: State,
+        val verify: (outcome: WebAction) -> Unit
+    ) {
 
         @Test
         fun `when starting earlier quest`() {
@@ -1566,7 +1574,7 @@ internal class EngineTest {
         @Test
         fun `when starting later quest`() {
             // When: Starting later quest
-            var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest+2))
+            var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest + 2))
 
             // Then:
             verify(action)
@@ -1575,7 +1583,7 @@ internal class EngineTest {
         @Test
         fun `when starting later quest without proper location`() {
             // When: Starting later quest
-            var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest+2), locationSomewhere())
+            var action = startQuest(currentState, loader.questFor(currentState.scenario, currentState.currentQuest + 2), locationSomewhere())
 
             // Then:
             verify(action)
@@ -1643,16 +1651,18 @@ internal class EngineTest {
         }
     }
 
-
     abstract inner class BaseTestClassForCompletingOutOfOrderQuests(
         val currentState: State,
-    val verify: (outcome: WebAction) -> Unit) {
+        val verify: (outcome: WebAction) -> Unit
+    ) {
 
         @Test
         fun `when scanning earlier QR`() {
             // When: Scanning QR code of earlier quest
-            val outcome = scanQR(currentState,
-                loader.questFor(currentState.scenario, currentState.currentQuest-2))
+            val outcome = scanQR(
+                currentState,
+                loader.questFor(currentState.scenario, currentState.currentQuest - 2)
+            )
 
             // Then:
             verify(outcome)
@@ -1662,9 +1672,11 @@ internal class EngineTest {
         @Test
         fun `when scanning earlier QR without proper location`() {
             // When: Scanning QR code of earlier quest
-            val outcome = scanQR(currentState,
-                loader.questFor(currentState.scenario, currentState.currentQuest-2),
-                locationSomewhere())
+            val outcome = scanQR(
+                currentState,
+                loader.questFor(currentState.scenario, currentState.currentQuest - 2),
+                locationSomewhere()
+            )
 
             // Then:
             verify(outcome)
@@ -1705,7 +1717,7 @@ internal class EngineTest {
         @Test
         fun `when scanning later QR without proper location`() {
             // When: Scanning QR code of later quest
-            val outcome = scanQR(currentState, loader.nextQuest(currentState),locationSomewhere())
+            val outcome = scanQR(currentState, loader.nextQuest(currentState), locationSomewhere())
 
             // Then:
             verify(outcome)
@@ -1756,8 +1768,10 @@ internal class EngineTest {
      * countdown is shown on the url with `/start`. It is not unlikely that the browser window
      * could be reloaded while user is on this page.
      */
-    abstract inner class BaseTestClassForRestartingCurrentQuest(val currentState: State,
-    val verify:  (outcome: WebAction) -> Unit) {
+    abstract inner class BaseTestClassForRestartingCurrentQuest(
+        val currentState: State,
+        val verify: (outcome: WebAction) -> Unit
+    ) {
 
         /**
          * With reloading browser window

@@ -145,7 +145,7 @@ class EngineController(
     }
 
     companion object {
-    fun asModelAndView(modelView: ViewModel) =
-        ModelAndView(modelView.view, "model", modelView)
-        }
+        fun asModelAndView(modelView: ViewModel) =
+            ModelAndView(modelView.view, "model", modelView)
+    }
 }

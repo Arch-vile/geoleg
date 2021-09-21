@@ -6,16 +6,15 @@ import com.nakoradio.geoleg.services.CookieManager
 import com.nakoradio.geoleg.services.HallOfFameFormViewModel
 import com.nakoradio.geoleg.services.HallOfFameListViewModel
 import com.nakoradio.geoleg.services.ScenarioLoader
+import java.time.Duration
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.servlet.ModelAndView
-import java.time.Duration
 
 @Controller
 class HallOfFameController(
@@ -39,7 +38,6 @@ class HallOfFameController(
 
     data class HallOfFameSubmitForm(val nickName: String)
 
-
     @PostMapping(path = ["/hallOfFame/submit"], consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseBody
     fun recordHallOfFame(
@@ -51,15 +49,15 @@ class HallOfFameController(
             throw IllegalStateException("Current quest is not the last of the scenario")
         }
 
-        if(state.questCompleted == null) {
+        if (state.questCompleted == null) {
             throw IllegalStateException("Scenario not completed")
         }
 
         val timeInSeconds = scenarioCompleteTime(state)
         hallOfFame[asResultKey(state, timeInSeconds)] =
-            Result(timeInSeconds, state.scenario,payload.nickName )
+            Result(timeInSeconds, state.scenario, payload.nickName)
 
-        return EngineController.asModelAndView( HallOfFameListViewModel( resultsList(state)) )
+        return EngineController.asModelAndView(HallOfFameListViewModel(resultsList(state)))
     }
 
     private fun resultsList(state: State) = hallOfFame.values
@@ -68,12 +66,10 @@ class HallOfFameController(
         .map { ResultForView(timeToString(it.timeInSeconds), it.nickName) }
         .toList()
 
-
     // Using all these terms in the key will allow us to avoid not to worry about double submitting
     // as the key will be the same based on the state for the same run.
     private fun asResultKey(state: State, timeInSeconds: Long) =
         "${state.userId}:${state.scenario}:${state.scenarioRestartCount}:$timeInSeconds"
-
 
     private fun scenarioCompleteTime(state: State) =
         state.questCompleted!!.toEpochSecond() - state.scenarioStarted.toEpochSecond()
@@ -85,9 +81,8 @@ class HallOfFameController(
             duration.toHoursPart(),
             duration.toMinutesPart(),
             duration.toSecondsPart()
-        );
+        )
     }
 
     data class ResultForView(val time: String, val nick: String)
-
 }
