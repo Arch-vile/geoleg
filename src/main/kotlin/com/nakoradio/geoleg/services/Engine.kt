@@ -182,15 +182,23 @@ class Engine(
             return initScenario(state, scenario)
         }
 
+
+
+        val questToComplete = loader.questFor(scenario, questOrder, secret)
+
+        // If trying to recomplete current quest, just show success page
+        if(state.currentQuest == questToComplete.order && state.questCompleted != null) {
+            return questSuccessView(state)
+        }
+
         // If trying to complete out of order quest, just continue the timer of current quest
         // Unless current quest has shared QR with the one we try to complete
-        val questToComplete = loader.questFor(scenario, questOrder, secret)
         if (loader.questFor(scenario, state.currentQuest).sharedQrWithQuest !== questOrder &&
             questToComplete.order !== state.currentQuest
         ) {
             // If curren quest is already completed
             if (state.questCompleted != null)
-                return questEndView(state)
+                return questSuccessView(state)
 
             // If DL for current quest has passed, show failure page
             if (hasQuestDLPassed(state)) {
@@ -240,14 +248,14 @@ class Engine(
             if (loader.isLastQuest(scenario, quest.order)) {
                 val elapsed = Duration.ofSeconds(newState.scenarioStarted.toEpochSecond() - timeProvider.now().toEpochSecond())
                 logger.info("Scenario completed successfully in time: $elapsed")
-                return questEndView(newState)
+                return questSuccessView(newState)
             } else {
-                return questEndView(newState)
+                return questSuccessView(newState)
             }
         }
     }
 
-    fun questEndView(state: State): WebAction {
+    fun questSuccessView(state: State): WebAction {
         val quest = loader.currentQuest(state)
         return if (loader.isLastQuest(state.scenario, quest.order)) {
             WebAction(ScenarioEndViewModel(quest.successPage), state)

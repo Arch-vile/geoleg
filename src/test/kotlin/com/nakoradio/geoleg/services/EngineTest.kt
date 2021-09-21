@@ -206,130 +206,151 @@ internal class EngineTest {
 
         private val scenario = loader.table.scenarios[1]
         private val currentQuest = scenario.quests[0]
-        private val currentState = stateForRunningQuest(scenario, currentQuest).copy(questCompleted = timeProvider.now())
 
         /**
-         * Init scenario will redirect to this action to automatically complete
-         * the intro after location read.
+         * User has visited the `/engine/init/:scenario` and is now being redirected to complete
+         * the first quest.
          */
-        @Test
-        fun `Complete the quest does not check location`() {
-            // When: Intro quest is completed with random location
-            val action = engine.complete(
-                currentState, scenario.name, 0, currentQuest.secret,
-                locationSomewhere().asString()
-            )
+        @Nested
+        inner class `Quest ongoing` {
 
-            // Then: Show success page
-            assertQuestCompleted(action, currentState)
-        }
+            private val currentState = stateForRunningQuest(scenario, currentQuest)
 
-        /**
-         * Second quest (target location is the first QR on the field) can be started anywhere,
-         * as the "Go" button is shown after the autocompleting first quest. Most likely second
-         * quest is started at home.
-         */
-        @Test
-        fun `Clicking GO to start second quest does not require valid location`() {
-            // When: Starting the second quest with random location
-            val secondQuest = nextQuest(scenario, currentQuest)
-            val outcome = startQuest(
-                currentState, secondQuest, locationSomewhere()
-            )
+            /**
+             * Init scenario will redirect to this action to automatically complete
+             * the intro after location read.
+             */
+            @Test
+            fun `Complete the quest does not check location`() {
+                // When: Intro quest is completed with random location
+                val action = engine.complete(
+                    currentState, scenario.name, 0, currentQuest.secret,
+                    locationSomewhere().asString()
+                )
 
-            // Then: Second quest successfully started
-            assertQuestStarted(outcome, currentState, secondQuest)
-        }
+                // Then: Show success page
+                assertQuestCompleted(action, currentState)
+            }
 
-        @Test
-        fun `Rescanning the QR code will reinitialize the scenario`() {
-            // When: Scanning the QR code again, i.e. calling the scenario init
-            val outcome = engine.initScenario(currentState, scenario.name)
+            @Test
+            fun `Rescanning the QR code will reinitialize the scenario`() {
+                // When: Scanning the QR code again, i.e. calling the scenario init
+                val outcome = engine.initScenario(currentState, scenario.name)
 
-            // Then: Scenario is restarted
-            assertScenarioRestartAction(currentState, scenario, outcome)
-        }
+                // Then: Scenario is restarted
+                assertScenarioRestartAction(currentState, scenario, outcome)
+            }
 
-        /**
-         * User is currently on the first quest complete page (as it was automatically
-         * completed). Reloading page should complete the quest again.
-         */
-        @Test
-        fun `Reloading page completes current quest again`() {
-            // When: Completing current quest again
-            val outcome = engine.complete(
-                currentState, scenario.name, currentQuest.order, currentQuest.secret,
-                // Any location will do
-                // TODO: Why cannot this just take actual location instead. Do the string parsing on controller.
-                locationSomewhere().asString()
-            )
+            /**
+             * Trying to complete any other later quest than second one should restart the scenario.
+             * Special handling for the first quest only. No real reason apart for the second quest
+             * , see above test case but let's make it work the same for other later quests also.
+             *
+             * User is scanning the QR code of a later quest.
+             */
+            @Test
+            fun `Scanning QR of a later quest should restart the scenario`() {
+                // When: Completing later quest
+                val outcome = scanQR(currentState, scenario, scenario.quests[3])
 
-            // Then: Quest completed again
-            assertQuestCompleted(outcome, currentState)
-        }
+                // Then: Restart the scenario
+                assertScenarioRestartAction(currentState, scenario, outcome)
+            }
 
-        /**
-         * A special case for first-second quest.
-         *
-         * User has scanned the online qr and completed the first quest (#0) (it completes automatically)
-         * but has not clicked to start the next quest. Active quest is still 0.
-         *
-         * He could have received the coordinates for the second quest (#1) by other means or from
-         * someone else. Now that he scans the second quest code, we can just restart the scenario.
-         * We could just complete the second quest, but maybe safer to just restart the scenario.
-         */
-        @Test
-        fun `Scanning QR of next quest should restart the scenario`() {
-            // When: Trying to complete second quest
-            val result = scanQR(currentState, scenario, nextQuest(scenario, currentQuest))
+            /**
+             * Start url action for first quest is never called. Should never happen so is ok to just fail.
+             */
+            @Test
+            fun `Calling start URL of first quest will give error`() {
+                assertThrows<IllegalStateException> {
+                    engine.startQuest(
+                        currentState,
+                        scenario.name,
+                        0,
+                        scenario.quests[0].secret,
+                        LocationReading(2.2, 1.1, timeProvider.now()).asString()
+                    )
+                }
+            }
 
-            // Then: Restart the scenario
-            assertScenarioRestartAction(currentState, scenario, result)
-        }
-
-        /**
-         * Trying to complete any other later quest than second one should restart the scenario.
-         * Special handling for the first quest only. No real reason apart for the second quest
-         * , see above test case but let's make it work the same for other later quests also.
-         *
-         * User is scanning the QR code of a later quest.
-         */
-        @Test
-        fun `Scanning QR of a later quest should restart the scenario`() {
-            // When: Completing later quest
-            val outcome = scanQR(currentState, scenario, scenario.quests[3])
-
-            // Then: Restart the scenario
-            assertScenarioRestartAction(currentState, scenario, outcome)
-        }
-
-        /**
-         * Start url action for first quest is never called. Should never happen so is ok to just fail.
-         */
-        @Test
-        fun `Calling start URL of first quest will give error`() {
-            assertThrows<IllegalStateException> {
-                engine.startQuest(
+            @Test
+            fun `Calling start URL of a later quest will continue countdown`() {
+                // Trying to start a later quest
+                val outcome = engine.startQuest(
                     currentState,
                     scenario.name,
-                    0,
-                    scenario.quests[0].secret,
-                    LocationReading(2.2, 1.1, timeProvider.now()).asString()
+                    3,
+                    scenario.quests[3].secret,
+                    freshLocation(scenario.quests[3])
                 )
+                assertCountdownContinues(outcome, currentState)
             }
         }
 
-        @Test
-        fun `Calling start URL of a later quest will continue countdown`() {
-            // Trying to start a later quest
-            val outcome = engine.startQuest(
-                currentState,
-                scenario.name,
-                3,
-                scenario.quests[3].secret,
-                freshLocation(scenario.quests[3])
-            )
-            assertCountdownContinues(outcome, currentState)
+        /**
+         * User has visited the automatic redirection to `/engine/complete/...` and completed the
+         * quest. He is currently shown the quest success page.
+         */
+        @Nested
+        inner class `Quest completed` {
+
+            private val currentState = stateForRunningQuest(scenario, currentQuest).copy(questCompleted = timeProvider.now().minusSeconds(13))
+
+
+            /**
+             * User is currently on the first quest complete page (as it was automatically
+             * completed). Reloading page should complete the quest again.
+             */
+            @Test
+            fun `Reloading page completes current quest again`() {
+                // When: Completing current quest again
+                val outcome = engine.complete(
+                    currentState, scenario.name, currentQuest.order, currentQuest.secret,
+                    // Any location will do
+                    // TODO: Why cannot this just take actual location instead. Do the string parsing on controller.
+                    locationSomewhere().asString()
+                )
+
+                // Then: Quest success page shown
+                assertQuestSuccessViewShown(outcome, currentState)
+            }
+
+            /**
+             * Second quest (target location is the first QR on the field) can be started anywhere,
+             * as the "Go" button is shown after the autocompleting first quest. Most likely second
+             * quest is started at home.
+             */
+            @Test
+            fun `Clicking GO to start second quest does not require valid location`() {
+                // When: Starting the second quest with random location
+                val secondQuest = nextQuest(scenario, currentQuest)
+                val outcome = startQuest(
+                    currentState, secondQuest, locationSomewhere()
+                )
+
+                // Then: Second quest successfully started
+                assertQuestStarted(outcome, currentState, secondQuest)
+            }
+
+            /**
+             * A special case for first-second quest.
+             *
+             * User has scanned the online qr and completed the first quest (#0) (it completes automatically)
+             * but has not clicked to start the next quest. Active quest is still 0.
+             *
+             * He could have received the coordinates for the second quest (#1) by other means or from
+             * someone else. Now that he scans the second quest code, we can just restart the scenario.
+             * We could just complete the second quest, but maybe safer to just restart the scenario.
+             */
+            @Test
+            fun `Scanning QR of next quest should restart the scenario`() {
+                // When: Trying to complete second quest
+                val result = scanQR(currentState, scenario, nextQuest(scenario, currentQuest))
+
+                // Then: Restart the scenario
+                assertScenarioRestartAction(currentState, scenario, result)
+            }
+
         }
     }
 
@@ -622,7 +643,7 @@ internal class EngineTest {
             private val currentState =
                 stateForRunningQuest(scenario, currentQuest)
                     .copy(
-                        questCompleted = timeProvider.now()
+                        questCompleted = timeProvider.now().minusSeconds(13)
                     )
 
             @Nested
@@ -634,6 +655,10 @@ internal class EngineTest {
 
             @Nested
             inner class `Quest DL not exceeded` {
+
+                @Nested
+                inner class `Recompleting current quest (template)` : BaseTestClassForReCompletingCurrentQuest(currentState)
+
                 @Nested
                 inner class `Starting next quest` {
 
@@ -1369,7 +1394,31 @@ internal class EngineTest {
         )
     }
 
+    /**
+     * No change to state, just show the success
+     */
+    fun assertQuestSuccessViewShown(outcome: WebAction, currentState: State) {
+        // Make sure quest is not already completed
+        assertThat(currentState.questCompleted, notNullValue())
+        assertThat(
+            outcome,
+            equalTo(
+                WebAction(
+                    // Then: Show quest success view
+                    QuestEndViewModel(
+                        loader.currentQuest(currentState).successPage,
+                        loader.nextQuest(currentState),
+                        loader.currentQuest(currentState)
+                    ),
+                    // And: State not changed
+                    currentState
+                )
+            )
+        )
+    }
     fun assertQuestCompleted(outcome: WebAction, currentState: State) {
+        // Make sure quest is not already completed
+        assertThat(currentState.questCompleted, nullValue())
         assertThat(
             outcome,
             equalTo(
@@ -1760,6 +1809,20 @@ internal class EngineTest {
 
             // Then: Restart the scenario
             assertScenarioRestartAction(currentState, result)
+        }
+    }
+
+    abstract inner class BaseTestClassForReCompletingCurrentQuest(val currentState: State) {
+
+        @Test
+        fun verifyPreconditions() {
+            assertThat(currentState.questCompleted, notNullValue())
+        }
+
+        @Test
+        fun `Recompleting should show quest success page`() {
+            val outcome = scanTargetQR(currentState)
+            assertQuestSuccessViewShown(outcome, currentState)
         }
     }
 
