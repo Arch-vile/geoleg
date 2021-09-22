@@ -788,6 +788,14 @@ internal class EngineTest {
                 assertThat(questWithoutCoordinates.location, nullValue())
             }
 
+            @Test
+            fun `Location reading page, should not include coordinates`() {
+                // When initiating complete
+                val outcome = engine.initComplete(scenario.name, questWithoutCoordinates.order, questWithoutCoordinates.secret)
+                // Location reading should not include quest coordinates
+                assertThat((outcome as LocationReadingViewModel).lat, nullValue())
+            }
+
             @Nested
             inner class `Should continue countdown (template)` : BaseTestClassForRestartingCurrentQuest(
                 currentState, { outcome -> assertCountdownContinues(outcome, currentState) }
