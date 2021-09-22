@@ -20,7 +20,8 @@ class HallOfFameDAO(val redis: StringRedisTemplate) {
 
     // What is the simplest thing that could possibly work? Custom serialization of course.
     private fun serialize(result: Result): String {
-        return "${result.timeInSeconds}$separator${result.scenario}$separator${result.nickName.replace(separator,"")}"
+        val trimmedNick = result.nickName.take(50).replace(separator,"")
+        return "${result.timeInSeconds}$separator${result.scenario}$separator${trimmedNick}"
     }
 
     private fun deserialize(it: List<String>) =
