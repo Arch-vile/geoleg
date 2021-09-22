@@ -4,10 +4,13 @@ import com.nakoradio.geoleg.model.Result
 import com.nakoradio.geoleg.model.State
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
+import org.springframework.web.util.HtmlUtils
 
 @Service
 class HallOfFameDAO(val redis: StringRedisTemplate) {
 
+    // We want a separator that will not be present on html escaped value
+    val separator = "§"
     val redisKey = "/hallOfFame/results"
 
     fun create(state: State, result: Result) {
@@ -17,8 +20,7 @@ class HallOfFameDAO(val redis: StringRedisTemplate) {
 
     // What is the simplest thing that could possibly work? Custom serialization of course.
     private fun serialize(result: Result): String {
-        // FIXME: Nick should be html escaped to avoid XSS
-        return "${result.timeInSeconds}&${result.scenario}&${result.nickName}"
+        return "${result.timeInSeconds}$separator${result.scenario}$separator${result.nickName.replace(separator,"")}"
     }
 
     private fun deserialize(it: List<String>) =
@@ -32,7 +34,7 @@ class HallOfFameDAO(val redis: StringRedisTemplate) {
     fun list(): List<Result> {
      return   redis.opsForHash<String,String>()
             .values(redisKey)
-            .map { it.split("&") }
+            .map { it.split(separator) }
             .map { deserialize(it) }
     }
 
