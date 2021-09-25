@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
-import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.StringRedisTemplate
-
 
 @SpringBootApplication
 class GeolegApplication
@@ -32,7 +30,7 @@ internal class AppConfig {
 
     @Bean
     fun redisConnectionFactory(): LettuceConnectionFactory {
-        val conf = RedisStandaloneConfiguration(redisHost,redisPort.toInt())
+        val conf = RedisStandaloneConfiguration(redisHost, redisPort.toInt())
         conf.setPassword(redisPassword)
         return LettuceConnectionFactory(conf)
     }
@@ -46,9 +44,8 @@ internal class AppConfig {
 
     @Bean
     fun testRedisConnection(redisTemplate: StringRedisTemplate): String {
-       redisTemplate.opsForValue().get("/foo")
+        redisTemplate.opsForValue().get("/foo")
         println("Redis connection initialized successfully")
         return "redisOk"
     }
-
 }

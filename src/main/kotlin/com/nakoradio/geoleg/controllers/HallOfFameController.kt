@@ -30,7 +30,7 @@ class HallOfFameController(
     fun getHallOfFameList(
         @PathVariable scenario: String
     ) =
-       EngineController.asModelAndView(HallOfFameListViewModel(resultsList(scenario)))
+        EngineController.asModelAndView(HallOfFameListViewModel(resultsList(scenario)))
 
     @GetMapping("/hallOfFame/submit")
     @ResponseBody
@@ -62,7 +62,7 @@ class HallOfFameController(
         }
 
         val timeInSeconds = scenarioCompleteTime(state)
-       hallOfFameDAO.create(state,Result(timeInSeconds, state.scenario, payload.nickName) )
+        hallOfFameDAO.create(state, Result(timeInSeconds, state.scenario, payload.nickName))
         return EngineController.asModelAndView(HallOfFameListViewModel(resultsList(state)))
     }
 
@@ -70,11 +70,10 @@ class HallOfFameController(
 
     private fun resultsList(scenario: String) =
         hallOfFameDAO.list()
-        .filter { it.scenario == scenario }
-        .sortedBy { it.timeInSeconds }
-        .map { ResultForView(timeToString(it.timeInSeconds), it.nickName) }
-        .toList()
-
+            .filter { it.scenario == scenario }
+            .sortedBy { it.timeInSeconds }
+            .map { ResultForView(timeToString(it.timeInSeconds), it.nickName) }
+            .toList()
 
     private fun scenarioCompleteTime(state: State) =
         state.questCompleted!!.toEpochSecond() - state.scenarioStarted.toEpochSecond()

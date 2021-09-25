@@ -22,9 +22,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.web.util.HtmlUtils
-import java.net.URLEncoder
-import java.util.Base64
 
 internal class EngineTest {
 
@@ -299,7 +296,6 @@ internal class EngineTest {
 
             private val currentState = stateForRunningQuest(scenario, currentQuest).copy(questCompleted = timeProvider.now().minusSeconds(13))
 
-
             /**
              * User is currently on the first quest complete page (as it was automatically
              * completed). Reloading page should complete the quest again.
@@ -353,7 +349,6 @@ internal class EngineTest {
                 // Then: Restart the scenario
                 assertScenarioRestartAction(currentState, scenario, result)
             }
-
         }
     }
 

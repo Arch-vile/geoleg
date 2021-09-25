@@ -182,12 +182,10 @@ class Engine(
             return initScenario(state, scenario)
         }
 
-
-
         val questToComplete = loader.questFor(scenario, questOrder, secret)
 
         // If trying to recomplete current quest, just show success page
-        if(state.currentQuest == questToComplete.order && state.questCompleted != null) {
+        if (state.currentQuest == questToComplete.order && state.questCompleted != null) {
             return questSuccessView(state)
         }
 

@@ -4,7 +4,6 @@ import com.nakoradio.geoleg.model.Result
 import com.nakoradio.geoleg.model.State
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
-import org.springframework.web.util.HtmlUtils
 
 @Service
 class HallOfFameDAO(val redis: StringRedisTemplate) {
@@ -20,8 +19,8 @@ class HallOfFameDAO(val redis: StringRedisTemplate) {
 
     // What is the simplest thing that could possibly work? Custom serialization of course.
     private fun serialize(result: Result): String {
-        val trimmedNick = result.nickName.take(50).replace(separator,"")
-        return "${result.timeInSeconds}$separator${result.scenario}$separator${trimmedNick}"
+        val trimmedNick = result.nickName.take(50).replace(separator, "")
+        return "${result.timeInSeconds}$separator${result.scenario}$separator$trimmedNick"
     }
 
     private fun deserialize(it: List<String>) =
@@ -33,10 +32,9 @@ class HallOfFameDAO(val redis: StringRedisTemplate) {
         "${state.userId}/${state.scenario}/${state.scenarioRestartCount}/${result.timeInSeconds}"
 
     fun list(): List<Result> {
-     return   redis.opsForHash<String,String>()
+        return redis.opsForHash<String, String>()
             .values(redisKey)
             .map { it.split(separator) }
             .map { deserialize(it) }
     }
-
 }
