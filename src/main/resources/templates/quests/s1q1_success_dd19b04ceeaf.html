@@ -1,17 +1,13 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnistuminen')"></head>
-<body class="black">
-
-<div th:replace="fragments :: storyBanner"></div>
-<img class="w100" src="/images/beach.jpeg">
-
-<h1>Kyltti</h1>
-<h3>
-This is the page you see when you scan the first QR code on the field.
-  Here we will give description of the next quest.
-  Timer will start after clicking the <b>Start quest</b> button.
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>success page 1</title>
+</head>
+<body>
+<div layout:fragment="content">
+    succeess page 1 content
+</div>
 </body>
 </html>
