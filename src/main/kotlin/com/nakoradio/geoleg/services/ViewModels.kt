@@ -10,13 +10,14 @@ open class ViewModel(open val view: String)
 data class OnlyView(override val view: String) : ViewModel(view)
 
 data class CountdownViewModel(
+    override val view: String,
     val now: Long,
     val expiresAt: Long?,
     val fictionalCountdown: Long?,
     val lat: Double?,
     val lon: Double?,
     val message: LocalizedMessage? = null
-) : ViewModel("countdown")
+) : ViewModel(view)
 
 data class QuestEndViewModel(
     override val view: String,

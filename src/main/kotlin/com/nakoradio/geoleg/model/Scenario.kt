@@ -33,7 +33,8 @@ data class Quest(
     val fictionalClock: String,
 
     val failurePage: String,
-    val successPage: String
+    val successPage: String,
+    val countdownPage: String
 )
 
 data class LocalizedMessage(val fiMessage: String)

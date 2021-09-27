@@ -50,3 +50,9 @@ a:link, a:visited, a:hover, a:active {
 .hidden {
   display: none;
 }
+
+IMG.questTargetPhoto {
+  width: 80%;
+  display: block;
+  margin: auto;
+}

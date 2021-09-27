@@ -857,6 +857,7 @@ internal class EngineTest {
                         WebAction(
                             // Then: Show countdown view
                             CountdownViewModel(
+                                laterQuestWithSharedQR.countdownPage,
                                 timeProvider.now().toEpochSecond(),
                                 laterQuestWithSharedQR.countdown?.let {
                                     timeProvider.now().plusSeconds(it).toEpochSecond()
@@ -1452,6 +1453,7 @@ internal class EngineTest {
                 WebAction(
                     // Then: Show countdown view
                     CountdownViewModel(
+                        questToStart.countdownPage,
                         timeProvider.now().toEpochSecond(),
                         questToStart.countdown?.let {
                             timeProvider.now().plusSeconds(it).toEpochSecond()
@@ -1489,6 +1491,7 @@ internal class EngineTest {
                 WebAction(
                     // Then: Countdown continues
                     CountdownViewModel(
+                        currentQuest.countdownPage,
                         currentState.questStarted.toEpochSecond(),
                         currentState.questDeadline?.let { it.toEpochSecond() },
                         currentQuest.fictionalCountdown,

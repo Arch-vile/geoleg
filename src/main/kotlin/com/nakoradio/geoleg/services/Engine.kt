@@ -273,6 +273,7 @@ class Engine(
     ): CountdownViewModel {
         val currentQuest = loader.currentQuest(state)
         return CountdownViewModel(
+            currentQuest.countdownPage,
             state.questStarted.toEpochSecond(),
             state.questDeadline?.toEpochSecond(),
             currentQuest.fictionalCountdown,
@@ -287,6 +288,7 @@ class Engine(
         var expiresAt =
             forQuest.countdown?.let { now.plusSeconds(it).toEpochSecond() }
         return CountdownViewModel(
+            forQuest.countdownPage,
             now.toEpochSecond(),
             expiresAt,
             forQuest.fictionalCountdown,

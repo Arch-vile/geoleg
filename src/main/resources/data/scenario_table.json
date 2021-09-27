@@ -9,7 +9,8 @@
           "secret": "6a5fc6c0f8ec",
           "fictionalClock": "091725ZSEP20",
           "failurePage": "s1q0_failure_shouldNotBeUsed",
-          "successPage": "quests/s1_introduction_defe34c03ace"
+          "successPage": "quests/s1_introduction_defe34c03ace",
+          "countdownPage": "not used"
         },
         {
           "order": 1,
@@ -21,7 +22,8 @@
             "lon": 24.903290
           },
           "failurePage": "s1q1_failure_shouldNotBeUsed",
-          "successPage": "quests/s1q1_success_dd19b04ceeaf"
+          "successPage": "quests/s1q1_success_dd19b04ceeaf",
+          "countdownPage": "quests/s1q1_countdown_68b8608cc013"
         },
         {
           "order": 2,
@@ -35,7 +37,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q2_success_2612a7062d96"
+          "successPage": "quests/s1q2_success_2612a7062d96",
+          "countdownPage": "missing"
         },
         {
           "order": 3,
@@ -49,7 +52,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q3_success_8f9874319882"
+          "successPage": "quests/s1q3_success_8f9874319882",
+          "countdownPage": "missing"
         },
         {
           "order": 4,
@@ -63,7 +67,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q4_success_f512e6bf09db"
+          "successPage": "quests/s1q4_success_f512e6bf09db",
+          "countdownPage": "missing"
         },
         {
           "order": 5,
@@ -77,7 +82,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q5_success_bbc1c03a55c5"
+          "successPage": "quests/s1q5_success_bbc1c03a55c5",
+          "countdownPage": "missing"
         },
         {
           "order": 6,
@@ -91,7 +97,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q6_success_26c1589796e5"
+          "successPage": "quests/s1q6_success_26c1589796e5",
+          "countdownPage": "missing"
         },
         {
           "order": 7,
@@ -105,7 +112,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q7_success_bf521a18fd10"
+          "successPage": "quests/s1q7_success_bf521a18fd10",
+          "countdownPage": "missing"
         },
         {
           "order": 8,
@@ -117,7 +125,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q8_success_8977523fdb9e"
+          "successPage": "quests/s1q8_success_8977523fdb9e",
+          "countdownPage": "missing"
         },
         {
           "order": 9,
@@ -131,7 +140,8 @@
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
-          "successPage": "quests/s1q9_success_ced4d047b80e"
+          "successPage": "quests/s1q9_success_ced4d047b80e",
+          "countdownPage": "missing"
         }
       ]
     },
@@ -144,7 +154,8 @@
           "secret": "c8f101246f60",
           "fictionalClock": "091725ZSEP20",
           "failurePage": "testing_0_fail",
-          "successPage": "quests/testing_0_success"
+          "successPage": "quests/testing_0_success",
+          "countdownPage": "missing"
         },
         {
           "order": 1,
@@ -156,7 +167,8 @@
             "lon": 24.943512
           },
           "failurePage": "testing_1_fail",
-          "successPage": "quests/testing_1_success"
+          "successPage": "quests/testing_1_success",
+          "countdownPage": "missing"
         },
         {
           "order": 2,
@@ -170,7 +182,8 @@
           "countdown": 60,
           "fictionalCountdown": 13033,
           "failurePage": "quests/testing_2_fail",
-          "successPage": "quests/testing_2_success"
+          "successPage": "quests/testing_2_success",
+          "countdownPage": "missing"
         },
         {
           "order": 3,
@@ -184,7 +197,8 @@
           "countdown": 120,
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_3_fail",
-          "successPage": "quests/testing_3_success"
+          "successPage": "quests/testing_3_success",
+          "countdownPage": "missing"
         },
         {
           "order": 4,
@@ -199,7 +213,8 @@
           "countdown": 120,
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_4_fail",
-          "successPage": "quests/testing_4_success"
+          "successPage": "quests/testing_4_success",
+          "countdownPage": "missing"
         },
         {
           "order": 5,
@@ -213,7 +228,8 @@
           "countdown": 120,
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_5_fail",
-          "successPage": "quests/testing_5_success"
+          "successPage": "quests/testing_5_success",
+          "countdownPage": "missing"
         },
         {
           "order": 6,
@@ -227,7 +243,8 @@
           "countdown": 120,
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_6_fail",
-          "successPage": "quests/testing_6_success"
+          "successPage": "quests/testing_6_success",
+          "countdownPage": "missing"
         },
         {
           "order": 7,
@@ -241,7 +258,8 @@
           "countdown": 120,
           "fictionalCountdown": 300,
           "failurePage": "quests/testing_7_fail",
-          "successPage": "quests/testing_7_success"
+          "successPage": "quests/testing_7_success",
+          "countdownPage": "missing"
         }]
     }
   ]

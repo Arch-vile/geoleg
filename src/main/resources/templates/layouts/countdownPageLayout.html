@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/baseLayout}">
+<head th:replace="fragments :: headPart (title = 'Laskuri')"></head>
+<body class="black">
+<div layout:fragment="baseContent">
+
+  <h2 id="timer" class="clock"></h2>
+  <h2 th:classappend="${ model.lat == null ? 'hidden' : ''  }" id="destination"></h2>
+  <div th:replace="fragments :: mapLinks"></div>
+
+  <h2 th:if="${model.message != null}" th:text="${model.message.fiMessage}"></h2>
+  <div layout:fragment="content">
+    success page content
+  </div>
+
+  <script th:inline="javascript">
+    // Let's keep the start timestamp so that we know how much time has passed. With this
+    // we can scale the real countdown to fictional countdown and be consistent on page reload also.
+    // Epoch seconds on countdown start
+    const now = [[${model.now}]];
+
+    // Epoch seconds of the real expiration time
+    const expiresAt = [[${model.expiresAt}]];
+
+    // Augmented reality time to complete the mission in seconds.
+    // For example if the story says you have 1 hour to complete the task, but the real
+    // expiration is set 60 seconds from now, the fictional countdown will progress at one minute per second
+    // rate.
+    // How many fictional seconds is the fictional countdown
+    const fictionalCountdownSeconds = [[${model.fictionalCountdown}]];
+
+    const lat = [[${model.lat}]];
+    const lon = [[${model.lon}]];
+  </script>
+
+  <script>
+    // How many real seconds is the countdown
+    const realCountdownSeconds = expiresAt - now;
+
+    document.getElementById("destination").innerText =
+        lat + ', ' + lon;
+
+    const secondsInMinute = 60;
+    const secondsInHour = 60 * secondsInMinute;
+    const secondsInDay = 24 * secondsInHour;
+
+    function updateTimer() {
+      var actualMilliSecondsRemaining = expiresAt * 1000 - new Date().getTime();
+      if (actualMilliSecondsRemaining < 0) {
+        actualMilliSecondsRemaining = 0;
+      }
+
+      var fictionalSecondsRemaining =
+          Math.round((actualMilliSecondsRemaining / 1000 / realCountdownSeconds)
+              * fictionalCountdownSeconds);
+
+      var leftSeconds = fictionalSecondsRemaining;
+      const days = Math.floor(leftSeconds / secondsInDay);
+      leftSeconds = leftSeconds - days * secondsInDay;
+
+      const hours = Math.floor(leftSeconds / secondsInHour);
+      leftSeconds = leftSeconds - hours * secondsInHour;
+
+      const minutes = Math.floor(leftSeconds / 60);
+      leftSeconds = leftSeconds - minutes * secondsInMinute;
+
+      document.getElementById("timer").innerText =
+          days + ' days ' +
+          hours + ' hours ' +
+          minutes + ' minutes ' +
+          leftSeconds + ' seconds';
+
+      if (actualMilliSecondsRemaining > 0) {
+        setTimeout(updateTimer, 100);
+      }
+    }
+
+    // If quest has countdown of zero, expiresAt is set to now, realCountDownSeconds
+    // will be <= 0, in which case we do not want to show the timer
+    if (realCountdownSeconds > 0) {
+      updateTimer();
+    }
+
+  </script>
+</div>
+</body>
+</html>
