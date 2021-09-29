@@ -1,17 +1,25 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Intro')"></head>
-<body class="black">
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>success page 1</title>
+</head>
+<body>
+<div layout:fragment="content">
 
-<div th:replace="fragments :: storyBanner"></div>
+  <p>
+    Olet piileskellyt asunnossasi yli kaksi kuukautta. Juomavetesi ja ruokavarantosi alkavat loppua ja ulkoa kuuluvat kummalliset nuuskivat ja uikuttavat äänet häiritsevät öitäsi. Olet peittänyt ikkunasi, mutta niiden takana liikkuvat laahustavat varjot tuntuvat tutkivan asuntoasi öisin. Päivisin on aivan hiljaista, mutta hiljaisuuden kokonaisvaltaisuus kauhistuttaa sinua. Sähköt ja puhelin eivät ole toimineet moneen viikkoon.
+  </p>
 
-<h1>This is a <a href="https://www.geocaching.com/play">Geocache</a></h1>
-<h2>This is work in progress, will be released soon.</h2>
-<p>
-  This is the page you are shown when following the QR code published on the geocaching com.
-</p>
+  <p>Päätät, että on aika lähteä.</p>
 
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
-
+  <p>
+  Auringon noustessa 65:nnen päivän aamuna avaat vihdoin ulko-ovesi ja suuntaat kohti metsää; haluat kauas asutuksesta, kauas uikuttavista varjoista. Tunnet metsän polkuineen hyvin ja olet piilottanut sinne ruokaa ja tarvikkeita. Olet valinnut lähestymisreitit piiloihisi siten, että nopea liikkuminen hätätilanteessa on mahdollista.
+  </p>
+  <p>
+  Rupeat varovaisesti etenemään kohti metsää.
+  </p>
+</div>
 </body>
 </html>

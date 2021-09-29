@@ -1,6 +1,7 @@
 BODY.black {
   background-color: black;
   color: antiquewhite;
+  margin: 1em
 }
 
 .red {
@@ -32,14 +33,23 @@ BODY.black {
   max-width: 300px;
 }
 
+.m1 {
+  margin: 1em;
+}
+.m2 {
+  margin: 2em;
+}
+.m3 {
+  margin: 3em;
+}
+
+.center {
+  text-align: center;
+}
+
 table, th, td {
   border: 1px solid white;
 
-}
-
-a:link, a:visited, a:hover, a:active {
-  background-color: white;
-  color: black;
 }
 
 .clock {
@@ -51,8 +61,44 @@ a:link, a:visited, a:hover, a:active {
   display: none;
 }
 
+DIV.story P {
+   text-align: justify;
+}
+
 IMG.questTargetPhoto {
   width: 80%;
   display: block;
   margin: auto;
 }
+
+.button {
+  border-top: 1px solid #00ff8c;
+  background: #1b4f1e;
+  background: -webkit-gradient(linear, left top, left bottom, from(#3e9c54), to(#1b4f1e));
+  background: -webkit-linear-gradient(top, #3e9c54, #1b4f1e);
+  background: -moz-linear-gradient(top, #3e9c54, #1b4f1e);
+  background: -ms-linear-gradient(top, #3e9c54, #1b4f1e);
+  background: -o-linear-gradient(top, #3e9c54, #1b4f1e);
+  padding: 11px 22px;
+  -webkit-border-radius: 7px;
+  -moz-border-radius: 7px;
+  border-radius: 7px;
+  -webkit-box-shadow: rgba(0,0,0,1) 0 1px 0;
+  -moz-box-shadow: rgba(0,0,0,1) 0 1px 0;
+  box-shadow: rgba(0,0,0,1) 0 1px 0;
+  text-shadow: rgba(0,0,0,.4) 0 1px 0;
+  color: antiquewhite;
+  font-size: 1.5em;
+  font-family: Georgia, serif;
+  text-decoration: none;
+  vertical-align: middle;
+  }
+.button:hover {
+  border-top-color: #48db59;
+  background: #48db59;
+  color: #000000;
+  }
+.button:active {
+  border-top-color: #1b5c2f;
+  background: #1b5c2f;
+  }

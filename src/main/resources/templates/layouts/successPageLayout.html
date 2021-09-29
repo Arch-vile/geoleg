@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html
-    xmlns:layout="http://www.w3.org/1999/xhtml"
-    layout:decorate="~{layouts/baseLayout}">
+<html xmlns:layout="http://www.w3.org/1999/xhtml" layout:decorate="~{layouts/baseLayout}">
+
 <body>
-<div layout:fragment="baseContent">
-  <div th:fragment="storyBanner">
-    <h1  class="clock" th:text="${model.nextQuest.fictionalClock}"></h1>
+  <div layout:fragment="baseContent">
+    <div th:fragment="storyBanner">
+      <h1 class="clock" th:text="${model.nextQuest.fictionalClock}"></h1>
+    </div>
+    <div class="story">
+      <div layout:fragment="content">
+        succeess page content
+      </div>
+    </div>
+    <h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
   </div>
-  <div layout:fragment="content">
-    succeess page content
-  </div>
-  <h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
-</div>
 </body>
+
 </html>
