@@ -195,8 +195,7 @@ class Engine(
             questToComplete.order !== state.currentQuest
         ) {
             // If curren quest is already completed
-            if (state.questCompleted != null)
-                return questSuccessView(state)
+            if (state.questCompleted != null) { return questSuccessView(state) }
 
             // If DL for current quest has passed, show failure page
             if (hasQuestDLPassed(state)) {
@@ -304,8 +303,9 @@ class Engine(
         WebAction(questFailedView(quest, state), state)
 
     private fun hasQuestDLPassed(state: State) =
-        if (state.questCompleted != null) false else
+        if (state.questCompleted != null) { false } else {
             state.questDeadline?.let { it.isBefore(timeProvider.now()) } ?: false
+        }
 
     private fun assertProximity(target: Coordinates, location: Coordinates) {
         if (!verifyLocation) {

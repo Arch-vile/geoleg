@@ -1335,11 +1335,12 @@ internal class EngineTest {
     }
 
     private fun freshLocation(questToStart: Quest) =
-        if (questToStart.location != null)
+        if (questToStart.location != null) {
             LocationReading(
                 questToStart.location!!.lat, questToStart.location!!.lon,
                 timeProvider.now()
-            ).asString() else locationSomewhere().asString()
+            ).asString()
+        } else { locationSomewhere().asString() }
 
     fun assertScenarioRestartAction(existingState: State?, action: WebAction) {
         return assertScenarioRestartAction(existingState, loader.findScenario(existingState!!.scenario), action)
