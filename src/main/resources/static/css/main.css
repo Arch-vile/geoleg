@@ -47,9 +47,17 @@ BODY.black {
   text-align: center;
 }
 
-table, th, td {
-  border: 1px solid white;
+.spacedContainer {
+  display: flex;
+  justify-content: space-between;
+}
 
+table, th, td {
+  border: 1px solid antiquewhite;
+}
+
+a {
+  color: antiquewhite;
 }
 
 .clock {

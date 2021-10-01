@@ -7,13 +7,21 @@
 <div layout:fragment="baseContent">
 
   <h2 id="timer" class="clock"></h2>
-  <h2 th:classappend="${ model.lat == null ? 'hidden' : ''  }" id="destination"></h2>
-  <div th:replace="fragments :: mapLinks"></div>
+
+
+  <div>
+    <p>
+      Tarkistat muistikirjastasi seuraavan kohteen sijainnin ja lähdet kulkemaan sitä kohti.
+    </p>
+    <h3 th:classappend="${ model.lat == null ? 'hidden' : ''  }" id="destination"></h3>
+  </div>
 
   <h2 th:if="${model.message != null}" th:text="${model.message.fiMessage}"></h2>
-  <div layout:fragment="content">
-    success page content
+  <div class="m1" layout:fragment="content">
+    Countdown page content placeholder
   </div>
+
+  <div th:replace="fragments :: mapLinks"></div>
 
   <script th:inline="javascript">
     // Let's keep the start timestamp so that we know how much time has passed. With this
