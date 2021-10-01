@@ -58,6 +58,7 @@ table, th, td {
 
 a {
   color: antiquewhite;
+  text-decoration: underline;
 }
 
 .clock {
@@ -73,7 +74,7 @@ DIV.story P {
    text-align: justify;
 }
 
-IMG.questTargetPhoto {
+IMG {
   width: 80%;
   display: block;
   margin: auto;

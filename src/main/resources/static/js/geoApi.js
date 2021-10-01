@@ -14,13 +14,13 @@ function errorProcessorFactory(errorHandler) {
   return function(error) {
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        errorHandler("User denied the request for Geolocation.");
+        errorHandler('Et ole antanut lupaa sijainnin lukemiseen. <a href="/geolocationInstructions">Ohjeet</a>');
         break;
       case error.POSITION_UNAVAILABLE:
-        errorHandler("Location information is unavailable.");
+        errorHandler('Sijainnin lukeminen epäonnistui. <a href="/geolocationInstructions">Ohjeet</a>');
         break;
       case error.TIMEOUT:
-        errorHandler("The request to get user location timed out.");
+        errorHandler('Sijainnin lukeminen kesti liian kauan. Yritä lukea QR koodi uudestaan. <a href="/geolocationInstructions">Ohjeet</a>');
         break;
       case error.UNKNOWN_ERROR:
         errorHandler("An unknown error occurred.");

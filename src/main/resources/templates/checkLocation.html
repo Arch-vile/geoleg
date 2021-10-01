@@ -8,11 +8,14 @@
 
 
 <h3 th:if="${model.lat}">
-  Kohde:
-  <span th:text="${model.lat}"></span>,
-  <span th:text="${model.lon}"></span>
-   Etäisyys:
-  <span id="distance"></span>
+  <div>
+    Kohde:
+    <span th:text="${model.lat}"></span>,
+    <span th:text="${model.lon}"></span>
+  </div>
+  <div>
+    Etäisyys: <span id="distance"></span>
+  </div>
 </h3>
 
 <div id="status"></div>
@@ -47,7 +50,7 @@
     var lon = position.coords.longitude.toFixed(5);
     console.log('Processing location: ' + lat + ',' + lon);
 
-    updateDistance(lat,lon);
+    updateDistance(lat, lon);
 
     latitudeHistory.unshift(lat);
     longitudeHistory.unshift(lon);
@@ -57,7 +60,7 @@
       longitudeHistory.pop();
     }
 
-    if(distance(lat, lon, targetLat, targetLon) < 50) {
+    if (distance(lat, lon, targetLat, targetLon) < 50) {
       sendLocation(lat, lon);
     }
 
@@ -70,23 +73,26 @@
 
   function checkElapsed() {
     const elapsed = new Date().getTime() - startTime;
-    if(elapsed > 20000) {
-      if(!latitudeHistory[0]) {
+    if (elapsed > 20000) {
+      if (!latitudeHistory[0]) {
         showError('Sijainnin saaminen ei onnistunut. Lataa sivu uudestaan.');
       } else {
         sendLocation(latitudeHistory[0], longitudeHistory[0]);
       }
-    }
-    else {
+    } else {
 
-      if(statusCounter % 4 == 0)
+      if (statusCounter % 4 == 0) {
         addStatus('Ajetaan diagnostiikka...', false);
-      if(statusCounter % 4 == 1)
+      }
+      if (statusCounter % 4 == 1) {
         addStatus('Lämmitetään vuokapasitaattoreita...', true);
-      if(statusCounter % 4 == 2)
+      }
+      if (statusCounter % 4 == 2) {
         addStatus('Muovataan aika-avaruutta...', true);
-      if(statusCounter % 4 == 3)
+      }
+      if (statusCounter % 4 == 3) {
         addStatus('Jaetaan nollalla...', true);
+      }
 
       statusCounter++;
       setTimeout(checkElapsed, 5000);
@@ -95,8 +101,9 @@
 
   function addStatus(message, append) {
     var content = '';
-    if(append)
+    if (append) {
       content += '<span class="green"> DONE</span><br>';
+    }
 
     content += '<span>' + message + '</span>';
     status.innerHTML = status.innerHTML + content;
@@ -110,11 +117,12 @@
   }
 
   function showError(text) {
-    errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text + '</span>';
+    errorContainer.innerHTML = errorContainer.innerHTML + '<br><span class="red">' + text
+        + '</span>';
   }
 
-  function updateDistance(lat,lon) {
-    if(targetLat) {
+  function updateDistance(lat, lon) {
+    if (targetLat) {
       const distanceInMeters = distance(lat, lon, targetLat, targetLon);
       distanceView.innerHTML = distanceInMeters + "m";
     }
@@ -142,9 +150,9 @@
 
 <script>
   // Just for development
-  if(readLocation === "false") {
+  if (readLocation === "false") {
     console.log("skip");
-    sendLocation(0,0);
+    sendLocation(0, 0);
   } else {
     console.log("read");
     getLocation(processNewLocation, processError);

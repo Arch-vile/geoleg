@@ -106,15 +106,6 @@ class EngineController(
         )
     }
 
-    // Stupid proxy for rendering the view
-    @GetMapping("/checkLocation")
-    fun checkLocation(viewModel: LocationReadingViewModel) =
-        processWebView(viewModel)
-
-    // Stupid proxy for rendering the view
-    @GetMapping("/countdown")
-    fun countdown(model: CountdownViewModel) =
-        processWebView(model)
 
     @ExceptionHandler(value = [MissingRequestCookieException::class])
     fun missinCoookieHandler(ex: MissingRequestCookieException): ModelAndView {
@@ -139,12 +130,15 @@ class EngineController(
         return asModelAndView(action.modelAndView)
     }
 
-    private fun processWebView(webView: ViewModel): ModelAndView {
-        logger.info("Rendering view [${webView.view}] with model [$webView]")
-        return asModelAndView(webView)
-    }
 
     companion object {
+        var logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+        fun processWebView(webView: ViewModel): ModelAndView {
+            logger.info("Rendering view [${webView.view}] with model [$webView]")
+            return asModelAndView(webView)
+        }
+
         fun asModelAndView(modelView: ViewModel) =
             ModelAndView(modelView.view, "model", modelView)
     }
