@@ -38,7 +38,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q2_success_2612a7062d96",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q2_countdown_3516dfeb3b"
         },
         {
           "order": 3,
@@ -53,7 +53,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q3_success_8f9874319882",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q3_countdown_0aff39f6ed"
         },
         {
           "order": 4,
@@ -68,7 +68,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q4_success_f512e6bf09db",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q4_countdown_a99f3ff33e"
         },
         {
           "order": 5,
@@ -83,7 +83,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q5_success_bbc1c03a55c5",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q5_countdown_f76ac5bfad"
         },
         {
           "order": 6,
@@ -98,7 +98,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q6_success_26c1589796e5",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q6_countdown_f001caa40f"
         },
         {
           "order": 7,
@@ -113,7 +113,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q7_success_bf521a18fd10",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q7_countdown_76ab02d9db"
         },
         {
           "order": 8,
@@ -126,7 +126,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q8_success_8977523fdb9e",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q8_countdown_292d77da06"
         },
         {
           "order": 9,
@@ -141,7 +141,7 @@
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
           "successPage": "quests/s1q9_success_ced4d047b80e",
-          "countdownPage": "missing"
+          "countdownPage": "quests/s1q9_countdown_5f4232619e"
         }
       ]
     },

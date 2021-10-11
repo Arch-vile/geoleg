@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnea')"></head>
-<body class="black">
-<img class="w100" src="/images/beach.jpeg">
-<h1>Kuusi</h1>
-<h3>
-  Olet onnistunut pysymaan hengissa!
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>Kuusi</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <p>
+    Olet levoton. Sinusta tuntuu kuin sinua tarkkailtaisiin. Matalalla olevan auringon luomat varjot muistuttavat puiden lomassa liikkuvia ihmisiä. Välillä olet varma, että näet tummia hahmoja puiden alla, kunnes jo seuraava tuulenpuuska vie ne mennessään. Piiloudut kuusen taakse kuuntelemaan ja tarkkailemaan ympäristöäsi.   </p>
+
+  <p>
+    Yhtäkkiä laahaava ääni rikkoo hiljaisuuden. Kuuntelet tuota ääntä, joka peittää mielestäsi kaiken muun. Hetken päästä laahausta seuraa tuttu uikutus. Olet kauhuissasi. Metsän piti olla turvapaikkasi. Paikka, jonne voit vetäytyä, kun kaikki muu hajoaa. Tuntemasi kauhu syvenee paniikiksi ja päätät, että on aika ottaa varasuunnitelma käyttöön.  </p>
+
+  <p>
+    Syöksyt pois kuusen suojista ja lähdet juosten kohti seuraavaa kätköä.
+  </p>
+
+</div>
 </body>
 </html>

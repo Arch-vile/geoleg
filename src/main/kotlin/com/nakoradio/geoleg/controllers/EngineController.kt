@@ -2,9 +2,7 @@ package com.nakoradio.geoleg.controllers
 
 import com.nakoradio.geoleg.model.WebAction
 import com.nakoradio.geoleg.services.CookieManager
-import com.nakoradio.geoleg.services.CountdownViewModel
 import com.nakoradio.geoleg.services.Engine
-import com.nakoradio.geoleg.services.LocationReadingViewModel
 import com.nakoradio.geoleg.services.MissingCookieException
 import com.nakoradio.geoleg.services.ViewModel
 import com.nakoradio.geoleg.utils.Time
@@ -106,7 +104,6 @@ class EngineController(
         )
     }
 
-
     @ExceptionHandler(value = [MissingRequestCookieException::class])
     fun missinCoookieHandler(ex: MissingRequestCookieException): ModelAndView {
         logger.info("Handling MissingRequestCookieException.class")
@@ -129,7 +126,6 @@ class EngineController(
 
         return asModelAndView(action.modelAndView)
     }
-
 
     companion object {
         var logger: Logger = LoggerFactory.getLogger(this::class.java)

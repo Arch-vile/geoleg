@@ -1,12 +1,24 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnea')"></head>
-<body class="black">
-<img class="w100" src="/images/beach.jpeg">
-<h1>Sahko</h1>
-<h3>
-  Olet onnistunut pysymaan hengissa!
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/html"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>Masto</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <p>
+  Pelko ja fyysinen rasitus vaativat veronsa ja vatsasi kurnii jo nälästä. Vilkuilet taaksesi ja tarkistat kellostasi, että sinulla on aikaa lyhyeen taukoon. Kaivat eväät kätköstäsi ja tunnet, kuinka voimasi hiljalleen palautuvat. Kunnes...
+  </p>
+
+  <p class="italic">
+  wiiiiiiik!</br>
+  uiiiiiii!</br>
+  zheeeeee!
+  </p>
+
+  <p>Tunnet adrenaliinin syöksähtävän elimistöösi ja ryntään jälleen matkaan.</p>
+
+</div>
 </body>
 </html>

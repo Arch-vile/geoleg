@@ -43,6 +43,10 @@ BODY.black {
   margin: 3em;
 }
 
+.italic {
+  font-style: italic;
+}
+
 .center {
   text-align: center;
 }

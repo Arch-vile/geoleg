@@ -1,13 +1,29 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnistuminen')"></head>
-<body class="black">
-<div th:replace="fragments :: storyBanner"></div>
-<img class="w100" src="/images/beach.jpeg">
-<h1>Silta</h1>
-<h3>
-  Quest 2 silta... COMPLETED
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>Silta</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <p>
+    Matkasi sujui rauhallisesti ja ensimmäistä kertaa kuukausiin ohikiitävä normaaliudentunne valtaa sinut. Kävelit hiljalleen nauttien ulkoilmasta ja piileskeltyjen viikkojen jälkeisen liikkumisen tuomasta riemusta.
+  </p>
+
+  <p>
+    Löydät kätkösi vahingoittumattomana ja siirrät reppuusi nyt-niin-arvokkaat tarvikkeet, jotka vain muutama kuukausi sitten olisivat olleet itsestäänselvyys. Muistat ystäväsi ja heidän hyväntahtoisen pilkkansa, kun kerroit heille peloistasi, suunnitelmistasi ja varautumisestasi ollen samalla kiitollinen siitä, ettet jakanut kätköjesi koordinaatteja heidän kanssaan.
+  </p>
+
+  <p>
+    Yhtäkkiä kuulet oksan katkeavan ja käännyt katsomaan vasemmalle kohti niittyjä. Pidätät hengitystäsi ja lihaksesi jännittyvät, kunnes huomaat tutun hahmon liikkuvan metsässä. Seuraat kahden peuran juoksua, kun ne siirtyvät sulavasti loikkien metsästä niitylle ja katoavat horisonttiin. Rentoudut hieman, mutta tajuat olleesi liian pitkään paikallasi ja haluat päästä pikimmiten jatkamaan matkaasi.
+  </p>
+
+  <p>
+    Lähdet kävelemään rivakasti kohti seuraavaa piiloasi.
+  </p>
+
+</div>
 </body>
 </html>

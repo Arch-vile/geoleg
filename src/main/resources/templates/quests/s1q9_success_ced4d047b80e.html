@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnea')"></head>
-<body class="black">
-<img class="w100" src="/images/beach.jpeg">
-<h1>Siilo</h1>
-<h3>
-  Voitto!!!!!
-</h3>
-<div>
-  <a th:href="@{/hallOfFame/submit}">Saat nimesi mestareiden kirjaan</a>
+<html xmlns:layout="http://www.w3.org/1999/xhtml" layout:decorate="~{layouts/baseLayout}">
+
+<body>
+<div layout:fragment="baseContent">
+  <div class="story">
+    <div layout:fragment="content">
+      Scenario completed!
+    </div>
+
+    <a th:href="@{/hallOfFame/submit}">Saat nimesi mestareiden kirjaan</a>
+  </div>
 </div>
 </body>
 </html>

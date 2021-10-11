@@ -1,12 +1,20 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnea')"></head>
-<body class="black">
-<img class="w100" src="/images/beach.jpeg">
-<h1>Helikopteri</h1>
-<h3>
-  Olet onnistunut pysymaan hengissa!
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/html"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>Myöhässä</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <p>
+    Syöksyt paniikissa metsästä aukiolle. Seisot suojattomana keskellä kalliota ja tunnet, kuinka nuo laahaavat, uikuttavat olennot hiljalleen ympäröivät sinut - kuinka metsän varjot syvänevät kätkien sisälleen jotain aivan muuta. Jähmetyt. Uskot ja toivot helikopterin äänen pian peittävän alleen tuon luonnottoman uikutuksen. Odotat ja odotat. Yhtäkkiä äänet lakkaavat. On aivan hiljaista. Ympärilläsi olevat varjot liikkuvat ja tuntuu kuin ne hiljalleen valtaisivat tilaa auringolta. Katsot kelloasi ja ymmärrät, että apua ei ole tulossa.
+  </p>
+
+  <p>
+    Mutta varjot tulevat. Et voi enää odottaa. Ehkä ymmärsit noutopaikan väärin? Ehkä kuulit ajan väärin? Teet nopeasti päätöksen ja päätät suunnata takaisin puhelimelle.
+  </p>
+
+</div>
 </body>
 </html>

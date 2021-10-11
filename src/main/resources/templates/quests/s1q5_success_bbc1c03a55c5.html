@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnea')"></head>
-<body class="black">
-<img class="w100" src="/images/beach.jpeg">
-<h1>Kelo</h1>
-<h3>
-  Olet onnistunut pysymaan hengissa!
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>Kelo</title>
+</head>
+<body>
+<div layout:fragment="content">
+  <p>
+    Et uskalla pysähtyä. On pakko jatkaa.
+  </p>
+</div>
 </body>
 </html>

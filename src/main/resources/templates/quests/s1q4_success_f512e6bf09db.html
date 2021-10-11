@@ -1,12 +1,34 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments :: headPart ('Onnea')"></head>
-<body class="black">
-<img class="w100" src="/images/beach.jpeg">
-<h1>Vuori</h1>
-<h3>
-  Olet onnistunut pysymaan hengissa!
-</h3>
-<h1 th:replace="fragments :: startNextLink"><a href="">GO!</a></h1>
+<html
+    xmlns:layout="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/successPageLayout}">
+<head>
+  <title>Huippu</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+  <p>
+    Hiki valuu pitkin selkääsi. Keuhkoihisi sattuu. Katsot tulosuuntaasi. Kaikki näyttää normaalilta. Istut alas ja annat hengityksesi tasaantua.
+  </p>
+
+  <p>
+    Nostat puhelimen käteesi, näppäilet tutun numeron ja odotat. Lopulta joku vastaa. Vaikka olet valinnut paikan tarkkaan ja olet metsän korkeimmalla kohdalla, signaali on heikko saat selvää vain osasta sanoista.
+  </p>
+
+  <p>
+    ... nopeasti ...</br>
+    ... kaikkialla ...</br>
+    ... sovittu paikka ... odota ...</br>
+    ... helikopteri ... apua ...</br>
+  </p>
+
+  <p>
+    Suunnitelma on valmiina ja noudatat sitä. Katsot jälleen tulosuuntaasi. Puut heiluvat kaukaisuudessa, vaikka ilma on tyyni. On aika jatkaa.
+  </p>
+
+  <img src="/images/ancient-blood/s1q5_route_scaled.jpg">
+
+</div>
 </body>
 </html>
