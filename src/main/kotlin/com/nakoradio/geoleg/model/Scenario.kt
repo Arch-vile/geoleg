@@ -29,9 +29,6 @@ data class Quest(
     // Fictional time in seconds to complete the quest, can be omitted.
     val fictionalCountdown: Long?,
 
-    // Fictional time (as static string) to be shown
-    val fictionalClock: String,
-
     val failurePage: String,
     val successPage: String,
     val countdownPage: String

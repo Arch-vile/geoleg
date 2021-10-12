@@ -7,7 +7,6 @@
           "order": 0,
           "name": "Aloitus",
           "secret": "6a5fc6c0f8ec",
-          "fictionalClock": "091725ZSEP20",
           "failurePage": "s1q0_failure_shouldNotBeUsed",
           "successPage": "quests/s1_introduction_defe34c03ace",
           "countdownPage": "not used"
@@ -16,7 +15,6 @@
           "order": 1,
           "name": "Kyltti",
           "secret": "656a0b0924da",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.287580,
             "lon": 24.903290
@@ -29,7 +27,6 @@
           "order": 2,
           "name": "Silta",
           "secret": "138d0d22b893",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.290167,
             "lon": 24.899750
@@ -44,7 +41,6 @@
           "order": 3,
           "name": "Kuusi",
           "secret": "a41e1e8068c3",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.292950,
             "lon": 24.898010
@@ -59,7 +55,6 @@
           "order": 4,
           "name": "Huippu",
           "secret": "6021c7d15c44",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.291330,
             "lon": 24.912280
@@ -74,7 +69,6 @@
           "order": 5,
           "name": "Kelo",
           "secret": "365abfc7bd8b",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.291610,
             "lon": 24.924240
@@ -89,7 +83,6 @@
           "order": 6,
           "name": "Sahkotolppa",
           "secret": "284e23571ac2",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.289810,
             "lon": 24.931740
@@ -104,7 +97,6 @@
           "order": 7,
           "name": "Helikopteri",
           "secret": "37cbeadad9d4",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.287470,
             "lon": 24.918140
@@ -121,7 +113,6 @@
           "name": "Huippu 2",
           "message": { "fiMessage": "Palaa puhelimelle" },
           "secret": "e359dec5aa1c",
-          "fictionalClock": "091725ZSEP20",
           "countdown": 1600,
           "fictionalCountdown": 13033,
           "failurePage": "quests/genericFailure",
@@ -132,7 +123,6 @@
           "order": 9,
           "name": "Siilo",
           "secret": "198aabd6d865",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.287900,
             "lon": 24.898810
@@ -152,7 +142,6 @@
           "order": 0,
           "name": "test1",
           "secret": "c8f101246f60",
-          "fictionalClock": "091725ZSEP20",
           "failurePage": "testing_0_fail",
           "successPage": "quests/testing_0_success",
           "countdownPage": "missing"
@@ -161,7 +150,6 @@
           "order": 1,
           "name": "test2",
           "secret": "d3b07d1eea7f",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.167251,
             "lon": 24.943512
@@ -174,7 +162,6 @@
           "order": 2,
           "name": "test3",
           "secret": "a5fc2243ea7b",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.204638,
             "lon": 24.655577
@@ -189,7 +176,6 @@
           "order": 3,
           "name": "test4",
           "secret": "65baf038164a",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.292966,
             "lon": 25.037099
@@ -205,7 +191,6 @@
           "name": "test5",
           "sharedQrWithQuest": 2,
           "secret": "65baf0aaaa4a",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 63.291966,
             "lon": 22.137799
@@ -220,7 +205,6 @@
           "order": 5,
           "name": "test6",
           "secret": "abbddbbccv",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.392966,
             "lon": 26.037099
@@ -235,7 +219,6 @@
           "order": 6,
           "name": "test7",
           "secret": "sfdsfsff",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 60.344222,
             "lon": 26.444449
@@ -250,7 +233,6 @@
           "order": 7,
           "name": "test8",
           "secret": "sfdsfsffdddd",
-          "fictionalClock": "091725ZSEP20",
           "location": {
             "lat": 62.34342,
             "lon": 22.12344
