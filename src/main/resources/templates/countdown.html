@@ -8,9 +8,6 @@
 <h2 th:classappend="${ model.lat == null ? 'hidden' : ''  }" id="destination"></h2>
 <div th:replace="fragments :: mapLinks"></div>
 
-<h2  th:if="${model.message != null}" th:text="${model.message.fiMessage}"></h2>
-
-
 <script th:inline="javascript">
   // Let's keep the start timestamp so that we know how much time has passed. With this
   // we can scale the real countdown to fictional countdown and be consistent on page reload also.

@@ -2,7 +2,6 @@ package com.nakoradio.geoleg.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.nakoradio.geoleg.model.LocalizedMessage
 import com.nakoradio.geoleg.model.LocationReading
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.Scenario
@@ -848,7 +847,7 @@ internal class EngineTest {
              * location. They must identify it by the description given on the story.
              */
             @Test
-            fun `Countdown page should not show coordinates but message`() {
+            fun `Countdown page should not show coordinates`() {
                 val outcome = startNextQuest(currentState)
 
                 assertThat(
@@ -863,8 +862,7 @@ internal class EngineTest {
                                     timeProvider.now().plusSeconds(it).toEpochSecond()
                                 },
                                 laterQuestWithSharedQR.fictionalCountdown,
-                                null, null,
-                                LocalizedMessage("Palaa puhelimelle")
+                                null, null
                             ),
                             // And: State is updated for the quest to start
                             updatedStateForNewlyStartedQuest(currentState, laterQuestWithSharedQR)
@@ -1460,8 +1458,7 @@ internal class EngineTest {
                             timeProvider.now().plusSeconds(it).toEpochSecond()
                         },
                         questToStart.fictionalCountdown,
-                        questToStart.location?.lat, questToStart.location?.lon,
-                        questToStart.message
+                        questToStart.location?.lat, questToStart.location?.lon
                     ),
                     // And: State is updated for the quest to start
                     updatedStateForNewlyStartedQuest(currentState, questToStart)
@@ -1497,8 +1494,7 @@ internal class EngineTest {
                         currentState.questDeadline?.let { it.toEpochSecond() },
                         currentQuest.fictionalCountdown,
                         currentQuest.location?.lat,
-                        currentQuest.location?.lon,
-                        currentQuest.message
+                        currentQuest.location?.lon
                     ),
                     // And: State is not changed
                     currentState

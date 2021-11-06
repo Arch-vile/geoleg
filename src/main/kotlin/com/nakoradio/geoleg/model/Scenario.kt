@@ -20,9 +20,6 @@ data class Quest(
     // Quest end location, can be omitted to indicate no location check.
     val location: Coordinates?,
 
-    // Optional message to show on the countdown page
-    val message: LocalizedMessage?,
-
     // Time in seconds to complete this quest (reach this location). Can be omitted to indicate no time limit.
     val countdown: Long?,
 
@@ -33,8 +30,6 @@ data class Quest(
     val successPage: String,
     val countdownPage: String
 )
-
-data class LocalizedMessage(val fiMessage: String)
 
 data class Coordinates(val lat: Double, val lon: Double)
 

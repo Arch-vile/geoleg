@@ -1,7 +1,6 @@
 package com.nakoradio.geoleg.services
 
 import com.nakoradio.geoleg.controllers.HallOfFameController
-import com.nakoradio.geoleg.model.LocalizedMessage
 import com.nakoradio.geoleg.model.Quest
 import com.nakoradio.geoleg.model.State
 
@@ -15,8 +14,7 @@ data class CountdownViewModel(
     val expiresAt: Long?,
     val fictionalCountdown: Long?,
     val lat: Double?,
-    val lon: Double?,
-    val message: LocalizedMessage? = null
+    val lon: Double?
 ) : ViewModel(view)
 
 data class QuestEndViewModel(

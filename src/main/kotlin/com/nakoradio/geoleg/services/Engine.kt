@@ -277,8 +277,7 @@ class Engine(
             state.questDeadline?.toEpochSecond(),
             currentQuest.fictionalCountdown,
             currentQuest.location?.lat,
-            currentQuest.location?.lon,
-            currentQuest.message
+            currentQuest.location?.lon
         )
     }
 
@@ -292,8 +291,7 @@ class Engine(
             expiresAt,
             forQuest.fictionalCountdown,
             forQuest.location?.lat,
-            forQuest.location?.lon,
-            forQuest.message
+            forQuest.location?.lon
         )
     }
 

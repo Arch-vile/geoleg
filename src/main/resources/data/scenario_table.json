@@ -111,7 +111,6 @@
           "order": 8,
           "sharedQrWithQuest": 4,
           "name": "Huippu 2",
-          "message": { "fiMessage": "Palaa puhelimelle" },
           "secret": "e359dec5aa1c",
           "countdown": 1600,
           "fictionalCountdown": 13033,
