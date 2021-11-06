@@ -311,7 +311,8 @@ class Engine(
         }
 
         var distance = distance(target, location)
-        if (distance > 100) {
+        // TODO: This needs to match what is in checkLocation.html (this value can be a bit larger to account of any small differences in distance calculation)
+        if (distance > 60) {
             logger.error("quest location [$target] location [$location] distance [$distance]")
             throw TechnicalError("Coordinates not matching QR location, try rescanning the QR")
         }

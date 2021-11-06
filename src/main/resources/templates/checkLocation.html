@@ -33,8 +33,6 @@
 <script>
   var startTime = new Date().getTime();
   var statusCounter = 0;
-  var latitudeHistory = [];
-  var longitudeHistory = [];
 
   const status = document.getElementById('status');
   const errorContainer = document.getElementById("errorContainer");
@@ -48,39 +46,21 @@
   function processNewLocation(position) {
     var lat = position.coords.latitude.toFixed(5);
     var lon = position.coords.longitude.toFixed(5);
-    console.log('Processing location: ' + lat + ',' + lon);
 
     updateDistance(lat, lon);
 
-    latitudeHistory.unshift(lat);
-    longitudeHistory.unshift(lon);
-
-    if (latitudeHistory.size > 3) {
-      latitudeHistory.pop();
-      longitudeHistory.pop();
-    }
-
+    // TODO: This needs to match what is in Engine.kt
     if (distance(lat, lon, targetLat, targetLon) < 50) {
-      sendLocation(lat, lon);
-    }
-
-    if (latitudeHistory[0] === latitudeHistory[1] && latitudeHistory[1] === latitudeHistory[2] &&
-        longitudeHistory[0] === longitudeHistory[1] && longitudeHistory[1]
-        === longitudeHistory[2]) {
       sendLocation(lat, lon);
     }
   }
 
   function checkElapsed() {
     const elapsed = new Date().getTime() - startTime;
-    if (elapsed > 20000) {
-      if (!latitudeHistory[0]) {
-        showError('Sijainnin saaminen ei onnistunut. Lataa sivu uudestaan.');
-      } else {
-        sendLocation(latitudeHistory[0], longitudeHistory[0]);
-      }
+    if (elapsed > 60000) {
+        showError('Olet liian kaukana kohteesta. Yritä uudelleen.');
     } else {
-
+      if(statusCounter < 3) {
       if (statusCounter % 4 == 0) {
         addStatus('Ajetaan diagnostiikka...', false);
       }
@@ -93,6 +73,11 @@
       if (statusCounter % 4 == 3) {
         addStatus('Jaetaan nollalla...', true);
       }
+      } else if(statusCounter == 3) {
+        addStatus('Olet liian kaukana kohteesta...',true)
+      } else {
+        addStatus('Olet liian kaukana kohteesta...',false)
+      }
 
       statusCounter++;
       setTimeout(checkElapsed, 5000);
@@ -102,10 +87,10 @@
   function addStatus(message, append) {
     var content = '';
     if (append) {
-      content += '<span class="green"> DONE</span><br>';
+      content += '<span class="green"> DONE</span>';
     }
 
-    content += '<span>' + message + '</span>';
+    content += '<br><span>' + message + '</span>';
     status.innerHTML = status.innerHTML + content;
   }
 
@@ -150,11 +135,9 @@
 
 <script>
   // Just for development
-  if (readLocation === "false") {
-    console.log("skip");
+  if (readLocation === "false" || !targetLat) {
     sendLocation(0, 0);
   } else {
-    console.log("read");
     getLocation(processNewLocation, processError);
     checkElapsed();
   }
