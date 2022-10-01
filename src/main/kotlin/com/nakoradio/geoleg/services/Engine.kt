@@ -94,6 +94,7 @@ class Engine(
         }
 
         var newState = state.copy(
+            scenarioStarted = if (currentQuest.order == 1) timeProvider.now() else state.scenarioStarted,
             questStarted = timeProvider.now(),
             currentQuest = questOrderToStart,
             questDeadline = questToStart.countdown?.let { timeProvider.now().plusSeconds(it) },

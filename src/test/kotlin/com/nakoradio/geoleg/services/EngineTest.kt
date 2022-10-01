@@ -99,7 +99,16 @@ internal class EngineTest {
         /**
          * SILTA quest
          */
-        state = startAndCompleteNextQuest(state)
+        // started the SILTA quests
+        action = startNextQuest(state)
+
+        // Then: We'll set the scenario start timestamp here
+        // as we started the first on field leg. Otherwise total
+        // time for scenario would be calculated including time
+        // needed to travel from home to the first on field quest.
+        assertThat(action.state!!.scenarioStarted, equalTo(now))
+
+        state = assertStartedAndThenCompleteIt(action, state, now)
 
         /**
          * KUUSI quest
@@ -161,25 +170,35 @@ internal class EngineTest {
     }
 
     private fun startAndCompleteNextQuest(currentState: State): State {
-        var state = currentState
-
         // When: User starts the quest
-        var action = startNextQuest(state)
+        var action = startNextQuest(currentState)
 
+        return assertStartedAndThenCompleteIt(action, currentState)
+    }
+
+    private fun assertStartedAndThenCompleteIt(
+        action: WebAction,
+        previousState: State
+    ) = assertStartedAndThenCompleteIt(action, previousState, null)
+
+    private fun assertStartedAndThenCompleteIt(
+        action: WebAction,
+        previousState: State,
+        scenarioStartedTime: OffsetDateTime?
+    ): State {
         // Then: Quest started
-        assertQuestStarted(action, state)
-        state = action.state!!
+        assertQuestStarted(action, previousState, scenarioStartedTime)
+        var newState = action.state!!
         tick()
 
         // When: User completes the quest
-        action = scanTargetQR(state)
+        var nextAction = scanTargetQR(newState)
 
         // Then: Quest completed
-        assertQuestCompleted(action, state)
-        state = action.state!!
+        assertQuestCompleted(nextAction, newState)
         tick()
 
-        return state
+        return nextAction.state!!
     }
 
     private fun tick() {
@@ -550,7 +569,7 @@ internal class EngineTest {
             val outcome = startQuest(currentState, nextQuest)
 
             // Then: Quest is started
-            assertQuestStarted(outcome, currentState, nextQuest)
+            assertQuestStarted(outcome, currentState, nextQuest, now)
         }
     }
 
@@ -1441,11 +1460,26 @@ internal class EngineTest {
             )
         )
     }
+    fun assertQuestStarted(
+        outcome: WebAction,
+        currentState: State,
+        scenarioStartedTime: OffsetDateTime?
+    ) {
+        assertQuestStarted(outcome, currentState, loader.nextQuest(currentState), scenarioStartedTime)
+    }
     fun assertQuestStarted(outcome: WebAction, currentState: State) {
-        assertQuestStarted(outcome, currentState, loader.nextQuest(currentState))
+        assertQuestStarted(outcome, currentState, loader.nextQuest(currentState), null)
+    }
+    fun assertQuestStarted(outcome: WebAction, currentState: State, questToStart: Quest) {
+        assertQuestStarted(outcome, currentState, questToStart, null)
     }
 
-    fun assertQuestStarted(outcome: WebAction, currentState: State, questToStart: Quest) {
+    fun assertQuestStarted(
+        outcome: WebAction,
+        currentState: State,
+        questToStart: Quest,
+        scenarioStartedTime: OffsetDateTime?
+    ) {
         assertThat(
             outcome,
             equalTo(
@@ -1461,16 +1495,23 @@ internal class EngineTest {
                         questToStart.location?.lat, questToStart.location?.lon
                     ),
                     // And: State is updated for the quest to start
-                    updatedStateForNewlyStartedQuest(currentState, questToStart)
+                    updatedStateForNewlyStartedQuest(currentState, questToStart, scenarioStartedTime)
                 )
             )
         )
     }
-
     private fun updatedStateForNewlyStartedQuest(
         currentState: State,
         questToStart: Quest
+    ) =
+        updatedStateForNewlyStartedQuest(currentState, questToStart, null)
+
+    private fun updatedStateForNewlyStartedQuest(
+        currentState: State,
+        questToStart: Quest,
+        scenarioStartedTime: OffsetDateTime?
     ) = currentState.copy(
+        scenarioStarted = scenarioStartedTime ?: currentState.scenarioStarted,
         currentQuest = questToStart.order,
         questStarted = timeProvider.now(),
         questDeadline = questToStart.countdown?.let {
